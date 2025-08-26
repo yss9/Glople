@@ -1,4 +1,4 @@
-<h1>Travien</h1>
+<h1>Glople</h1>
 
 Git Clone 후 application.properties 설정(Mysql)
 
