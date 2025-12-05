@@ -1,13 +1,13 @@
 # 🌍 Glople
 > **"나만의 여행, 현지 전문가와 함께 완성하다."** <br/>
-> MBTI & 키워드 기반 여행지 추천 및 현지 전문가(Glopler) 매칭 플랫폼 & 커뮤니티
+> MBTI & 키워드 기반 여행지 추천 및 예약 대행자(Glopler) 매칭 플랫폼
 
 ---
 
 ## 📖 프로젝트 소개 (Project Overview)
-**Glople**은 여행자가 자신의 성향(MBTI, 키워드)에 맞는 여행지를 추천받고, 해당 지역의 전문가인 **'글로플러(Glopler)'**와 매칭되어 개인화된 여행 경험을 제공받는 **매시업(Mashup) 기반 여행 플랫폼**입니다.
+**Glople**은 여행자가 자신의 성향(MBTI, 키워드)에 맞는 여행지를 추천받고, 해당 지역의 전문가인 **'글로플러**와 매칭되어 개인화된 여행 경험을 제공받는 **매시업(Mashup) 기반 여행 플랫폼**입니다.
 
-단순한 정보 검색을 넘어, **Google Maps API**와 **Wikipedia API**를 결합하여 시각적이고 풍부한 정보를 제공하며, **OpenAI(ChatGPT)**와 **Google Cloud TTS**를 활용한 스마트한 여행 상담 시스템을 구축했습니다. 또한 **Docker Compose**와 **Nginx**를 활용한 컨테이너 기반 아키텍처로 안정적인 서비스를 제공합니다.
+**Spring Boot**와 **React**를 기반으로 구축되었으며, **Nginx**를 리버스 프록시로 두어 단일 진입점에서 효율적인 라우팅을 처리합니다. 특히 **OpenAI, Google Cloud, Wikipedia** 등 다양한 외부 API를 백엔드에서 직접 연동하여 풍부한 여행 정보를 제공합니다.
 
 <br/>
 
@@ -20,146 +20,126 @@
 | **State Mgt** | Context API / Local State |
 | **Styling** | Styled-components, Ant Design |
 | **Libraries** | React-Quill (Web Editor), React-Beautiful-Dnd (Drag & Drop) |
+| **Map Integration** | **Google Maps JavaScript API** (Maps, Places Library) |
 
 ### ☕ Backend
 | Tech | Description |
 | :--- | :--- |
-| **Framework** | Spring Boot 3.x, Spring Security |
+| **Framework** | Spring Boot, Spring Security |
 | **Language** | **Java 17** |
-| **Database** | MySQL 8.0 (JPA/Hibernate), **Redis** (Cache/Session) |
-| **Communication** | **WebSocket (StompJS)**, REST API |
-| **Algorithm** | **Cosine Similarity** (User Recommendation) |
+| **Database** | MySQL 8.0 (JPA/Hibernate) |
+| **Communication** | **WebSocket (SimpleBroker)**, REST API |
+| **Algorithm** | **Cosine Similarity** (User Recommendation Algorithm) |
+| **Http Client** | **WebClient**, **RestTemplate** (for External APIs) |
 
 ### ☁️ Infra & DevOps
 | Tech | Description |
 | :--- | :--- |
-| **Gateway** | **Nginx** (Reverse Proxy & Load Balancing) |
+| **Gateway** | **Nginx** (Reverse Proxy) |
 | **Container** | **Docker**, **Docker Compose** |
-| **Storage** | AWS S3 (Image Storage) |
+| **File System** | **Local Volume** (Static Resources Storage) |
 
 ### 🌐 External APIs (Mashup)
 | Service | Usage |
 | :--- | :--- |
 | **OpenAI API** | GPT-3.5 Turbo 기반 실시간 AI 챗봇 상담 |
-| **Google Cloud TTS** | 텍스트 정보를 음성으로 변환하여 제공 (Accessibility) |
-| **Google Maps Platform** | Maps, Places, Geocoding API를 활용한 루트 시각화 |
-| **Wikipedia API** | 여행지 역사 및 상세 정보 실시간 파싱 및 제공 |
-| **OAuth 2.0** | Naver, Kakao, Google 소셜 로그인 연동 |
+| **Google Cloud API** | Speech-to-Text (음성 메시지 변환) |
+| **Google Places API** | (Backend) 장소 텍스트 검색 및 상세 정보 조회 |
+| **Wikipedia API** | 여행지 요약 정보 실시간 파싱 및 제공 |
 
 <br/>
 
 ## 🏗 시스템 아키텍처 (System Architecture)
-
 ```mermaid
-graph LR
+graph TD
     %% ==========================================
-    %% 1. 사용자 (진입점)
+    %% 1. 스타일 정의 (가독성 최적화)
     %% ==========================================
-    User(("👤 User"))
+    classDef user fill:#333333,stroke:#333333,stroke-width:2px,color:#ffffff
+    classDef gateway fill:#E8F5E9,stroke:#4CAF50,stroke-width:2px,color:#000000
+    classDef app fill:#E3F2FD,stroke:#2196F3,stroke-width:2px,color:#000000
+    classDef db fill:#E8EAF6,stroke:#3F51B5,stroke-width:2px,color:#000000
+    classDef storage fill:#FFF3E0,stroke:#FF9800,stroke-width:2px,color:#000000,stroke-dasharray: 5 5
+    classDef ext fill:#F3E5F5,stroke:#9C27B0,stroke-width:2px,color:#000000,stroke-dasharray: 5 5
 
     %% ==========================================
-    %% 2. [왼쪽] Glople 내부 시스템
-    %% ==========================================
-    subgraph Internal_System ["📘 Glople Docker Environment"]
-        direction TB
-        
-        %% Gateway
-        Nginx["🚦 Nginx<br>Gateway"]
-        
-        %% App Layer
-        subgraph Apps ["Application Layer"]
-            direction LR
-            React["⚛️ React<br>Client"]
-            Spring["☕ Spring Boot<br>Server"]
-        end
-        
-        %% Data Layer
-        MySQL[("🗄️ MySQL / Redis<br>Database")]
-    end
-
-    %% ==========================================
-    %% 3. [오른쪽] 외부 API (강제 가로 배치)
-    %% ==========================================
-    subgraph External_Services ["☁️ External APIs (3rd Party)"]
-        direction TB
-        
-        %% Frontend 연동
-        subgraph FE_Ext ["Frontend Integration"]
-            direction LR
-            GMap["🗺️ Google Maps"] ~~~ Daum["📮 Daum Postcode"]
-        end
-
-        %% Backend 연동
-        subgraph BE_Ext ["Backend Integration"]
-            direction LR
-            %% 보이지 않는 선(~~~)으로 가로 정렬 강제
-            OpenAI["🤖 OpenAI (GPT)"] ~~~ TTS["🗣️ Cloud TTS"] ~~~ Wiki["📚 Wikipedia"] ~~~ S3["☁️ AWS S3"] ~~~ OAuth["🔐 OAuth 2.0"]
-        end
-    end
-
-    %% ==========================================
-    %% 4. 데이터 흐름 (연결선)
+    %% 2. 구조 정의
     %% ==========================================
     
-    %% User -> System
+    %% 사용자
+    User((👤 User)):::user
+
+    %% Docker 환경 (메인 시스템)
+    subgraph Docker_Env ["📘 Glople Docker Environment"]
+        
+        %% 게이트웨이
+        Nginx["🚦 Nginx<br>(Gateway / Port 80)"]:::gateway
+
+        %% 애플리케이션 계층
+        subgraph App_Layer ["Application Layer"]
+            React["⚛️ React Client<br>(Frontend)"]:::app
+            Spring["☕ Spring Boot Server<br>(Backend API)"]:::app
+        end
+
+        %% 데이터 & 스토리지 계층
+        subgraph Data_Layer ["Data & Storage"]
+            MySQL[("🗄️ MySQL<br>(RDBMS)")]:::db
+            LocalFS["📂 Local Storage<br>(Images/Files)"]:::storage
+        end
+    end
+
+    %% 외부 API (매시업)
+    subgraph External_APIs ["☁️ External Services (Mashup)"]
+        OpenAI["🤖 OpenAI API<br>(Chatbot)"]:::ext
+        GoogleTTS["🗣️ Google Cloud<br>Speech-to-Text"]:::ext
+        Wiki["📚 Wikipedia API<br>(Info Parsing)"]:::ext
+        GPlaces["📍 Google Places API<br>(Data Search)"]:::ext
+        GMaps["🗺️ Google Maps JS<br>(Visualization)"]:::ext
+    end
+
+    %% ==========================================
+    %% 3. 연결 흐름
+    %% ==========================================
+
+    %% 진입
     User ==> Nginx
 
-    %% Internal Flow
-    Nginx --> React
-    Nginx --> Spring
-    Spring <==> MySQL
+    %% 라우팅
+    Nginx -->|"/ (Static)"| React
+    Nginx -->|"/api, /ws, /image"| Spring
 
-    %% React -> External
-    React -.-> GMap
-    React -.-> Daum
-
-    %% Spring -> External
-    Spring -.-> OpenAI
-    Spring -.-> TTS
-    Spring -.-> Wiki
-    Spring -.-> S3
-    Spring -.-> OAuth
-
-    %% ==========================================
-    %% 5. 스타일 정의
-    %% ==========================================
-    classDef user fill:#2d3436,stroke:#2d3436,stroke-width:2px,color:#ffffff
-    classDef internal fill:#e3f2fd,stroke:#2196f3,stroke-width:2px,color:#000000
-    classDef nginx fill:#e8f5e9,stroke:#4caf50,stroke-width:2px,color:#000000
-    classDef db fill:#e8eaf6,stroke:#3f51b5,stroke-width:2px,color:#000000
-    classDef ext fill:#fff3e0,stroke:#ff9800,stroke-width:2px,color:#000000,stroke-dasharray: 5 5
-    classDef box fill:#ffffff,stroke:#666666,stroke-width:2px,color:#000000
-
-    %% 클래스 적용
-    class User user
-    class Nginx nginx
-    class React,Spring internal
-    class MySQL db
-    class GMap,Daum,OpenAI,TTS,Wiki,S3,OAuth ext
+    %% 내부 로직
+    Spring <==>|"JPA"| MySQL
+    Spring -->|"File I/O"| LocalFS
     
-    %% 서브그래프 스타일
-    style Internal_System fill:#f5faff,stroke:#2196f3,stroke-width:2px
-    style External_Services fill:#fffbf5,stroke:#ff9800,stroke-width:2px
-```
+    %% 실시간 통신 (내장 브로커)
+    Spring -.->|"WebSocket<br>(SimpleBroker)"| React
 
+    %% Frontend -> External
+    React -.->|"Direct Load"| GMaps
+
+    %% Backend -> External (Integration)
+    Spring -.->|"WebClient"| OpenAI
+    Spring -.->|"Library"| GoogleTTS
+    Spring -.->|"RestTemplate"| Wiki
+    Spring -.->|"RestTemplate"| GPlaces
+```
 <br/>
 
 ## 🌟 핵심 기능 (Key Features)
-### 1. 🗺️ MBTI & 키워드 기반 코사인 유사도 추천
-- **알고리즘 구현:** 사용자 데이터(나이, 성별, MBTI)를 다차원 벡터로 변환하고, **코사인 유사도(Cosine Similarity)** 공식을 Java로 직접 구현하여 성향이 가장 비슷한 사용자의 여행 루트를 추천합니다.
-- **키워드 매칭:** 여행지 관련 키워드를 분석하여 사용자 취향에 딱 맞는 장소를 제안합니다.
+
+### 1. 🗺️ MBTI & 키워드 기반 추천 알고리즘
+- **자체 구현:** 사용자 데이터(나이, 성별, MBTI)를 벡터화하여 **코사인 유사도(Cosine Similarity)**를 계산, 성향이 유사한 사용자의 여행 루트를 추천하는 로직을 Java로 직접 구현했습니다.
 
 ### 2. 🤖 멀티모달(Multi-modal) 채팅 시스템
-- **실시간 통신:** **WebSocket(STOMP)** 프로토콜을 사용하여 여행자와 글로플러 간 지연 없는 1:1 채팅을 지원합니다.
-- **음성 인식(STT):** 사용자가 전송한 음성 파일(.wav)을 **Google Cloud Speech API**로 전송하여 텍스트로 변환하는 기능을 제공합니다.
-- **AI 챗봇:** **OpenAI API**를 연동하여 24시간 여행 관련 질문에 응답하는 챗봇 '글로'를 구현했습니다.
+- **실시간 통신:** **WebSocket(STOMP)**과 Spring 내장 브로커를 사용하여 여행자와 글로플러 간 지연 없는 채팅을 지원합니다.
+- **AI & 음성:** **OpenAI API**를 연동한 챗봇 상담과, **Google Cloud STT**를 활용한 음성-텍스트 변환 기능을 제공합니다.
 
 ### 3. 📍 Google Maps & Wikipedia 매시업
-- **루트 설계:** **Google Places API**로 장소를 검색하고, Drag & Drop으로 경유지 순서를 변경하면 **Maps API**가 최적의 동선을 지도에 그려줍니다.
-- **정보 연동:** 특정 장소를 클릭하면 **Wikipedia API**를 호출하여 해당 장소의 역사적 배경과 설명을 자동으로 불러옵니다.
+- **데이터 통합:** 프론트엔드의 지도 시각화뿐만 아니라, 백엔드(`PlaceController`)에서도 **Google Places API**를 호출하여 장소 데이터를 수집하고, **Wikipedia API**를 통해 역사/문화 정보를 통합 제공합니다.
 
 ### 4. 🤝 예약 및 포인트 시스템
-- **프로세스 시각화:** [매칭 요청 -> 대행 진행 -> 입금 확인 -> 여행 완료]의 4단계 예약 진행 상황을 직관적인 UI로 제공합니다.
-- **포인트 거래:** 유저와 글로플러 간의 안전한 거래를 위해 내부 포인트 차감/적립 로직을 트랜잭션 단위로 처리합니다.
+- **프로세스 관리:** [매칭 -> 진행 -> 입금 -> 완료]의 예약 단계를 상태값(`progress`)으로 관리합니다.
+- **트랜잭션:** 포인트 차감 및 적립 로직(`PointsHistory`)을 트랜잭션으로 묶어 데이터 무결성을 보장합니다.
 
 <br/>
