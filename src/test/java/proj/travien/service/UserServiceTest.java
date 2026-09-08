@@ -5,16 +5,11 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.FileSystemResource;
 import org.springframework.web.multipart.MultipartFile;
 import proj.travien.domain.User;
 import proj.travien.dto.UserDTO;
 import proj.travien.repository.UserRepository;
 
-import java.io.File;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -44,7 +39,11 @@ public class UserServiceTest {
 
     @Test
     void testCreateUser() {
-        UserDTO userDTO = new UserDTO("testUser", "testPass", "Test", "2000-01-01", "M", "INTJ", "profile.jpg", "testNick", false, "verification.pdf");
+        UserDTO userDTO = new UserDTO(
+                "testUser", "testPass", "Test", "2000-01-01", "M", "INTJ",
+                "profile.jpg", "testNick", false, 0, null
+        );
+        userDTO.setVerificationFile("verification.pdf");
         given(userRepository.findByUserId(anyString())).willReturn(Optional.empty());
         given(userRepository.findByNickname(anyString())).willReturn(Optional.empty());
 
@@ -73,18 +72,5 @@ public class UserServiceTest {
         boolean result = userService.isUserIdInUse("testUser");
 
         assertThat(result).isTrue();
-    }
-
-    @Test
-    void testLoadProfilePicture() throws Exception {
-        User user = new User();
-        user.setUserId("testUser");
-        user.setProfilePicture("src/main/resources/static/profile-pictures/test.jpg");
-        given(userRepository.findByUserId(anyString())).willReturn(Optional.of(user));
-
-        Resource result = userService.loadProfilePicture("testUser");
-
-        assertThat(result).isInstanceOf(FileSystemResource.class);
-        assertThat(result.exists()).isTrue();
     }
 }

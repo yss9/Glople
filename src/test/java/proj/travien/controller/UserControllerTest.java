@@ -8,6 +8,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.multipart.MultipartFile;
 import proj.travien.jwt.JwtUtil;
+import proj.travien.domain.Role;
 import proj.travien.domain.User;
 import proj.travien.dto.UserDTO;
 import proj.travien.service.UserService;
@@ -35,7 +36,6 @@ public class UserControllerTest {
 
     @Test
     void testSignUp() throws Exception {
-        UserDTO userDTO = new UserDTO("testUser", "testPass", "Test", "2000-01-01", "M", "INTJ", "profile.jpg", "testNick", false, "verification.pdf");
         given(userService.isUserIdInUse(anyString())).willReturn(false);
         given(userService.isNicknameInUse(anyString())).willReturn(false);
         given(userService.createUser(any(UserDTO.class), any(MultipartFile.class), any(MultipartFile.class))).willReturn(true);
@@ -49,9 +49,13 @@ public class UserControllerTest {
 
     @Test
     void testLogin() throws Exception {
-        UserDTO userDTO = new UserDTO("testUser", "testPass", null, null, null, null, null, null, false, null);
-        given(userService.login(anyString(), anyString())).willReturn(new User());
-        given(jwtUtil.generateToken(Long.valueOf(anyString()), anyString())).willReturn("token");
+        User user = new User();
+        user.setId(1L);
+        user.setUserId("testUser");
+        user.setNickname("testNick");
+        user.setRole(Role.ROLE_USER);
+        given(userService.login(anyString(), anyString())).willReturn(user);
+        given(jwtUtil.generateToken(1L, "testUser", "testNick", Role.ROLE_USER)).willReturn("token");
 
         mockMvc.perform(post("/api/users/login")
                         .contentType(MediaType.APPLICATION_JSON)
