@@ -118,6 +118,20 @@ cp results/report.md results/report_human.md
 사람 말투 평가 세트의 구성, 난이도별 정확도를 보는 방법, 라벨 규칙은 [`eval_sets/README.md`](eval_sets/README.md)에 있습니다.
 v1 모델이 지역 없는 박물관·미술관 요청(평가 세트 7번 줄)을 되묻는다면 위의 v1 라벨 충돌 때문일 수 있습니다.
 
+2~4단계는 [`run_v2.sh`](run_v2.sh) 하나로 돌릴 수 있습니다(`caffeinate -i bash training/run_v2.sh`). 평가 하나가 실패해도 나머지 평가는 계속합니다. 비교표는 `results/report_v2_test.md`, `results/report_human_v2.md`로 남기고, `results/report.md`는 밤샘 v1 비교표(`report_test.md`)로 되돌립니다. 실행 중에는 이 스크립트를 고치지 마세요(bash가 실행 중에도 파일을 이어서 읽습니다).
+
+## API 서버로 띄우기
+
+에이전트(로드맵 4)는 파인튜닝한 모델을 OpenAI 호환 API로 부릅니다. [`scripts/serve.sh`](scripts/serve.sh)가 `mlx_lm.server`를 `127.0.0.1`에 띄우고, 도구 호출은 응답의 `choices[0].message.tool_calls`에 담깁니다. 학습이 GPU를 쓰는 동안에는 띄우지 마세요.
+
+```bash
+cd training
+bash scripts/serve.sh                                         # v1 어댑터, 8090 포트
+bash scripts/serve.sh adapters/qwen3-4b-tool-calling-v2 8091  # v2 어댑터
+# 서버 응답을 evaluate.py와 같은 기준으로 채점해 로컬 평가와 어긋나지 않는지 확인
+.venv/bin/python scripts/check_server.py --data data/tool_calling/test.jsonl --limit 30
+```
+
 ## 파일
 
 - [`scripts/prepare_model.py`](scripts/prepare_model.py): 4bit 가중치는 그대로 두고 채팅 템플릿만 공식 것으로 바꾼 로컬 모델 폴더 생성. 변환본 템플릿은 응답 앞에 빈 `<think></think>`를 넣어서, 그대로 학습하면 매번 빈 think 블록을 출력하도록 배웁니다.
@@ -127,4 +141,6 @@ v1 모델이 지역 없는 박물관·미술관 요청(평가 세트 7번 줄)�
 - [`configs/qwen3-4b-lora-v2.yaml`](configs/qwen3-4b-lora-v2.yaml): v2 데이터 학습 설정 (`data`, `adapter_path`만 다름)
 - [`scripts/evaluate.py`](scripts/evaluate.py): 호출 여부 판단, 도구 이름, 도구+인자 완전 일치, JSON 오류율 측정
 - [`scripts/report.py`](scripts/report.py): 기본 모델과 파인튜닝 모델 비교표
+- [`run_v2.sh`](run_v2.sh): v2 학습과 기본·v1·v2 비교 평가를 한 번에 실행
+- [`scripts/serve.sh`](scripts/serve.sh), [`scripts/check_server.py`](scripts/check_server.py): OpenAI 호환 서버 실행과 서버 응답 채점
 - [`eval_sets/`](eval_sets/README.md): 사람 말투 평가 세트 90개(`human_style.jsonl`)와 라벨링 규칙(`labeling_rules.md`)
