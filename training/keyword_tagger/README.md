@@ -4,22 +4,34 @@
 서버의 [`KeywordMask.fromDescription`](../../src/main/java/proj/travien/service/KeywordMask.java)은 설명문에 키워드 글자가 들어 있으면(`description.contains(keyword)`) 그 키워드를 붙입니다. 그래서 '성'은 '성당'·'조성된'에도, '산'은 '산책로'에도, '강'은 '강화군'에도 붙습니다. 반대로 '역사적인 장소'·'경치'처럼 설명문에 그 글자가 그대로 나오지 않는 키워드는 거의 붙지 않습니다.
 그래서 국내(TourAPI) 여행지에는 규칙을 하나 더 두었습니다. `DestinationInfo.refreshKeywordMask`는 `source=TOUR_API`인 행에 `KeywordMask.fromKoreanDescription`을 씁니다. 한 글자 키워드(산, 섬, 성, 탑, 강)는 독립된 단어이거나 정해진 조사만 붙었을 때만 붙이고, 나머지 키워드는 `fromDescription`과 같습니다. 이 폴더는 두 규칙을 학습한 모델로 바꾸기 위한 데이터, 기준선, 학습 스크립트를 담습니다.
 
-> 현재 상태: 데이터 정리, 기준선 측정(규칙 두 개), 학습 스크립트, CPU 스모크 테스트까지 끝났습니다. **본 학습(klue/roberta-base)은 아직 돌리지 않았습니다.** 자동 실행이 예약되어 있습니다. 대기 스크립트(`kt_after_mlx.sh`, 세션 임시 폴더에 있음)가 `training/run_overnight.sh`의 MLX 학습(08:45쯤까지 GPU 사용)과 그 뒤의 평가·리포트가 모두 끝나 `run_overnight.sh`가 종료되기를 기다렸다가 `--device mps --run-name roberta-base`로 본 학습을 시작합니다. 학습이 성공하면 `python3 -I scripts/compare.py results/roberta-base.json > results/roberta-base.compare.md`로 비교표를 만듭니다. 결과는 `results/roberta-base.json`, `results/roberta-base.compare.md`, 모델은 `outputs/roberta-base/`, 실행 로그는 `outputs/auto_run.log`에 남습니다. 모델을 서버(Java)에 연동하는 작업은 아직입니다.
+> 현재 상태 (2026-10-17): 1차 배치(1,083개)로 `klue/roberta-base` 본 학습을 마쳤습니다(MPS, 10에폭, 약 20분, 로그 `outputs/auto_run.log`). test 163개에서 micro F1은 0.530으로 국내 규칙(0.409)보다 높지만, macro F1은 0.170으로 국내 규칙(0.392)보다 낮습니다([`results/roberta-base.compare.md`](results/roberta-base.compare.md), [아래](#1차-배치로-학습한-결과-roberta-base)). 그 뒤 여러 지역의 2차 배치 851개를 라벨에 합쳤고, 분할·기준선·학습 스크립트·비교표를 2차 배치에 맞게 고친 뒤 CPU 스모크 테스트를 했습니다. **2차 배치를 넣은 재학습(`roberta-base-v2`)은 아직 돌리지 않았습니다.** 지금은 `training/run_v2.sh`의 MLX LoRA 학습이 GPU를 쓰고 있으므로, 그 학습이 끝난 뒤 [실행](#실행)의 4), 5)를 돌리면 됩니다. 모델을 서버(Java)에 연동하는 작업도 아직입니다.
 
 ## 데이터
 
-| 항목 | 내용 |
-| :-- | :-- |
-| 설명문 | 1,083개. 한국관광공사 TourAPI 관광정보의 `overview`를 Neoulteo 프로젝트 DB 덤프에서 가져옴. 서울 834 · 인천 213 · 광주 34 · 주소 없음 2, 관광 타입은 관광지(12)가 1,080개 |
-| 라벨 | AI 라벨러(Claude)가 아래 가이드로 붙인 기본 라벨 1,083개 + 같은 가이드로 따로 붙인 교차 라벨 99개 |
-| 키워드 | [`keywords.json`](keywords.json) 94개, `KeywordMask`와 같은 순서 |
-| 분할 | id 정렬 후 `random.Random(13)`으로 섞어 train 758 / valid 162 / test 163 ([`labels/splits.json`](labels/splits.json)) |
+| 항목 | 1차 배치 | 2차 배치 |
+| :-- | :-- | :-- |
+| 설명문 | 1,083개. 한국관광공사 TourAPI 관광정보의 `overview`를 Neoulteo 프로젝트 DB 덤프에서 가져옴(`data/descriptions.jsonl`). 서울 834 · 인천 213 · 광주 34 · 주소 없음 2, 관광 타입은 관광지(12)가 1,080개 | 851개. 2026-10-17에 TourAPI에서 받아 로컬 DB(`destination_info`, `source=TOUR_API`)에 들어온 설명문(`data/db_descriptions.jsonl`). 모두 관광지(12). 경북 177 · 경남 136 · 강원 122 · 경기 94 · 전남광주 92 · 충남 68 · 전북 58 · 제주 33 · 충북 22 · 부산 15 · 울산 12 · 대구 9 · 인천 6 · 대전 3 · 세종 2 · 서울 2 |
+| 라벨 | AI 라벨러(Claude)가 아래 가이드로 붙인 기본 라벨 1,083개 + 같은 가이드로 따로 붙인 교차 라벨 99개 | 같은 가이드로 붙인 기본 라벨 851개 + 교차 라벨 78개(라벨 파일 6개에서 13개씩) |
+| 항목당 키워드 | 평균 3.39개, 빈 라벨 55개 | 평균 4.26개, 빈 라벨 3개 |
+| 교차 라벨 일치도 (micro F1) | 0.920 | 0.900 |
+| 분할 | train 758 / valid 162 / test 163 | train 596 / valid 128 / test_new 127 |
+
+키워드는 두 배치 모두 [`keywords.json`](keywords.json) 94개(`KeywordMask`와 같은 순서)입니다. 각 id가 몇 차 배치인지와 배치별 출처는 [`labels/batches.json`](labels/batches.json)에 있습니다. [`labels/gold_labels.jsonl`](labels/gold_labels.jsonl)은 예전처럼 `{"id","keywords"}`만 담고, 1차 1,083행(예전과 같은 내용) 뒤에 2차 851행을 붙인 것입니다.
 
 **이 라벨은 사람이 검수한 정답이 아닙니다.** AI가 만든 silver 라벨을 정답처럼 쓰는 것이라, 아래 숫자는 모두 "AI 라벨과 얼마나 같은가"를 잰 값입니다. 교차 라벨도 같은 계열 모델이 붙였기 때문에 두 라벨러가 같은 방향으로 틀린 부분은 일치도에 드러나지 않습니다.
 
+### 2차 배치 출처
+
+- **수집**: TourAPI에서 실시간으로 받아 로컬 MySQL(`glople-mysql`의 `destination_info`)에 쌓인 설명문을 [`scripts/export_from_db.py`](scripts/export_from_db.py)로 `data/db_descriptions.jsonl`에 꺼냈습니다(2026-10-17). 그중 1차에 없는 TourAPI 설명문 851개가 2차 배치입니다.
+- **본문 대조**: 라벨러에게 준 본문은 `data/chunks_v2/all_new.jsonl`(`part_00`~`part_05`, 142개씩)입니다. [`scripts/prepare_data.py`](scripts/prepare_data.py)는 2차 본문을 `db_descriptions.jsonl`에서 읽고, 이 파일과 id·제목·본문이 모두 같은지 확인합니다(851개 모두 같음). DB를 다시 꺼내 본문이 바뀌면 라벨과 본문이 어긋나므로 멈춥니다.
+- **1차 본문은 그대로**: 1차 1,083개 중 977개는 지금 DB에도 있고, 그중 75개는 DB 설명문이 1차 덤프와 다릅니다. 1차는 라벨을 붙인 원래 본문(`data/descriptions.jsonl`)을 계속 씁니다.
+- **표본 치우침**: 제목이 '가'~'공'으로 시작하는 곳(가거도 … 공전자연학교)만 들어 있습니다. 지금까지 DB에 들어온 1차 밖 TourAPI 설명문이 모두 이 범위라서, 무작위 표본이 아닙니다.
+- **저작권 표시**(`copyright_type`): Type1 354개, Type3 420개, 없음 77개. TourAPI 기준으로 Type1은 공공누리 제1유형(출처표시), Type3은 제3유형(출처표시+변경금지)입니다. 설명문 원문은 `data/`에만 있고 커밋하지 않습니다.
+- **해외 여행지는 아직 라벨 없음**: `db_descriptions.jsonl`에는 해외(`source=WIKIDATA`, 한국어 위키백과 CC BY-SA 4.0 / Wikidata CC0) 설명문 7,579개도 들어 있지만, **라벨을 붙이지 않았고** 학습·평가에 쓰지 않습니다.
+
 ### 라벨링 가이드 (요약)
 
-판단 기준은 "사용자가 키워드 추천 화면에서 이 키워드를 골랐을 때 이 여행지가 나오면 만족할까"입니다. 설명문에 그 글자가 있는지가 아니라 여행지의 실제 성격으로 판단합니다(예: '성'은 성곽·성채일 때만, '성당'·'성산'·'정성'에는 붙이지 않음).
+1차와 2차 모두 같은 가이드를 썼습니다. 판단 기준은 "사용자가 키워드 추천 화면에서 이 키워드를 골랐을 때 이 여행지가 나오면 만족할까"입니다. 설명문에 그 글자가 있는지가 아니라 여행지의 실제 성격으로 판단합니다(예: '성'은 성곽·성채일 때만, '성당'·'성산'·'정성'에는 붙이지 않음).
 
 1. 94개 키워드 중에서만 철자 그대로 고른다.
 2. 보통 1~6개, 맞는 키워드가 없으면 빈 배열.
@@ -30,34 +42,62 @@
 
 ### 라벨 검증과 일치도
 
-[`scripts/prepare_data.py`](scripts/prepare_data.py)가 모든 설명문에 기본 라벨이 정확히 하나씩 있고 키워드가 목록 안에 있는지 확인한 뒤 병합합니다. 문제는 없었습니다. 빈 라벨은 55개(어린이공원·근린공원, 스파·뷰티 매장, 방송사 견학, 체험관 등), 항목당 평균 3.39개입니다. 15개 키워드(사막, 사파리, 열기구, 원숭이, 탐험, 협곡, 지열, 빙하, 설산, 호랑이, 낙타, 열대우림, 서핑, 산호, 설경)는 한 번도 쓰이지 않았습니다.
+[`scripts/prepare_data.py`](scripts/prepare_data.py)는 배치마다 모든 설명문에 기본 라벨이 정확히 하나씩 있는지, 키워드가 목록 안에 있고 같은 키워드가 반복되지 않는지 확인합니다. 2차는 그 id가 DB 추출본(TOUR_API)에 있는지, 1차와 id가 겹치지 않는지, 라벨러에게 준 본문과 DB 본문이 같은지도 봅니다. 문제가 하나라도 있으면 아무 파일도 쓰지 않고 멈춥니다(중복 라벨, 목록에 없는 키워드, 빠진 라벨, 1차와 겹치는 id, 본문 변경을 하나씩 넣어 멈추는 것을 확인함). 두 배치 모두 문제는 없었습니다.
 
-교차 라벨 99개를 기본 라벨과 비교한 결과입니다([`results/agreement.json`](results/agreement.json), 기본 라벨을 기준으로 계산).
+- 1차: 빈 라벨 55개(어린이공원·근린공원, 스파·뷰티 매장, 방송사 견학, 체험관 등), 항목당 평균 3.39개.
+- 2차: 빈 라벨 3개(고양드론앵커센터, 강릉종합사회복지관, 강문해변화장실), 항목당 평균 4.26개. 산·바다·유적처럼 키워드가 많이 붙는 지방 자연·유적이 많고, 같은 교차 표본에서도 2차 기본 라벨이 교차 라벨보다 많이 붙였습니다(아래 표).
+- 두 배치를 합쳐도 10개 키워드(사막, 사파리, 열기구, 지열, 빙하, 설산, 호랑이, 낙타, 열대우림, 산호)는 한 번도 쓰이지 않았습니다. 1차에서 쓰이지 않던 원숭이(1, 경주 버드파크), 탐험(1, 고씨굴), 협곡(3), 서핑(1, 거북섬), 설경(6, 겨울 설경을 내세운 산)은 2차에서 처음 나왔습니다.
 
-| 지표 | 값 |
-| :-- | --: |
-| micro 정밀도 / 재현율 / F1 | 0.927 / 0.914 / 0.920 |
-| macro F1 | 0.914 |
-| 항목별 Jaccard 평균 | 0.838 |
-| 키워드 집합 완전 일치율 | 0.596 |
+교차 라벨을 기본 라벨과 비교한 결과입니다(기본 라벨을 정답으로, 교차 라벨을 예측으로 놓고 계산). 1차는 [`results/agreement.json`](results/agreement.json)(예전과 같은 파일), 2차는 [`results/agreement_batch2.json`](results/agreement_batch2.json)에 같은 형식으로 있습니다.
 
-불일치가 많은 키워드: 야외 활동(6), 문화(4), 자연(4), 레크리에이션(4), 역사(3), 건축(3), 스포츠(3), 유적(3). 대부분 근린공원·체험시설처럼 가이드 기준이 느슨한 유형에서 나옵니다.
+| 지표 | 1차 (교차 99개) | 2차 (교차 78개) |
+| :-- | --: | --: |
+| micro 정밀도 / 재현율 / F1 | 0.927 / 0.914 / 0.920 | 0.951 / 0.855 / 0.900 |
+| macro F1 | 0.914 | 0.862 |
+| 항목별 Jaccard 평균 | 0.838 | 0.812 |
+| 키워드 집합 완전 일치율 | 0.596 | 0.449 |
+| 항목당 키워드 수 (기본 / 교차) | 3.515 / 3.465 | 4.064 / 3.654 |
+
+- 1차에서 불일치가 많은 키워드: 야외 활동(6), 문화(4), 자연(4), 레크리에이션(4), 역사(3), 건축(3), 스포츠(3), 유적(3). 대부분 근린공원·체험시설처럼 가이드 기준이 느슨한 유형에서 나옵니다.
+- 2차는 교차 라벨이 키워드를 덜 붙여 재현율(0.855)이 정밀도(0.951)보다 낮습니다. 불일치가 많은 키워드는 야외 활동(8, 그중 7건은 기본 라벨에만), 경치(7), 산(6, 모두 기본 라벨에만), 건축·사찰·역사적인 장소(각 3)입니다. 산은 마을·다원·사찰 설명에 주변 산이 나올 때(고로쇠마을(미산마을), 가탄마을, 강진다원, 고림사 등), 사찰은 절터(경주 황룡사지, 경주 인왕동 사지)와 간월도마을에 기본 라벨만 붙였습니다. 가이드 3번(주변 명소·지나가는 언급 제외)과 '터는 유적' 기준으로 보면 기본 라벨이 넓게 붙인 경우로 보여서, 사람이 볼 사례입니다.
+
+### 분할
+
+2차 배치를 넣은 뒤에도 예전 결과와 비교할 수 있도록 1차 분할은 그대로 둡니다. 두 배치를 각각 id 문자열 정렬 → `random.Random(13)` 셔플 → 70/15/15로 나눈 뒤 이렇게 합칩니다([`labels/splits.json`](labels/splits.json)).
+
+| 분할 | 1차 | 2차 | 합계 | 용도 |
+| :-- | --: | --: | --: | :-- |
+| train | 758 | 596 | 1,354 | 학습 |
+| valid | 162 | 128 | 290 | best 에폭과 임계값 선택 |
+| test | 163 | - | 163 | 예전과 같은 목록. 이전 결과(`roberta-base`)와 비교 |
+| test_new | - | 127 | 127 | 2차(여러 지역)만 따로 평가. `test`에 섞지 않음 |
+
+- `splits.json`의 `train`·`valid`는 1차 목록(예전과 같은 순서) 뒤에 2차 id를 붙인 것이고, `sizes_by_batch`에 배치별 개수가 있습니다. `prepare_data.py`는 돌릴 때마다 1차 분할이 기존 `splits.json`과 같은지 확인하고, 다르면 멈춥니다.
+- `kt_common.load_splits()`는 `test_new`가 있으면 함께 돌려주고, `test_new`가 없는 예전 `splits.json`도 그대로 읽습니다. `data/gold.jsonl` 각 행에는 `batch`(1 또는 2)가 있고, 없으면 1차로 봅니다(`kt_common.row_batch`). 커밋된 파일만 있을 때는 `kt_common.load_batches()`가 `labels/batches.json`에서 id별 배치를 돌려줍니다.
+- test_new 127개는 경북 24 · 경기 22 · 전남광주 18 · 경남 16 · 강원 12 · 전북 10 · 충남 8 · 부산 4 등입니다.
 
 ### 분할별 빈도
 
-[`results/label_stats.json`](results/label_stats.json)에 키워드별 train/valid/test 빈도가 있습니다. 가장 많은 키워드는 역사(403), 역사적인 장소(278), 자연(253), 경치(207), 문화(147)입니다.
+[`results/label_stats.json`](results/label_stats.json)에 키워드별 train/valid/test/test_new 빈도와 배치별 빈도(`batch1`, `batch2`)가 있습니다. 전체에서 가장 많은 키워드는 역사(748), 자연(579), 역사적인 장소(516), 경치(512), 전통(290)입니다. 2차 배치는 지방의 자연·유적이 많아 바다(1차 76 → 2차 156), 해안(54 → 103), 고대 유적(16 → 77), 휴양지(8 → 34), 화산(1 → 19, 제주 오름)이 늘었고, 도시(112 → 7), 문화(147 → 54), 공연(33 → 7)은 줄었습니다.
 
-- 학습 예시 0개 (17개, 라벨 공간에서 제외): 사막, 사파리, 열기구, 원숭이, 탐험, 카누, 협곡, 지열, 모스크, 빙하, 설산, 호랑이, 낙타, 열대우림, 서핑, 산호, 설경. 모스크(2)와 카누(1)는 valid에만 있습니다.
-- 학습 예시 1~4개 (20개, 사실상 학습이 어려움): 운하·전통 마을·휴양지·폭포(4), 온천욕·아치·철도 여행(3), 보트·야생동물·동굴·하늘(2), 와인·미로·대성당·온천·다이빙·스노클링·화산·빙벽·보트 투어(1).
+- 학습 예시 0개 (12개, 라벨 공간에서 제외): 사막, 사파리, 열기구, 지열, 빙하, 설산, 호랑이, 낙타, 열대우림, 산호(두 배치 모두 없음), 모스크(valid 2), 원숭이(valid 1). 1차만 쓸 때의 17개에서 탐험·카누·협곡·서핑·설경이 빠졌습니다.
+- 학습 예시 1~4개 (12개, 사실상 학습이 어려움): 보트·운하·아치(4), 대성당·스노클링(2), 협곡·미로·와인·카누·탐험·서핑·빙벽(1). 1차만 쓸 때는 20개였습니다.
 
 ## 학습 전 기준선 (규칙 두 개)
 
-[`scripts/baseline.py`](scripts/baseline.py)는 서버의 두 규칙을 파이썬으로 그대로 옮겨(`scripts/kt_common.py`의 `substring_predict`, `korean_rule_predict`) TourAPI `overview`에 적용합니다. macro는 평가 집합에 한 번 이상 나온 키워드만 평균합니다. 결과는 [`results/baseline.json`](results/baseline.json)에 있습니다. 위쪽 키(`test`, `all`, `examples` 등)는 부분 문자열 규칙 그대로이고, 국내 규칙은 `korean_rule`, 한 글자 키워드 비교는 `single_char_keyword_effect`에 있습니다.
+[`scripts/baseline.py`](scripts/baseline.py)는 서버의 두 규칙을 파이썬으로 그대로 옮겨(`scripts/kt_common.py`의 `substring_predict`, `korean_rule_predict`) TourAPI `overview`에 적용합니다. macro는 평가 집합에 한 번 이상 나온 키워드만 평균합니다. 결과는 [`results/baseline.json`](results/baseline.json)에 있습니다. 위쪽 키(`test`, `test_new`, `all`, `all_by_batch`, `examples` 등)는 부분 문자열 규칙 그대로이고, 국내 규칙은 `korean_rule`, 한 글자 키워드 비교는 `single_char_keyword_effect`에 같은 이름의 키로 있습니다.
+
+- `test`는 1차 test 163개라 2차 배치를 넣기 전과 숫자가 같습니다(다시 돌려 확인함). `test_new`는 2차 test 127개입니다.
+- `all`은 이제 두 배치를 합친 1,934개입니다. 예전 `all`(1차 1,083개)의 숫자는 `all_by_batch["1"]`에 그대로 있고, 2차 전체 851개는 `all_by_batch["2"]`입니다.
+- 키워드별 지표(`per_keyword`)는 전체 기준 상위 15개(`top_keywords`)에, 1차 기준 상위 15개(`top_keywords_batch1`) 중 빠진 도시·사원·기념물을 더한 18개입니다. 그래서 예전 test의 키워드별 숫자도 그대로 남아 있습니다.
+- 오탐·누락 예시(`examples`)는 아래 표와 맞도록 예전처럼 1차 배치에서만 고릅니다.
 
 - **부분 문자열**: `KeywordMask.fromDescription`. `keyword in overview`, 빈 설명문은 빈 집합. 기존 해외 여행지에 쓰는 규칙입니다.
 - **국내 규칙**: `KeywordMask.fromKoreanDescription`. 서버가 TourAPI 여행지에 지금 쓰는 규칙이라 모델과 비교할 실제 기준은 이쪽입니다. 한 글자 키워드는 키워드 글자가 나오는 자리마다 앞 글자가 한글 음절(U+AC00~U+D7A3)이 아니고, 뒤에 이어지는 한글 음절 덩어리가 없거나 조사 21개(은, 이, 을, 과, 의, 에, 에서, 에는, 에도, 으로, 으로는, 까지, 부터, 처럼, 이다, 이며, 이고, 이자, 이나, 이라는, 이었다) 중 하나일 때만 인정합니다. 두 글자 이상 키워드는 부분 문자열 규칙과 같습니다.
 
-| 지표 | test 부분 문자열 | test 국내 규칙 | 전체 부분 문자열 | 전체 국내 규칙 |
+### 1차 배치 (test 163개, 1차 전체 1,083개)
+
+| 지표 | test 부분 문자열 | test 국내 규칙 | 1차 전체 부분 문자열 | 1차 전체 국내 규칙 |
 | :-- | --: | --: | --: | --: |
 | micro 정밀도 | 0.335 | 0.516 | 0.343 | 0.529 |
 | micro 재현율 | 0.382 | 0.338 | 0.381 | 0.336 |
@@ -69,15 +109,31 @@
 | 항목별 Jaccard 평균 | 0.204 | 0.277 | 0.216 | 0.280 |
 | 항목당 예측 키워드 수 (정답 평균 3.26 / 3.39) | 3.72 | 2.14 | 3.77 | 2.16 |
 
-test는 163개, 전체는 1,083개입니다. 국내 규칙은 한 글자 키워드의 오탐을 크게 줄여 micro 정밀도가 0.335에서 0.516으로 오르고 micro F1도 0.357에서 0.409로 오릅니다. 대신 '북한산'·'한강'처럼 이름에 붙은 한 글자 키워드를 놓쳐 재현율이 떨어지고, 키워드마다 똑같이 평균하는 macro F1은 test에서 거의 그대로입니다(0.394 → 0.392). 바뀌는 것은 산·섬·성·탑·강 다섯 개뿐이고 나머지 89개 키워드의 예측은 두 규칙이 같습니다.
+test는 163개, 1차 전체는 1,083개입니다. 국내 규칙은 한 글자 키워드의 오탐을 크게 줄여 micro 정밀도가 0.335에서 0.516으로 오르고 micro F1도 0.357에서 0.409로 오릅니다. 대신 '북한산'·'한강'처럼 이름에 붙은 한 글자 키워드를 놓쳐 재현율이 떨어지고, 키워드마다 똑같이 평균하는 macro F1은 test에서 거의 그대로입니다(0.394 → 0.392). 바뀌는 것은 산·섬·성·탑·강 다섯 개뿐이고 나머지 89개 키워드의 예측은 두 규칙이 같습니다.
 
 모델 입력과 같게 `title + overview`에 부분 문자열 규칙을 적용해도 test micro F1은 0.356으로 거의 같습니다.
 
+### 2차 배치 (test_new 127개)와 전체 1,934개
+
+| 지표 | test_new 부분 문자열 | test_new 국내 규칙 | 전체 부분 문자열 | 전체 국내 규칙 |
+| :-- | --: | --: | --: | --: |
+| micro 정밀도 | 0.390 | 0.567 | 0.355 | 0.544 |
+| micro 재현율 | 0.391 | 0.362 | 0.374 | 0.335 |
+| micro F1 | **0.390** | **0.442** | 0.364 | 0.414 |
+| macro 정밀도 | 0.475 | 0.517 | 0.481 | 0.500 |
+| macro 재현율 | 0.498 | 0.470 | 0.490 | 0.459 |
+| macro F1 | **0.416** | **0.439** | 0.398 | 0.405 |
+| 키워드 집합 완전 일치율 | 0.000 | 0.032 | 0.006 | 0.037 |
+| 항목별 Jaccard 평균 | 0.237 | 0.280 | 0.218 | 0.270 |
+| 항목당 예측 키워드 수 (정답 평균 4.43 / 3.77) | 4.44 | 2.83 | 3.97 | 2.32 |
+
+test_new에서는 국내 규칙이 micro F1(0.390 → 0.442)과 macro F1(0.416 → 0.439)을 모두 올립니다. 1차 test에서 macro F1이 거의 그대로였던 것(0.394 → 0.392)과 다른데, 지방 설명문에서는 '산'·'섬'·'성'이 독립된 단어로 나오는 경우가 많아 한 글자 키워드의 재현율이 덜 떨어지기 때문입니다(아래 표). 정답 키워드가 항목당 4.43개로 1차보다 많아 두 규칙 모두 재현율은 낮습니다. 모델과 비교할 기준은 test와 test_new 모두 국내 규칙 열입니다.
+
 ### 한 글자 키워드 전후 비교
 
-부분 문자열 → 국내 규칙. 괄호 안은 예측 수입니다.
+부분 문자열 → 국내 규칙. 괄호 안은 예측 수입니다. 먼저 1차 배치입니다.
 
-| 키워드 | test 정답 수 | test 정밀도 | test 재현율 | 전체 정답 수 | 전체 정밀도 | 전체 재현율 |
+| 키워드 | test 정답 수 | test 정밀도 | test 재현율 | 1차 전체 정답 수 | 1차 전체 정밀도 | 1차 전체 재현율 |
 | :-- | --: | --: | --: | --: | --: | --: |
 | 산 | 16 | 0.180 → 0.500 | 1.000 → 0.188 (89 → 6) | 129 | 0.210 → 0.592 | 0.992 → 0.326 (610 → 71) |
 | 섬 | 12 | 0.529 → 0.667 | 0.750 → 0.667 (17 → 12) | 46 | 0.400 → 0.643 | 0.696 → 0.587 (80 → 42) |
@@ -85,18 +141,32 @@ test는 163개, 전체는 1,083개입니다. 국내 규칙은 한 글자 키워�
 | 탑 | 1 | 0.091 → 0.000 | 1.000 → 0.000 (11 → 0) | 14 | 0.187 → 0.200 | 1.000 → 0.214 (75 → 15) |
 | 강 | 7 | 0.107 → 0.000 | 0.857 → 0.000 (56 → 0) | 55 | 0.122 → 0.286 | 0.927 → 0.036 (418 → 7) |
 
-- 오탐이 줄어든 쪽: 전체 항목에서 '성' 오탐은 692건에서 7건, '산'은 482건에서 29건, '강'은 367건에서 5건이 됩니다. '조성된'·'구성되어'·'산책로'·'강화군'·'강남구'·'섬세한'·'루프탑' 같은 어절이 더 걸리지 않습니다.
+- 오탐이 줄어든 쪽: 1차 전체 항목에서 '성' 오탐은 692건에서 7건, '산'은 482건에서 29건, '강'은 367건에서 5건이 됩니다. '조성된'·'구성되어'·'산책로'·'강화군'·'강남구'·'섬세한'·'루프탑' 같은 어절이 더 걸리지 않습니다.
 - 새로 생긴 누락: 산은 '북한산'(12)·'관악산'(10)·'무등산'(6)·'북악산'(5), 강은 '한강'·'한강의'·'한강을'(각 13~15)·'강변', 성은 '성곽'·'한양도성을'·'남한산성에서', 탑은 '석탑'·'기념탑'처럼 이름이나 합성어에 붙은 경우입니다. 서울 설명문에서 '강'은 거의 '한강'으로 나와서 재현율이 0.036까지 떨어집니다.
-- 남은 오탐(전체 산 29, 섬 15, 탑 12, 성 7, 강 5건)은 독립된 단어로 나왔지만 여행지 자체의 특징은 아닌 경우입니다. '산 기슭', '강 건너', '주변 섬'처럼 주변 지형을 말하는 경우, 지번의 '산 1-1번지', 성인 칭호 '성 앵베르', '5성'(향교의 다섯 성인, 5성 호텔), 건물 일부인 '탑'처럼 뜻이 다른 경우가 있습니다. '강의'(講義)처럼 키워드에 조사가 붙은 형태와 글자가 같은 낱말도 걸립니다.
+- 남은 오탐(1차 전체 산 29, 섬 15, 탑 12, 성 7, 강 5건)은 독립된 단어로 나왔지만 여행지 자체의 특징은 아닌 경우입니다. '산 기슭', '강 건너', '주변 섬'처럼 주변 지형을 말하는 경우, 지번의 '산 1-1번지', 성인 칭호 '성 앵베르', '5성'(향교의 다섯 성인, 5성 호텔), 건물 일부인 '탑'처럼 뜻이 다른 경우가 있습니다. '강의'(講義)처럼 키워드에 조사가 붙은 형태와 글자가 같은 낱말도 걸립니다.
 - test는 탑 1개, 성 4개, 강 7개뿐이라 이 숫자로 규칙을 고르기는 어렵습니다. 전체 항목 쪽을 같이 봐야 합니다.
+
+2차 배치입니다.
+
+| 키워드 | test_new 정답 수 | test_new 정밀도 | test_new 재현율 | 2차 전체 정답 수 | 2차 전체 정밀도 | 2차 전체 재현율 |
+| :-- | --: | --: | --: | --: | --: | --: |
+| 산 | 16 | 0.170 → 0.562 | 1.000 → 0.562 (94 → 16) | 129 | 0.205 → 0.637 | 0.985 → 0.504 (620 → 102) |
+| 섬 | 7 | 0.375 → 0.667 | 0.857 → 0.857 (16 → 9) | 48 | 0.467 → 0.731 | 0.875 → 0.792 (90 → 52) |
+| 성 | 5 | 0.065 → 0.333 | 1.000 → 0.400 (77 → 6) | 28 | 0.049 → 0.486 | 0.964 → 0.607 (550 → 35) |
+| 탑 | 1 | 0.111 → 1.000 | 1.000 → 1.000 (9 → 1) | 13 | 0.191 → 0.500 | 1.000 → 0.462 (68 → 12) |
+| 강 | 8 | 0.171 → 1.000 | 0.875 → 0.125 (41 → 1) | 48 | 0.134 → 0.636 | 0.896 → 0.146 (321 → 11) |
+
+- 2차 전체에서 국내 규칙의 재현율은 산 0.504, 성 0.607로 1차(0.326, 0.385)보다 높습니다. 강은 '낙동강'·'북한강'·'강변'처럼 이름이나 합성어로 나와 0.146에 그칩니다.
+- 새로 생긴 누락 어절은 산 '가야산'·'지리산', 성 '고창읍성'·'공산성', 탑 '석탑'·'5층석탑으로', 섬 '거북섬'·'부속섬으로'입니다. 남은 오탐에는 '3성[聖]'·'5성'처럼 성인(聖)을 가리키는 경우가 있습니다.
+- 파이썬 포트와 Java 규칙의 비트 단위 비교(아래)는 1차 설명문으로만 했고, 2차 설명문으로는 다시 하지 않았습니다.
 
 ### 파이썬 포트와 Java 규칙 비교
 
 `build/classes/java/main`의 실제 `KeywordMask` 클래스와, 같은 소스를 따로 컴파일한 클래스로 `fromDescription`·`fromKoreanDescription` 마스크(low, high)를 계산해 파이썬 포트와 비트 단위로 비교했습니다. 비교 대상은 `data/descriptions.jsonl`의 overview 1,083개, title + overview 1,083개, 경계 사례 90개(null, 공백만 있는 문자열, 조사 21개 각각, '가'·'힣'과 그 앞뒤 코드 포인트, 자모, 이모지 등)입니다. 불일치는 두 규칙 모두 0건이었고, `keywords.json` 순서와 Java 비트 순서도 같았습니다. 조사를 하나 빼거나 음절 범위를 한 칸 줄이면 불일치가 생기는 것도 확인해 비교가 실제로 차이를 잡는지 봤습니다.
 
-### 자주 나오는 키워드 15개 (부분 문자열 규칙)
+### 자주 나오는 키워드 15개 (1차 test, 부분 문자열 규칙)
 
-자주 나오는 키워드 15개의 test 결과입니다. 국내 규칙에서 달라지는 것은 '산'뿐입니다(정밀도 0.500, 재현율 0.188, F1 0.273).
+1차 배치 기준으로 자주 나오는 키워드 15개(`top_keywords_batch1`)의 test 결과입니다. 2차 배치를 넣은 뒤의 전체 기준 15개(`top_keywords`)는 바다·해안·야외 활동이 들어오고 도시·사원·기념물이 빠지며, `compare.py` 표는 이쪽을 씁니다. 국내 규칙에서 달라지는 것은 '산'뿐입니다(정밀도 0.500, 재현율 0.188, F1 0.273).
 
 | 키워드 | 정답 수 | 예측 수 | 정밀도 | 재현율 | F1 |
 | :-- | --: | --: | --: | --: | --: |
@@ -116,9 +186,9 @@ test는 163개, 전체는 1,083개입니다. 국내 규칙은 한 글자 키워�
 | 유적 | 8 | 4 | 0.750 | 0.375 | 0.500 |
 | 기념물 | 11 | 5 | 0.000 | 0.000 | 0.000 |
 
-### 틀리는 예 (부분 문자열 규칙, 전체 항목 기준)
+### 틀리는 예 (부분 문자열 규칙, 1차 전체 항목 기준)
 
-오탐(라벨에 없는데 규칙이 붙임)은 짧은 키워드가 다른 낱말 안에 들어 있을 때 생깁니다. 전체 항목에서 '성'은 오탐 692건·정탐 25건, '산'은 482건·128건, '강'은 367건·51건입니다. 누락(라벨에 있는데 규칙이 못 붙임) 행의 괄호는 그 키워드의 전체 누락 건수입니다. 아래 '성'·'산'·'강' 오탐 세 건은 국내 규칙에서는 생기지 않고, 나머지 일곱 건은 두 규칙에서 같습니다.
+오탐(라벨에 없는데 규칙이 붙임)은 짧은 키워드가 다른 낱말 안에 들어 있을 때 생깁니다. 1차 전체 항목에서 '성'은 오탐 692건·정탐 25건, '산'은 482건·128건, '강'은 367건·51건입니다. 누락(라벨에 있는데 규칙이 못 붙임) 행의 괄호는 그 키워드의 전체 누락 건수입니다. 아래 '성'·'산'·'강' 오탐 세 건은 국내 규칙에서는 생기지 않고, 나머지 일곱 건은 두 규칙에서 같습니다.
 
 | 유형 | 여행지 | 키워드 | 걸린 어절 / 이유 |
 | :-- | :-- | :-- | :-- |
@@ -140,15 +210,35 @@ test는 163개, 전체는 1,083개입니다. 국내 규칙은 한 글자 키워�
 [`scripts/train_keyword_tagger.py`](scripts/train_keyword_tagger.py)
 
 - 기본 모델 `klue/roberta-base`, `AutoModelForSequenceClassification`(`problem_type="multi_label_classification"`, BCE 손실)
-- 입력은 `tokenizer(title, overview)` 문장 쌍, 512 토큰에서 자름(train 평균 226 토큰, 잘리는 항목 21개). klue/roberta는 `type_vocab_size=1`이라 `token_type_ids`는 넣지 않습니다.
-- 학습 예시가 0개인 키워드 17개는 라벨 공간에서 빼고(77개로 학습) 결과 파일에 기록합니다. 평가 때 이 키워드는 항상 '없음'으로 예측되며, 지표는 기준선과 똑같이 94개 키워드 전체로 계산합니다.
-- AdamW(lr 5e-5, weight decay 0.01), 10% 선형 warmup 후 선형 감소, 에폭마다 valid micro F1이 가장 좋은 가중치를 남깁니다.
+- 입력은 `tokenizer(title, overview)` 문장 쌍, 512 토큰에서 자름(1차만 쓸 때 train 평균 226 토큰·잘리는 항목 21개, 2차를 넣은 train 1,354개는 평균 228 토큰·27개). klue/roberta는 `type_vocab_size=1`이라 `token_type_ids`는 넣지 않습니다.
+- 학습 예시가 0개인 키워드는 라벨 공간에서 빼고 결과 파일에 기록합니다(1차만: 17개 빼고 77개, 2차 포함: 12개 빼고 82개). 평가 때 이 키워드는 항상 '없음'으로 예측되며, 지표는 기준선과 똑같이 94개 키워드 전체로 계산합니다.
+- AdamW(lr 5e-5, weight decay 0.01), 10% 선형 warmup 후 선형 감소, 에폭마다 valid(1차 + 2차 290개) micro F1이 가장 좋은 가중치를 남깁니다.
 - 임계값은 valid에서 고릅니다. 전역 임계값 하나(0.05~0.95, micro F1 최대)가 기본이고, 키워드별 임계값(valid 양성 3개 이상인 키워드만, 나머지는 전역 값)도 함께 계산해 결과에 남깁니다. `--per-label-thresholds`를 주면 키워드별 임계값을 대표 결과로 씁니다.
-- 결과는 `results/<run_name>.json`(설명문 없음), 모델·임계값·test 예측은 `outputs/<run_name>/`(커밋 안 함)에 저장합니다.
+- **고른 임계값으로 test(1차 163개)와 test_new(2차 127개)를 따로 평가합니다.** 결과 파일의 `test`, `valid`, `test_other_threshold_mode` 등 예전 키는 그대로이고, `test_new`, `test_new_other_threshold_mode`, `eval_splits`, `split_sizes_by_batch`가 더해집니다. `splits.json`에 `test_new`가 없으면 예전처럼 test만 평가합니다.
+- 결과는 `results/<run_name>.json`(설명문 없음), 모델·임계값·예측(`test_predictions.jsonl`, `test_new_predictions.jsonl`)은 `outputs/<run_name>/`(커밋 안 함)에 저장합니다.
 
-주요 옵션: `--model`, `--epochs`(10), `--batch-size`(16), `--lr`(5e-5), `--device`(auto|cpu|mps|cuda, auto는 mps 우선), `--num-threads`(CPU 스레드, 기본 4), `--max-steps`(스모크 테스트용), `--patience`(0=끔), `--run-name`.
+주요 옵션: `--model`, `--epochs`(**15**, 예전 기본값 10), `--batch-size`(16), `--lr`(5e-5), `--device`(auto|cpu|mps|cuda, auto는 mps 우선), `--num-threads`(CPU 스레드, 기본 4), `--max-steps`(스모크 테스트용), `--patience`(0=끔), `--run-name`. 옵션 이름과 뜻은 예전과 같습니다.
 
-CPU 스모크 테스트(`klue/roberta-small`, 5 step, 스레드 4개)는 약 1분 걸렸고, 학습 → valid 임계값 선택 → test 평가 → 결과 저장까지 정상 동작했습니다. 같은 명령을 두 번 돌려 결과가 같은 것도 확인했습니다. 5 step짜리라 성능 숫자는 의미가 없어서 결과 파일은 지웠습니다. 지표 계산은 scikit-learn `precision_recall_fscore_support`와 값이 같은 것을 확인했고, `predict.py`의 예측이 학습 스크립트의 test 예측과 같은 것도 확인했습니다.
+**기본 에폭을 15로 올린 이유**: 1차만 쓴 `roberta-base`(10에폭, 480 step)는 마지막 에폭까지 valid micro F1이 올랐고(8에폭 0.614 → 9에폭 0.622 → 10에폭 0.637), 마지막 train loss 0.114는 키워드 빈도만 맞히는 예측의 BCE(1차 train 기준 약 0.146)보다 조금 낮을 뿐이라 덜 학습된 상태였습니다. 2차를 넣으면 train이 1,354개라 10에폭도 850 step이지만, 에폭마다 valid가 가장 좋은 가중치를 남기므로 15에폭(1,275 step)으로 늘려도 지나친 학습의 위험은 작습니다. 다만 15에폭이 10에폭보다 낫다는 것은 아직 확인하지 않았습니다. 예전 설정과 같게 돌리려면 `--epochs 10`을 줍니다.
+
+### 1차 배치로 학습한 결과 (roberta-base)
+
+2026-10-17 13:43~14:04에 MPS로 돌린 1차 배치 전용 모델입니다(train 758, valid 162, 10에폭, best 10에폭, 전역 임계값 0.25). 전체 표는 [`results/roberta-base.compare.md`](results/roberta-base.compare.md)에 있습니다.
+
+| 지표 (test 163개) | 학습 전 (국내 규칙) | roberta-base |
+| :-- | --: | --: |
+| micro 정밀도 / 재현율 | 0.516 / 0.338 | 0.667 / 0.440 |
+| micro F1 | 0.409 | **0.530** |
+| macro F1 | **0.392** | 0.170 |
+| 키워드 집합 완전 일치율 | 0.061 | 0.117 |
+| 항목별 Jaccard 평균 | 0.277 | 0.372 |
+
+자주 나오는 키워드(역사 0.868, 역사적인 장소 0.895, 역사적 건축 0.741, 사원 0.800)는 규칙보다 훨씬 낫지만, 학습 예시가 적은 키워드는 거의 예측하지 못해 macro F1은 규칙보다 낮습니다. 한 글자 키워드 중 섬·성·탑·강은 test에서 한 번도 예측하지 않았습니다. 키워드별 임계값이면 micro F1 0.519, macro F1 0.300입니다. 이 모델은 2차 배치 전에 학습해서 test_new로는 평가하지 않았습니다(`compare.py` 표에서 '-').
+
+### 스모크 테스트
+
+- 1차 때: CPU에서 `klue/roberta-small`, 5 step, 스레드 4개로 약 1분. 학습 → valid 임계값 선택 → test 평가 → 결과 저장까지 정상 동작했고, 같은 명령을 두 번 돌려 결과가 같았습니다. 지표 계산은 scikit-learn `precision_recall_fscore_support`와 값이 같은 것을, `predict.py`의 예측이 학습 스크립트의 test 예측과 같은 것도 확인했습니다.
+- 2차 배치를 넣은 뒤(2026-10-17): GPU를 MLX 학습이 쓰고 있어 CPU 전용으로 `nice -n 10`, `--device cpu --num-threads 4 --max-steps 5 --run-name smoke2`로 돌렸습니다. 다만 `klue/roberta-small`이 로컬 Hugging Face 캐시에 없어 새로 내려받지 않고, 캐시에 있는 `klue/roberta-base` 토크나이저에 작은 무작위 RoBERTa(2층, hidden 64)를 붙인 임시 모델로 같은 코드 경로를 확인했습니다(`HF_HUB_OFFLINE=1`, 4초). train 1,354 / valid 290 / test 163 / test_new 127로 학습 → valid 임계값 선택 → test·test_new 평가 → 결과 저장 → `compare.py` 표(test_new 포함) → `predict.py`까지 정상 동작했고, 두 번 돌려 결과(시간 제외)가 같았습니다. 성능 숫자는 의미가 없어 `outputs/smoke2`, `results/smoke2.json`은 지웠습니다. `klue/roberta-small`로 한 번 더 돌리려면 아래 3)을 쓰면 됩니다(처음에 모델을 내려받음).
 
 ## 실행
 
@@ -159,47 +249,55 @@ cd training/keyword_tagger
 /opt/homebrew/bin/python3.12 -m venv .venv
 .venv/bin/pip install -r requirements.txt
 
-# 1) 라벨 검증·병합, 일치도, 분할 (표준 라이브러리만 사용)
+# 0) (설명문을 다시 꺼낼 때만) 로컬 DB(도커 glople-mysql) -> data/db_descriptions.jsonl
+#    DB 설명문이 라벨러에게 준 본문과 달라지면 1) 이 멈춥니다.
+python3 -I scripts/export_from_db.py
+
+# 1) 라벨 검증·병합(1차 + 2차), 일치도(1차, 2차), 분할 (표준 라이브러리만 사용)
 python3 -I scripts/prepare_data.py
 
-# 2) 학습 전 기준선 (부분 문자열 + 국내 규칙, 표준 라이브러리만 사용)
+# 2) 학습 전 기준선: test, test_new, 전체 (부분 문자열 + 국내 규칙, 표준 라이브러리만 사용)
 python3 -I scripts/baseline.py
 
-# 3) 스모크 테스트 (CPU, 약 1분)
-.venv/bin/python -I scripts/train_keyword_tagger.py --device cpu --num-threads 4 \
-    --model klue/roberta-small --max-steps 5 --run-name smoke
-rm -rf outputs/smoke results/smoke.json
+# 3) 스모크 테스트 (CPU). klue/roberta-small 은 처음 돌릴 때 Hugging Face 에서 내려받습니다
+nice -n 10 .venv/bin/python -I scripts/train_keyword_tagger.py --device cpu --num-threads 4 \
+    --model klue/roberta-small --max-steps 5 --run-name smoke2
+rm -rf outputs/smoke2 results/smoke2.json
 
-# 4) 본 학습: training/run_overnight.sh 의 MLX 학습이 끝나 GPU 가 비었을 때 MPS 로
-#    (지금은 대기 스크립트가 MLX 실행 뒤에 이 명령과 5) 를 자동으로 돌리도록 예약되어 있음)
-.venv/bin/python -I scripts/train_keyword_tagger.py --device mps --run-name roberta-base
+# 4) 재학습 (2차 배치 포함, 기본 15에폭): MLX 학습(training/run_v2.sh)이 끝나 GPU 가 비었을 때 MPS 로
+.venv/bin/python -I scripts/train_keyword_tagger.py --device mps --run-name roberta-base-v2
+#    예전과 같은 에폭으로 비교하려면: ... --epochs 10 --run-name roberta-base-v2-e10
 
-# 5) 기준선 두 개 vs 모델 비교표 (한국어 마크다운). 인자 없이 돌리면 기준선 두 개만 나옴
-python3 -I scripts/compare.py results/roberta-base.json > results/roberta-base.compare.md
+# 5) 비교표: test(1차)와 test_new(2차)를 차례로 출력. 예전 roberta-base 는 test_new 칸이 '-'
+python3 -I scripts/compare.py results/roberta-base-v2.json results/roberta-base.json \
+    > results/roberta-base-v2.compare.md
 
-# 6) 설명문 jsonl 에 키워드 붙이기
-.venv/bin/python -I scripts/predict.py --model-dir outputs/roberta-base \
-    --input data/descriptions.jsonl --output data/predicted_keywords.jsonl --device cpu
+# 6) 설명문 jsonl 에 키워드 붙이기 (입력 각 줄에 id, title, overview 필요. data/gold.jsonl 도 됨)
+.venv/bin/python -I scripts/predict.py --model-dir outputs/roberta-base-v2 \
+    --input data/gold.jsonl --output data/predicted_keywords.jsonl --device cpu
 ```
 
-- 본 학습은 첫 실행 때 `klue/roberta-base`(약 450MB)를 Hugging Face 캐시(`~/.cache/huggingface`)로 받습니다.
-- 본 학습 시간은 아직 재지 않았습니다(758개 × 10에폭 = 480 step). MPS 메모리가 부족하면 `--batch-size 8`로 줄입니다.
-- `compare.py` 표의 열은 학습 전 (부분 문자열), 학습 전 (국내 규칙), 그리고 인자로 준 모델 순서입니다. 지표 표, 자주 나오는 키워드 15개의 F1 표, 한 글자 키워드(산, 섬, 성, 탑, 강)의 정밀도·재현율 표를 냅니다. 모델 결과 파일에는 자주 나오는 15개 키워드의 지표만 있어서, 나머지 한 글자 키워드는 `outputs/<run_name>/test_predictions.jsonl`로 다시 계산합니다. 그 파일이 없거나 결과 파일과 micro 지표가 다르면 '-'로 둡니다. `korean_rule`이 없는 예전 `baseline.json`을 `--baseline`으로 주면 국내 규칙 열과 한 글자 키워드 표 없이 예전과 같은 표를 냅니다.
+- 본 학습은 첫 실행 때 `klue/roberta-base`(약 450MB)를 Hugging Face 캐시(`~/.cache/huggingface`)로 받습니다. 지금은 캐시에 있습니다.
+- 학습 시간: 1차 `roberta-base`는 480 step(758개 × 10에폭)에 1,231초 걸렸습니다(에폭마다 valid 평가 포함). `roberta-base-v2`는 1,275 step(1,354개 × 15에폭)이고 valid도 290개라 MPS에서 1시간 안팎으로 예상합니다(아직 재지 않음). MPS 메모리가 부족하면 `--batch-size 8`로 줄입니다.
+- `compare.py` 표의 열은 학습 전 (부분 문자열), 학습 전 (국내 규칙), 그리고 인자로 준 모델 순서입니다. 기본(`--split both`)은 test와 test_new마다 지표 표, 자주 나오는 키워드 15개의 F1 표, 한 글자 키워드(산, 섬, 성, 탑, 강)의 정밀도·재현율 표를 냅니다. `--split test` 또는 `--split test_new`로 하나만 낼 수 있습니다. 자주 나오는 15개는 이제 전체 1,934개 기준(`top_keywords`)입니다. 모델 결과 파일에 없는 키워드(예전 실행의 바다·해안·야외 활동, 한 글자 키워드)는 `outputs/<run_name>/test_predictions.jsonl`, `test_new_predictions.jsonl`로 다시 계산하고, 그 파일이 없거나 결과 파일과 micro 지표가 다르면 '-'로 둡니다. 그 평가 집합의 결과가 없는 실행(예: 2차 전의 `roberta-base`의 test_new)도 '-'입니다.
+- 예전 형식도 그대로 읽습니다. `test_new`가 없는 `splits.json`이면 학습 스크립트는 test만 평가하고, `test_new`·`korean_rule`이 없는 예전 `baseline.json`을 `--baseline`으로 주면 그 열·표 없이 냅니다(예전 `baseline.json`으로 돌리면 `results/roberta-base.compare.md`와 숫자가 같음).
 - MLX 학습 중에 꼭 돌려야 하면 `--device cpu --num-threads 4`로 돌릴 수 있지만 roberta-base는 CPU에서 오래 걸립니다.
 
 ## 사람이 확인해야 할 것
 
-1. **test 분할 163개 라벨 검수.** 모델과 기준선을 비교하는 잣대라서 가장 먼저 봐야 합니다. `labels/gold_labels.jsonl`과 `data/gold.jsonl`을 보면 됩니다. 교차 라벨과 가장 많이 어긋난 항목은 `results/agreement.json`의 `lowest_jaccard_items`(장안근린공원, G밸리 4차산업체험관, 빙수골마을공원 등)에 있습니다. test에는 탑 1개, 성 4개, 강 7개뿐이라 한 글자 키워드 비교는 이 라벨 몇 개에 크게 흔들립니다.
-2. **기준이 흐린 키워드.** 야외 활동, 레크리에이션, 스포츠, 문화, 자연, 건축, 유적은 두 AI 라벨러끼리도 자주 갈렸습니다. 근린공원·어린이공원에 자연·야외 활동·레크리에이션을 붙일지 정해야 합니다.
-3. **빈 라벨 55개.** 근린공원, 스파·뷰티 매장, 방송사 견학, 체험관 등이 빈 배열입니다. 맞는 판단인지, 이런 곳을 키워드 추천 후보에 둘지부터 정해야 합니다.
-4. **학습 예시가 없거나 적은 키워드 37개.** 대부분 해외 여행지용 키워드(사막, 빙하, 낙타, 모스크 등)라 국내 설명문으로는 배울 수 없습니다. 모델은 이 17개를 절대 예측하지 않으므로, 서버에서 이 키워드만 기존 규칙을 남길지, 해외 여행지 데이터를 따로 라벨링할지 정해야 합니다.
-5. **데이터 범위.** 서울·인천·광주의 관광지(타입 12)뿐입니다. 국내 수집([`docs/domestic-tour-sync.md`](../../docs/domestic-tour-sync.md))은 문화시설(14)·축제공연행사(15)·레포츠(28)도 받고 다른 지역도 들어오므로, 그쪽 설명문을 조금 더 라벨링해 test에 넣어 봐야 합니다. 기존 해외 여행지 설명문에 이 모델을 그대로 쓰는 것도 학습 분포 밖입니다.
-6. **한 글자 키워드 규칙.** 국내 규칙은 '북한산'·'한강'·'석탑'·'성곽'처럼 이름이나 합성어에 붙은 한 글자 키워드를 놓칩니다(전체 재현율 산 0.326, 강 0.036). 서울 설명문의 '강'은 대부분 '한강'이라 이 규칙으로는 거의 붙지 않습니다. 이름 끝 글자를 인정하는 규칙을 더할지, 이 다섯 개는 모델에 맡길지 정해야 합니다.
-7. **저작권.** `data/`에는 TourAPI 설명문 원문이 있어 커밋하지 않습니다(.gitignore). `labels/`와 `results/`에는 id, 여행지 이름, 키워드, 지표, 오탐·누락 원인 어절(예: '조성된', '북한산')만 있고 문장 발췌는 없습니다.
+1. **test 163개와 test_new 127개 라벨 검수.** 모델과 기준선을 비교하는 잣대라서 가장 먼저 봐야 합니다. `labels/gold_labels.jsonl`과 `data/gold.jsonl`을 보면 됩니다. 교차 라벨과 가장 많이 어긋난 항목은 `results/agreement.json`(장안근린공원, G밸리 4차산업체험관, 빙수골마을공원 등)과 `results/agreement_batch2.json`(골드스파사우나, 강릉시강남축구공원, 곡성 단군전, 고로쇠마을(미산마을), 간월도마을 등)의 `lowest_jaccard_items`에 있습니다. test에는 탑 1개, 성 4개, 강 7개, test_new에는 탑 1개, 성 5개, 섬 7개뿐이라 한 글자 키워드 비교는 이 라벨 몇 개에 크게 흔들립니다.
+2. **기준이 흐린 키워드.** 야외 활동, 레크리에이션, 스포츠, 문화, 자연, 건축, 유적은 1차의 두 AI 라벨러끼리도 자주 갈렸고, 2차에서는 야외 활동·경치·산이 가장 많이 갈렸습니다. 근린공원·어린이공원·체험마을에 자연·야외 활동·레크리에이션을 붙일지, 마을·사찰 설명에 주변 산이 나올 때 '산'을 붙일지, 절터에 '사찰'을 붙일지 정해야 합니다.
+3. **빈 라벨.** 1차 55개(근린공원, 스파·뷰티 매장, 방송사 견학, 체험관 등), 2차 3개(고양드론앵커센터, 강릉종합사회복지관, 강문해변화장실)가 빈 배열입니다. 맞는 판단인지, 이런 곳을 키워드 추천 후보에 둘지부터 정해야 합니다.
+4. **라벨 밀도 차이.** 항목당 키워드가 1차 3.39개, 2차 4.26개입니다. 여행지 성격(지방 자연·유적) 차이도 있지만, 같은 교차 표본에서도 2차 기본 라벨이 교차 라벨보다 많이 붙였습니다(4.06 대 3.65). 두 배치를 섞어 학습하고 valid 하나로 임계값을 고르므로, 재학습 뒤 test와 test_new의 항목당 예측 키워드 수를 정답과 비교해 봐야 합니다.
+5. **학습 예시가 없거나 적은 키워드 24개.** 0개 12개(사막, 빙하, 낙타, 모스크 등)와 1~4개 12개입니다. 대부분 해외 여행지용 키워드라 국내 설명문으로는 배울 수 없습니다. 모델은 0개인 12개를 절대 예측하지 않으므로, 서버에서 이 키워드만 기존 규칙을 남길지, 해외 여행지 데이터를 따로 라벨링할지 정해야 합니다.
+6. **데이터 범위.** 2차로 16개 시도가 들어왔지만 여전히 관광지(타입 12)뿐이고, 2차는 제목이 '가'~'공'으로 시작하는 곳만이라 무작위 표본이 아닙니다. 국내 수집([`docs/domestic-tour-sync.md`](../../docs/domestic-tour-sync.md))은 문화시설(14)·축제공연행사(15)·레포츠(28)도 받으므로 그쪽 설명문도 라벨링해 봐야 합니다. 해외(WIKIDATA) 설명문 7,579개는 `data/db_descriptions.jsonl`에 꺼내 두었지만 라벨이 없고, 기존 해외 여행지 설명문에 이 모델을 그대로 쓰는 것은 학습 분포 밖입니다.
+7. **한 글자 키워드 규칙.** 국내 규칙은 '북한산'·'한강'·'낙동강'·'석탑'·'성곽'처럼 이름이나 합성어에 붙은 한 글자 키워드를 놓칩니다(재현율 1차 산 0.326·강 0.036, 2차 산 0.504·강 0.146). 이름 끝 글자를 인정하는 규칙을 더할지, 이 다섯 개는 모델에 맡길지 정해야 합니다.
+8. **저작권.** `data/`에는 TourAPI 설명문 원문이 있어 커밋하지 않습니다(.gitignore). 2차 설명문 중 420개는 Type3(공공누리 제3유형, 변경금지) 표시가 있으니, 학습 데이터로 쓰는 범위를 확인해야 합니다. `labels/`와 `results/`에는 id, 여행지 이름, 키워드, 지표, 오탐·누락 원인 어절(예: '조성된', '북한산'), 배치별 지역·저작권 표시 개수만 있고 문장 발췌는 없습니다.
 
 ## 다음 단계 (아직 안 함)
 
-- 자동 실행이 끝나면 `outputs/auto_run.log`와 `results/roberta-base.compare.md`를 확인하고 비교표를 이 README에 붙이기. 서버가 TourAPI 여행지에 쓰는 규칙이 국내 규칙이므로 모델은 국내 규칙 열과 비교합니다.
+- GPU가 비면 `roberta-base-v2` 재학습(실행 4), 5)). test 열로 1차 모델(`roberta-base`)과, test_new 열로 국내 규칙과 비교하고, 비교표를 이 README에 붙입니다. 서버가 TourAPI 여행지에 쓰는 규칙이 국내 규칙이므로 모델은 국내 규칙 열과 비교합니다.
+- 필요하면 1차 모델(`outputs/roberta-base`)로 test_new를 예측해, 2차 배치를 넣은 효과와 지역이 바뀐 효과를 나눠 봅니다(지금 결과 파일에는 없음).
 - 서버 연동: 요청 경로가 아니라 배치로 `predict.py`를 돌려 키워드를 정하고 마스크를 다시 계산하는 방식. 지금 `DestinationKeywordMaskBackfill`은 마스크가 0인 행만 채우므로 다시 계산하는 경로가 따로 필요합니다.
 
 ## 파일
@@ -207,19 +305,21 @@ python3 -I scripts/compare.py results/roberta-base.json > results/roberta-base.c
 | 경로 | 내용 | 커밋 |
 | :-- | :-- | :-- |
 | `keywords.json` | 키워드 94개 | O |
-| `labels/gold_labels.jsonl` | `{"id","keywords"}` 병합 라벨 1,083개 | O |
-| `labels/splits.json` | train/valid/test id 목록 | O |
-| `results/agreement.json` | 교차 라벨 일치도 | O |
-| `results/label_stats.json` | 분할별 키워드 빈도 | O |
-| `results/baseline.json` | 부분 문자열 기준선(`test`, `all`, `examples`), 국내 규칙 기준선(`korean_rule`), 한 글자 키워드 전후 비교(`single_char_keyword_effect`) | O |
-| `results/roberta-base.json`, `results/roberta-base.compare.md` | 본 학습 결과와 비교표 (자동 실행이 만들 예정, 아직 없음) | O |
-| `scripts/kt_common.py` | 경로, 입출력, 공통 지표 (`evaluate_sets`), 두 규칙의 파이썬 포트 (`substring_predict`, `korean_rule_predict`, `keyword_mask`) | O |
-| `scripts/prepare_data.py` | 검증·병합, 일치도, 분할 | O |
+| `labels/gold_labels.jsonl` | `{"id","keywords"}` 병합 라벨 1,934개 (1차 1,083행 뒤에 2차 851행) | O |
+| `labels/batches.json` | 배치별 출처·수집일·라벨 파일·지역/저작권 표시 개수·id 목록 | O |
+| `labels/splits.json` | train/valid/test/test_new id 목록, 배치별 개수 | O |
+| `results/agreement.json`, `results/agreement_batch2.json` | 1차, 2차 교차 라벨 일치도 | O |
+| `results/label_stats.json` | 분할별·배치별 키워드 빈도 | O |
+| `results/baseline.json` | 부분 문자열 기준선(`test`, `test_new`, `all`, `all_by_batch`, `examples`), 국내 규칙 기준선(`korean_rule`), 한 글자 키워드 전후 비교(`single_char_keyword_effect`) | O |
+| `results/roberta-base.json`, `results/roberta-base.compare.md` | 1차 배치로 학습한 결과와 비교표 | O |
+| `scripts/kt_common.py` | 경로, 입출력, 분할·배치 로더(`load_splits`, `load_batches`, `row_batch`), 공통 지표(`evaluate_sets`), 두 규칙의 파이썬 포트(`substring_predict`, `korean_rule_predict`, `keyword_mask`) | O |
+| `scripts/export_from_db.py` | 로컬 DB에서 국내·해외 설명문 꺼내기 (`.env`의 DB 비밀번호를 읽음, 출력 안 함) | O |
+| `scripts/prepare_data.py` | 검증·병합(1차 + 2차), 일치도, 분할 | O |
 | `scripts/baseline.py` | 학습 전 기준선 (부분 문자열, 국내 규칙) | O |
-| `scripts/train_keyword_tagger.py` | 학습·임계값·평가 | O |
-| `scripts/compare.py` | 기준선 두 개 vs 모델 비교표 | O |
+| `scripts/train_keyword_tagger.py` | 학습·임계값·평가(test, test_new) | O |
+| `scripts/compare.py` | 기준선 두 개 vs 모델 비교표(test, test_new) | O |
 | `scripts/predict.py` | 학습한 모델로 키워드 붙이기 | O |
 | `requirements.txt` | torch 2.14.1, transformers 5.20.1, scikit-learn 1.9.1, numpy 2.5.4 | O |
-| `data/` | 설명문 원문, 원본 라벨, `gold.jsonl`, `baseline_examples.jsonl` | X |
-| `outputs/` | 학습한 모델, test 예측, 자동 실행 로그(`auto_run.log`) | X |
+| `data/` | 설명문 원문(`descriptions.jsonl`, `db_descriptions.jsonl`, `chunks_v2/`), 원본 라벨(`labels/`, `labels_v2/`), `gold.jsonl`, `baseline_examples.jsonl` | X |
+| `outputs/` | 학습한 모델, test·test_new 예측, 자동 실행 로그(`auto_run.log`) | X |
 | `.venv/` | 이 폴더 전용 가상환경 | X |

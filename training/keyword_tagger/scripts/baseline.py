@@ -7,9 +7,14 @@
                뒤가 비었거나 정해진 조사(은, 이, 에서, 으로 …)일 때만 인정.
   여기서는 description 자리에 TourAPI overview 를 넣는다.
 
+평가 집합
+  test      1차 배치의 test 분할 163개 (2차 배치를 넣기 전과 같은 목록이라 숫자도 그대로)
+  test_new  2차 배치의 test 분할 (splits.json 에 있을 때만)
+  all       전체 gold (1차 + 2차). all_by_batch 에 배치별 전체 항목 지표도 남긴다 (all_by_batch["1"] 은 예전 all 과 같음)
+
 출력
-  results/baseline.json          두 규칙의 test 분할·전체 항목 지표, 한 글자 키워드별 전후 비교,
-                                 substring 규칙의 오탐/누락 예시 10개 (설명문 발췌 없음, 커밋용)
+  results/baseline.json          두 규칙의 test·test_new·전체 항목 지표, 한 글자 키워드별 전후 비교,
+                                 substring 규칙의 오탐/누락 예시 10개 (1차 배치에서 고름, 설명문 발췌 없음, 커밋용)
   data/baseline_examples.jsonl   같은 예시 10개 + 설명문 앞뒤 발췌 (gitignore)
 실행: python3 -I scripts/baseline.py
 """
@@ -24,12 +29,15 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from kt_common import (  # noqa: E402
     DATA_DIR,
     RESULTS_DIR,
+    EVAL_SPLITS,
     contains_standalone_word,
     evaluate_sets,
     korean_rule_predict,
     load_gold,
     load_keywords,
     load_splits,
+    report_keywords,
+    row_batch,
     substring_predict,
     top_frequent_keywords,
     write_json,
@@ -226,33 +234,61 @@ def main():
     splits = load_splits()
     by_id = {g["id"]: g for g in gold}
     top = top_frequent_keywords(gold, keywords)
+    batch_ids = sorted({row_batch(g) for g in gold})
+    gold_batch = {b: [g for g in gold if row_batch(g) == b] for b in batch_ids}
+    top_batch1 = top_frequent_keywords(gold_batch[1], keywords)
+    # per_keyword 는 전체 상위 15개 + 1차 상위 15개 중 빠진 것까지 남긴다 (예전 test 숫자를 그대로 비교할 수 있게)
+    reported = report_keywords(gold, keywords)
 
     single_chars = [k for k in keywords if len(k) == 1]
+    eval_splits = [name for name in EVAL_SPLITS if name in splits]
+    split_rows = {name: [by_id[i] for i in splits[name]] for name in eval_splits}
 
-    test_rows = [by_id[i] for i in splits["test"]]
-    test_metrics, test_preds = run(test_rows, keywords, top)
-    all_metrics, all_preds = run(gold, keywords, top)
-    kor_test_metrics, kor_test_preds = run(test_rows, keywords, top, korean_rule_predict)
-    kor_all_metrics, kor_all_preds = run(gold, keywords, top, korean_rule_predict)
+    def evaluate_all(predict):
+        """평가 집합(test, test_new), 전체, 배치별 전체에 같은 규칙을 적용한다. (지표, 예측) 을 돌려준다."""
+        out = {name: run(rows, keywords, reported, predict) for name, rows in split_rows.items()}
+        out["all"] = run(gold, keywords, reported, predict)
+        out["all_by_batch"] = {b: run(gold_batch[b], keywords, reported, predict) for b in batch_ids}
+        return out
+
+    sub = evaluate_all(substring_predict)
+    kor = evaluate_all(korean_rule_predict)
+
+    def metrics_only(res):
+        out = {name: res[name][0] for name in eval_splits + ["all"]}
+        out["all_by_batch"] = {str(b): res["all_by_batch"][b][0] for b in batch_ids}
+        return out
 
     # 참고용: 모델 입력과 같은 "title + overview" 에 같은 규칙을 적용했을 때
-    title_variant = evaluate_sets(
-        [r["keywords"] for r in test_rows],
-        [substring_predict(r["title"] + " " + r["overview"], keywords) for r in test_rows],
-        keywords,
-    )
+    def title_variant(rows):
+        m = evaluate_sets([r["keywords"] for r in rows],
+                          [substring_predict(r["title"] + " " + r["overview"], keywords) for r in rows], keywords)
+        return {k: m[k] for k in ("micro", "macro", "samples")}
 
     result = {
         "name": "baseline_substring",
         "description": "KeywordMask.fromDescription 규칙 (overview 에 키워드 글자가 있으면 표시)",
         "rule": "keyword in overview (Java String.contains 와 동일), 빈 설명문은 빈 집합",
         "macro_definition": "평가 집합 gold 에 한 번 이상 나온 키워드만 평균",
+        "eval_sets": {
+            "test": "1차 배치 test 분할 (2차 배치를 넣기 전과 같은 목록)",
+            "test_new": "2차 배치 test 분할 (여러 지역, 1차와 따로 평가)",
+            "all": "전체 gold (1차 + 2차)",
+            "all_by_batch": "배치별 전체 항목 (\"1\" 은 2차 배치를 넣기 전의 all 과 같음)",
+        },
+        "items": {**{name: len(rows) for name, rows in split_rows.items()}, "all": len(gold),
+                  **{f"batch{b}": len(gold_batch[b]) for b in batch_ids}},
         "top_keywords": top,
-        "test": test_metrics,
-        "all": all_metrics,
-        "reference_title_plus_overview_test": {k: title_variant[k] for k in ("micro", "macro", "samples")},
+        "top_keywords_batch1": top_batch1,
+        "per_keyword_keywords": reported,
+        **metrics_only(sub),
+        "reference_title_plus_overview_test": title_variant(split_rows["test"]),
     }
-    examples = pick_examples(gold, all_preds, keywords)
+    if "test_new" in split_rows:
+        result["reference_title_plus_overview_test_new"] = title_variant(split_rows["test_new"])
+    # 오탐/누락 예시는 README 표와 맞도록 1차 배치에서만 고른다 (2차 배치를 넣기 전과 같은 예시)
+    examples = pick_examples(gold_batch[1], sub["all_by_batch"][1][1], keywords)
+    result["examples_scope"] = "1차 배치 전체 항목"
     result["examples"] = [{k: v for k, v in e.items() if k not in TEXT_FIELDS} for e in examples]
     # 위쪽 키(name ~ examples)는 부분 문자열 기준선 그대로 두고, 국내용 규칙은 따로 붙인다.
     result["korean_rule"] = {
@@ -261,25 +297,30 @@ def main():
         "rule": "len(keyword) == 1 이면 앞이 한글 음절(U+AC00~U+D7A3)이 아니고 뒤에 이어지는 한글 음절이 없거나 "
                 "조사(kt_common.KOREAN_PARTICLES)일 때만, 나머지는 keyword in overview. 빈 설명문은 빈 집합",
         "single_char_keywords": single_chars,
-        "test": kor_test_metrics,
-        "all": kor_all_metrics,
+        **metrics_only(kor),
     }
+
+    def effect(rows, sub_res, kor_res):
+        return single_char_effect(rows, sub_res[1], kor_res[1], single_chars)
+
     result["single_char_keyword_effect"] = {
         "description": "한 글자 키워드별 substring(fromDescription) -> korean_rule(fromKoreanDescription) 전후 비교",
-        "test": single_char_effect(test_rows, test_preds, kor_test_preds, single_chars),
-        "all": single_char_effect(gold, all_preds, kor_all_preds, single_chars),
+        **{name: effect(split_rows[name], sub[name], kor[name]) for name in eval_splits},
+        "all": effect(gold, sub["all"], kor["all"]),
+        "all_by_batch": {str(b): effect(gold_batch[b], sub["all_by_batch"][b], kor["all_by_batch"][b])
+                         for b in batch_ids},
     }
     write_json(RESULTS_DIR / "baseline.json", result)
     write_jsonl(DATA_DIR / "baseline_examples.jsonl", examples)
 
-    for rule, pairs in (("substring", (("test", test_metrics), ("all", all_metrics))),
-                        ("korean_rule", (("test", kor_test_metrics), ("all", kor_all_metrics)))):
-        for name, m in pairs:
+    names = eval_splits + ["all"]
+    for rule, res in (("substring", result), ("korean_rule", result["korean_rule"])):
+        for name, m in [(n, res[n]) for n in names] + [(f"batch{b}", m) for b, m in res["all_by_batch"].items()]:
             print(f"[{rule}/{name}] items {m['samples']['items']}  micro P {m['micro']['precision']:.3f} "
                   f"R {m['micro']['recall']:.3f} F1 {m['micro']['f1']:.3f} | macro F1 {m['macro']['f1']:.3f} "
                   f"| exact {m['samples']['exact_match']:.3f}")
     print("한 글자 키워드 (substring -> korean_rule):")
-    for name in ("test", "all"):
+    for name in names:
         for kw, e in result["single_char_keyword_effect"][name].items():
             a, b = e["substring"], e["korean_rule"]
             print(f"  [{name}] {kw} 정답 {e['support']:>3}  P {a['precision']:.3f} -> {b['precision']:.3f}  "

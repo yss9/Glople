@@ -15,15 +15,25 @@ RESULTS_DIR = ROOT / "results"
 OUTPUTS_DIR = ROOT / "outputs"
 
 KEYWORDS_PATH = ROOT / "keywords.json"
+# 1차 배치: Neoulteo DB 덤프의 TourAPI overview (서울·인천·광주)
 DESCRIPTIONS_PATH = DATA_DIR / "descriptions.jsonl"
 RAW_LABELS_DIR = DATA_DIR / "labels"
 CROSS_CHECK_PATH = RAW_LABELS_DIR / "cross_check.jsonl"
+# 2차 배치: 로컬 DB(destination_info) 에서 꺼낸 TourAPI 설명문 (scripts/export_from_db.py)
+DB_DESCRIPTIONS_PATH = DATA_DIR / "db_descriptions.jsonl"
+BATCH2_MANIFEST_PATH = DATA_DIR / "chunks_v2" / "all_new.jsonl"  # 라벨러에게 준 설명문 (있으면 대조용)
+RAW_LABELS_V2_DIR = DATA_DIR / "labels_v2"
+CROSS_CHECK_V2_PATH = RAW_LABELS_V2_DIR / "cross_check.jsonl"
 GOLD_LABELS_PATH = LABELS_DIR / "gold_labels.jsonl"
+BATCHES_PATH = LABELS_DIR / "batches.json"
 GOLD_PATH = DATA_DIR / "gold.jsonl"
 SPLITS_PATH = LABELS_DIR / "splits.json"
 
 SPLIT_SEED = 13
 TOP_K_KEYWORDS = 15
+# splits.json 에 있을 수 있는 분할. test 는 1차 배치 그대로(이전 결과와 비교용), test_new 는 2차 배치의 15%.
+SPLIT_NAMES = ("train", "valid", "test", "test_new")
+EVAL_SPLITS = ("test", "test_new")
 
 
 def read_jsonl(path: Path) -> List[dict]:
@@ -69,9 +79,24 @@ def load_gold() -> List[dict]:
 
 
 def load_splits() -> Dict[str, List[str]]:
+    """train/valid/test 와, 있으면 test_new. 예전 splits.json(test_new 없음)도 그대로 읽는다."""
     with open(SPLITS_PATH, encoding="utf-8") as f:
         splits = json.load(f)
-    return {name: splits[name] for name in ("train", "valid", "test")}
+    return {name: splits[name] for name in SPLIT_NAMES if name in splits}
+
+
+def load_batches() -> Dict[str, int]:
+    """id -> 라벨 배치 번호 (labels/batches.json). 파일이 없거나 목록에 없는 id 는 1차(1)로 본다."""
+    if not BATCHES_PATH.exists():
+        return {}
+    with open(BATCHES_PATH, encoding="utf-8") as f:
+        info = json.load(f)
+    return {str(i): int(b["batch"]) for b in info.get("batches", []) for i in b.get("ids", [])}
+
+
+def row_batch(row: dict) -> int:
+    """data/gold.jsonl 행의 배치 번호. batch 필드가 없는 예전 gold.jsonl 은 모두 1차."""
+    return int(row.get("batch", 1))
 
 
 def keyword_order(keywords: Sequence[str]) -> Dict[str, int]:
@@ -235,3 +260,14 @@ def top_frequent_keywords(rows: Sequence[dict], keywords: Sequence[str], k: int 
         for kw in row["keywords"]:
             freq[kw] += 1
     return sorted(keywords, key=lambda kw: (-freq[kw], order[kw]))[:k]
+
+
+def report_keywords(gold: Sequence[dict], keywords: Sequence[str], k: int = TOP_K_KEYWORDS) -> List[str]:
+    """결과 파일 per_keyword 에 남길 키워드: 전체 gold 상위 k 개 + 1차 배치 상위 k 개 중 빠진 것.
+
+    2차 배치를 넣으면 상위 15개가 바뀌므로(도시·사원·기념물 -> 바다·해안·야외 활동), 1차 기준 15개도 같이 남겨
+    예전 결과(test 분할)의 키워드별 숫자와 그대로 비교할 수 있게 한다.
+    """
+    top = top_frequent_keywords(gold, keywords, k)
+    top_batch1 = top_frequent_keywords([g for g in gold if row_batch(g) == 1], keywords, k)
+    return top + [kw for kw in top_batch1 if kw not in top]

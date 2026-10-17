@@ -3,15 +3,16 @@
 - 입력: title 과 overview 를 문장 쌍으로 넣고 512 토큰으로 자른다.
 - 출력: 키워드마다 시그모이드 확률 (problem_type=multi_label_classification, BCE 손실).
 - 학습 예시가 0개인 키워드는 라벨 공간에서 빼고 결과에 기록한다 (평가 때는 항상 '없음'으로 예측).
-- 임계값은 valid 에서 고른다: 전역 1개(기본) + 키워드별(valid 양성이 충분할 때만, 아니면 전역으로 대체).
-- test 는 기준선(scripts/baseline.py)과 같은 지표 함수로 평가한다.
+- 임계값은 valid(1차 + 2차 배치)에서 고른다: 전역 1개(기본) + 키워드별(valid 양성이 충분할 때만, 아니면 전역으로 대체).
+- 고른 임계값으로 test(1차 배치, 예전과 같은 163개)와 test_new(2차 배치, splits.json 에 있을 때)를 따로 평가한다.
+  지표 함수는 기준선(scripts/baseline.py)과 같다.
 
-결과: results/<run_name>.json, 모델: outputs/<run_name>/ (gitignore)
+결과: results/<run_name>.json (test 키는 예전 형식 그대로, test_new 키를 더함), 모델: outputs/<run_name>/ (gitignore)
 
 예) 스모크 테스트 (CPU)
   .venv/bin/python scripts/train_keyword_tagger.py --device cpu --model klue/roberta-small --max-steps 5 --run-name smoke
-예) 본 학습 (Apple GPU)
-  .venv/bin/python scripts/train_keyword_tagger.py --device mps --run-name roberta-base
+예) 본 학습 (Apple GPU, 2차 배치 포함)
+  .venv/bin/python scripts/train_keyword_tagger.py --device mps --run-name roberta-base-v2
 """
 from __future__ import annotations
 
@@ -29,6 +30,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from kt_common import (  # noqa: E402
+    EVAL_SPLITS,
     OUTPUTS_DIR,
     RESULTS_DIR,
     ROOT,
@@ -36,18 +38,27 @@ from kt_common import (  # noqa: E402
     load_gold,
     load_keywords,
     load_splits,
+    report_keywords,
+    row_batch,
     top_frequent_keywords,
     write_json,
     write_jsonl,
 )
 
 THRESHOLD_GRID = [round(0.05 + 0.01 * i, 2) for i in range(91)]  # 0.05 ~ 0.95
+# 기본 에폭 수. 1차 배치만 쓴 roberta-base(10에폭, 480 step)는 마지막 에폭까지 valid micro F1 이 올랐고
+# (0.614 -> 0.622 -> 0.637), 마지막 train loss 0.114 는 키워드 빈도만 맞히는 예측의 BCE(약 0.146)보다 조금 낮을
+# 뿐이라 덜 학습된 상태였다. 2차 배치를 넣으면 train 이 758 -> 1,354개라 10에폭도 850 step 이지만, 에폭마다 valid
+# micro F1 이 가장 좋은 가중치를 남기므로 15에폭(약 1,275 step)으로 늘려도 지나친 학습의 위험은 작다.
+# 예전 설정과 똑같이 돌리려면 --epochs 10.
+DEFAULT_EPOCHS = 15
 
 
 def parse_args():
     p = argparse.ArgumentParser(description="Glople 키워드 다중 라벨 분류기 학습")
     p.add_argument("--model", default="klue/roberta-base")
-    p.add_argument("--epochs", type=int, default=10)
+    p.add_argument("--epochs", type=int, default=DEFAULT_EPOCHS,
+                   help=f"기본 {DEFAULT_EPOCHS} (1차 배치만 쓰던 예전 기본값은 10)")
     p.add_argument("--batch-size", type=int, default=16)
     p.add_argument("--eval-batch-size", type=int, default=32)
     p.add_argument("--lr", type=float, default=5e-5)
@@ -166,8 +177,12 @@ def main():
     gold = load_gold()
     splits = load_splits()
     by_id = {g["id"]: g for g in gold}
-    rows = {name: [by_id[i] for i in splits[name]] for name in ("train", "valid", "test")}
+    rows = {name: [by_id[i] for i in ids] for name, ids in splits.items()}
+    eval_splits = [name for name in EVAL_SPLITS if name in rows]
     top_keywords = top_frequent_keywords(gold, keywords)
+    # per_keyword 는 상위 15개 + 1차 배치 상위 15개 중 빠진 것까지 (기준선 baseline.json 과 같은 목록)
+    reported_keywords = report_keywords(gold, keywords)
+    print("[분할] " + ", ".join(f"{name} {len(r)}" for name, r in rows.items()))
 
     train_freq = Counter(k for r in rows["train"] for k in r["keywords"])
     label_space = [k for k in keywords if train_freq[k] > 0]
@@ -294,19 +309,19 @@ def main():
     valid_probs, valid_labels = predict("valid")
     global_t, global_valid_f1 = tune_global_threshold(valid_probs, valid_labels)
     per_label_t, per_label_src = tune_per_label_thresholds(valid_probs, valid_labels, global_t, args.min_valid_pos)
-    test_probs, _ = predict("test")
+    probs = {"valid": valid_probs, **{name: predict(name)[0] for name in eval_splits}}
 
-    def evaluate(name, probs, thresholds):
+    def evaluate(name, thresholds):
         return evaluate_sets([r["keywords"] for r in rows[name]],
-                             to_keyword_sets(probs, thresholds, label_space), keywords, top_keywords)
+                             to_keyword_sets(probs[name], thresholds, label_space), keywords, reported_keywords)
 
     global_thr = [global_t] * len(label_space)
     results_by_mode = {
-        "global": {"valid": evaluate("valid", valid_probs, global_thr), "test": evaluate("test", test_probs, global_thr)},
-        "per_label": {"valid": evaluate("valid", valid_probs, per_label_t),
-                      "test": evaluate("test", test_probs, per_label_t)},
+        mode: {name: evaluate(name, thr) for name in ["valid"] + eval_splits}
+        for mode, thr in (("global", global_thr), ("per_label", per_label_t))
     }
     selected = "per_label" if args.per_label_thresholds else "global"
+    other = "global" if selected == "per_label" else "per_label"
     selected_thr = per_label_t if selected == "per_label" else global_thr
 
     out_dir = OUTPUTS_DIR / run_name
@@ -323,12 +338,14 @@ def main():
             "max_length": args.max_length,
             "input": "tokenizer(title, overview, truncation=True) 의 input_ids + attention_mask (token_type_ids 는 넣지 않음)",
         })
-        pred_sets = to_keyword_sets(test_probs, selected_thr, label_space)
-        write_jsonl(out_dir / "test_predictions.jsonl", (
-            {"id": r["id"], "title": r["title"], "gold": r["keywords"], "pred": p,
-             "missed": [k for k in r["keywords"] if k not in p], "extra": [k for k in p if k not in r["keywords"]]}
-            for r, p in zip(rows["test"], pred_sets)
-        ))
+        # compare.py 가 키워드별 지표를 다시 계산할 때 읽는다: test_predictions.jsonl, test_new_predictions.jsonl
+        for name in eval_splits:
+            pred_sets = to_keyword_sets(probs[name], selected_thr, label_space)
+            write_jsonl(out_dir / f"{name}_predictions.jsonl", (
+                {"id": r["id"], "title": r["title"], "gold": r["keywords"], "pred": p,
+                 "missed": [k for k in r["keywords"] if k not in p], "extra": [k for k in p if k not in r["keywords"]]}
+                for r, p in zip(rows[name], pred_sets)
+            ))
 
     result = {
         "name": run_name,
@@ -337,6 +354,7 @@ def main():
                    "torch": torch.__version__, "transformers": transformers.__version__,
                    "python": platform.python_version(), "num_threads": torch.get_num_threads()},
         "split_sizes": {k: len(v) for k, v in rows.items()},
+        "split_sizes_by_batch": {k: dict(sorted(Counter(str(row_batch(r)) for r in v).items())) for k, v in rows.items()},
         "label_space_size": len(label_space),
         "excluded_keywords_zero_train_examples": excluded,
         "best_epoch": best["epoch"],
@@ -352,22 +370,24 @@ def main():
             "min_valid_pos": args.min_valid_pos,
         },
         "top_keywords": top_keywords,
+        "eval_splits": eval_splits,
         "valid": results_by_mode[selected]["valid"],
-        "test": results_by_mode[selected]["test"],
-        "test_other_threshold_mode": {
-            "mode": "global" if selected == "per_label" else "per_label",
-            **{k: results_by_mode["global" if selected == "per_label" else "per_label"]["test"][k]
-               for k in ("micro", "macro", "samples")},
-        },
+        # test 는 1차 배치 163개 (예전 결과 파일과 같은 키), test_new 는 2차 배치 (있을 때만)
+        **{name: results_by_mode[selected][name] for name in eval_splits},
+        **{f"{name}_other_threshold_mode": {
+            "mode": other, **{k: results_by_mode[other][name][k] for k in ("micro", "macro", "samples")}}
+           for name in eval_splits},
         # 커밋되는 결과 파일에 로컬 절대경로(사용자 이름)가 남지 않도록 keyword_tagger 기준 상대경로로 적는다.
         "model_dir": os.path.relpath(out_dir, ROOT) if not args.no_save_model else None,
     }
     result_path = RESULTS_DIR / f"{run_name}.json"
     write_json(result_path, result)
 
-    m = result["test"]
-    print(f"[test/{selected}] micro P {m['micro']['precision']:.3f} R {m['micro']['recall']:.3f} F1 {m['micro']['f1']:.3f} "
-          f"| macro F1 {m['macro']['f1']:.3f} | exact {m['samples']['exact_match']:.3f}")
+    for name in eval_splits:
+        m = result[name]
+        print(f"[{name}/{selected}] items {m['samples']['items']} micro P {m['micro']['precision']:.3f} "
+              f"R {m['micro']['recall']:.3f} F1 {m['micro']['f1']:.3f} | macro F1 {m['macro']['f1']:.3f} "
+              f"| exact {m['samples']['exact_match']:.3f}")
     print(f"-> {result_path}")
     if not args.no_save_model:
         print(f"-> {out_dir}")
