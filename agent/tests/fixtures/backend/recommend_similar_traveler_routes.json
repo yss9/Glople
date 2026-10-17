@@ -1,0 +1,20 @@
+{
+  "_note": "가짜 데이터. rows는 Glople POST /api/info-recommend 응답(UserInfo 배열)과 같은 모양이다: age는 나이가 아니라 생년월일 yyyyMMdd 문자열, gender는 M/F. 가짜 백엔드는 서버처럼 같은 성별·생년월일 ±5년 후보를 고르고 MBTI가 많이 같은 순으로 12명까지 돌려준다.",
+  "endpoint": "POST /api/info-recommend",
+  "rows": [
+    {"id": 1, "age": "19980517", "gender": "M", "mbti": "ENTP", "travelDestinations": ["제주", "부산", "강릉", "여수"]},
+    {"id": 2, "age": "19960203", "gender": "M", "mbti": "ENTJ", "travelDestinations": ["도쿄", "오사카", "교토"]},
+    {"id": 3, "age": "20000911", "gender": "M", "mbti": "INTP", "travelDestinations": ["울릉도", "독도", "포항"]},
+    {"id": 4, "age": "19940722", "gender": "M", "mbti": "ESTP", "travelDestinations": ["다낭", "호이안", "나트랑"]},
+    {"id": 5, "age": "19880130", "gender": "M", "mbti": "ENTP", "travelDestinations": ["리스본", "포르투"]},
+    {"id": 6, "age": "19820415", "gender": "M", "mbti": "ISTJ", "travelDestinations": ["경주", "안동"]},
+    {"id": 7, "age": "19970805", "gender": "F", "mbti": "ENFP", "travelDestinations": ["파리", "니스", "리옹"]},
+    {"id": 8, "age": "19991224", "gender": "F", "mbti": "INFP", "travelDestinations": ["담양", "순천", "보성"]},
+    {"id": 9, "age": "19950318", "gender": "F", "mbti": "ENFJ", "travelDestinations": ["삿포로", "오타루", "하코다테"]},
+    {"id": 10, "age": "20010630", "gender": "F", "mbti": "ISFP", "travelDestinations": ["치앙마이", "방콕"]},
+    {"id": 11, "age": "19790909", "gender": "F", "mbti": "ESTJ", "travelDestinations": ["비엔나", "잘츠부르크", "할슈타트"]},
+    {"id": 12, "age": "19840102", "gender": "F", "mbti": "INFJ", "travelDestinations": ["교토", "나라"]},
+    {"id": 13, "age": "19620620", "gender": "M", "mbti": "ESFJ", "travelDestinations": ["하동", "남해", "통영"]},
+    {"id": 14, "age": "19590311", "gender": "F", "mbti": "ISFJ", "travelDestinations": ["제천", "단양", "영월"]}
+  ]
+}

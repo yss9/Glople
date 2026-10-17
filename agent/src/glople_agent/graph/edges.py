@@ -1,0 +1,90 @@
+"""조건부 엣지(design.md 5.4). 엣지 함수는 state만 읽고 다음 노드 이름을 돌려준다(state를 바꾸지 않음).
+
+remaining_steps 기준(api-notes '동작 고정'): 엣지는 방금 돈 노드와 같은 remaining_steps를 본다.
+노드가 k개 더 돌려면 remaining_steps ≥ k+1이어야 하고(마지막 노드도 1이 남아야 END), 모자라면
+GraphRecursionError가 난다. 그래서 route 뒤로 가장 긴 경로가 들어갈 때만 그 길로 보낸다.
+"""
+from glople_agent.config import AnswerMode
+from glople_agent.contract import PLAN_TOOL_NAME
+from glople_agent.state import AgentState
+
+ROUTE_RETRY_ATTEMPTS = 2   # RetryPolicy(max_attempts): 연결 오류일 때 첫 실행을 포함한 총 횟수
+MAX_ROUTER_ATTEMPTS = 2    # quirk 자기 루프(route → route): 첫 시도 + 재시도 1회
+RETRY_KINDS = ("dropped", "truncated", "unparsed")
+
+# route 뒤 가장 긴 경로의 노드 수: validate → tools → collect → answer_template → finish (llm 모드는 answer_llm 하나 더)
+_STEPS_AFTER_ROUTE: dict[str, int] = {"template": 5, "llm": 6}
+
+
+def steps_after_route(answer_mode: AnswerMode = "template") -> int:
+    return _STEPS_AFTER_ROUTE[answer_mode]
+
+
+def min_steps_for_tools(answer_mode: AnswerMode = "template") -> int:
+    """route가 본 remaining_steps가 이만큼은 있어야 도구 경로가 END까지 간다."""
+    return steps_after_route(answer_mode) + 1
+
+
+def min_steps_to_retry(answer_mode: AnswerMode = "template") -> int:
+    """다시 도는 route 하나 + 그 뒤 가장 긴 경로 + 1 (M0 템플릿 7, M2 llm 8)."""
+    return steps_after_route(answer_mode) + 2
+
+
+def make_after_route(answer_mode: AnswerMode = "template"):
+    need_tools = min_steps_for_tools(answer_mode)
+    need_retry = min_steps_to_retry(answer_mode)
+
+    def after_route(state: AgentState) -> str:
+        kind = state.get("router_kind")
+        steps = state["remaining_steps"]
+        if kind == "tool":
+            return "validate" if steps >= need_tools else "fallback"
+        if kind == "text":
+            return "direct_reply"
+        if (kind in RETRY_KINDS and state.get("router_attempts", 0) < MAX_ROUTER_ATTEMPTS
+                and steps >= need_retry):
+            return "route"   # 자기 루프: 빈 호출·잘림·파싱 실패는 한 번만 다시
+        return "fallback"    # 재시도 초과·단계 부족·모델 서버 오류
+
+    return after_route
+
+
+def after_validate(state: AgentState) -> str:
+    verdicts = state.get("verdicts") or []
+    passed = [v for v in verdicts if v["ok"]]
+    if any(v["name"] == PLAN_TOOL_NAME for v in passed):
+        return "plan_prepare"   # validate가 일정 호출을 혼자 남겨 둠
+    if passed:
+        return "tools"
+    if any(v.get("clarify") for v in verdicts):
+        return "clarify"
+    return "fallback"           # 통과 0개, 되물을 것도 없음(모르는 도구·모르는 키 …)
+
+
+def make_after_collect(answer_mode: AnswerMode = "template"):
+    def after_collect(state: AgentState) -> str:
+        # M6: 동명 장소(needs_clarification)면 clarify. M0 결과에는 없음
+        if answer_mode == "llm" and any(r.get("status") == "ok" for r in state.get("results") or []):
+            return "answer_llm"
+        return "answer_template"   # 템플릿 모드(M0 기본)는 answer_llm에 닿지 않음
+
+    return after_collect
+
+
+def after_answer(state: AgentState) -> str:
+    # 가드를 통과한 LLM 답만 그대로 끝냄. M0 answer_llm은 답을 만들지 않으므로 늘 템플릿으로
+    return "finish" if state.get("reply_kind") == "llm" and state.get("final_text") else "answer_template"
+
+
+def fallback_reason(state: AgentState) -> str:
+    """fallback 노드가 고를 안내문 키(templates.FALLBACK_MESSAGES)."""
+    kind = state.get("router_kind")
+    trace = state.get("trace") or {}
+    if kind == "error":
+        last = (trace.get("route") or [{}])[-1]
+        return "timeout" if (last.get("detail") or {}).get("error") == "timeout" else "model_error"
+    if kind in RETRY_KINDS:
+        return "unparsed" if state.get("router_attempts", 0) >= MAX_ROUTER_ATTEMPTS else "steps"
+    if kind == "tool":
+        return "no_valid_call" if "validate" in trace else "steps"
+    return "unparsed"
