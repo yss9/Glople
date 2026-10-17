@@ -1,0 +1,1706 @@
+{
+  "name": "baseline_substring",
+  "description": "KeywordMask.fromDescription 규칙 (overview 에 키워드 글자가 있으면 표시)",
+  "rule": "keyword in overview (Java String.contains 와 동일), 빈 설명문은 빈 집합",
+  "macro_definition": "평가 집합 gold 에 한 번 이상 나온 키워드만 평균",
+  "top_keywords": [
+    "역사",
+    "역사적인 장소",
+    "자연",
+    "경치",
+    "문화",
+    "전통",
+    "건축",
+    "산",
+    "역사적 건축",
+    "도시",
+    "불교",
+    "사원",
+    "사찰",
+    "유적",
+    "기념물"
+  ],
+  "test": {
+    "micro": {
+      "precision": 0.335,
+      "recall": 0.3816,
+      "f1": 0.3568,
+      "tp": 203,
+      "fp": 403,
+      "fn": 329
+    },
+    "macro": {
+      "precision": 0.418,
+      "recall": 0.4769,
+      "f1": 0.3943,
+      "labels": 61
+    },
+    "samples": {
+      "items": 163,
+      "exact_match": 0.0123,
+      "mean_jaccard": 0.2041,
+      "avg_gold_keywords": 3.264,
+      "avg_pred_keywords": 3.718
+    },
+    "per_keyword": {
+      "역사": {
+        "precision": 0.4783,
+        "recall": 0.2391,
+        "f1": 0.3188,
+        "support": 46,
+        "predicted": 23
+      },
+      "역사적인 장소": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "support": 35,
+        "predicted": 0
+      },
+      "자연": {
+        "precision": 0.5952,
+        "recall": 0.5682,
+        "f1": 0.5814,
+        "support": 44,
+        "predicted": 42
+      },
+      "경치": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "support": 30,
+        "predicted": 0
+      },
+      "문화": {
+        "precision": 0.3333,
+        "recall": 0.7059,
+        "f1": 0.4528,
+        "support": 17,
+        "predicted": 36
+      },
+      "전통": {
+        "precision": 0.3846,
+        "recall": 0.2632,
+        "f1": 0.3125,
+        "support": 19,
+        "predicted": 13
+      },
+      "건축": {
+        "precision": 0.7778,
+        "recall": 0.3889,
+        "f1": 0.5185,
+        "support": 18,
+        "predicted": 9
+      },
+      "산": {
+        "precision": 0.1798,
+        "recall": 1.0,
+        "f1": 0.3048,
+        "support": 16,
+        "predicted": 89
+      },
+      "역사적 건축": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "support": 14,
+        "predicted": 0
+      },
+      "도시": {
+        "precision": 0.2857,
+        "recall": 0.1333,
+        "f1": 0.1818,
+        "support": 15,
+        "predicted": 7
+      },
+      "불교": {
+        "precision": 1.0,
+        "recall": 0.6667,
+        "f1": 0.8,
+        "support": 12,
+        "predicted": 8
+      },
+      "사원": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "support": 11,
+        "predicted": 1
+      },
+      "사찰": {
+        "precision": 0.875,
+        "recall": 0.6364,
+        "f1": 0.7368,
+        "support": 11,
+        "predicted": 8
+      },
+      "유적": {
+        "precision": 0.75,
+        "recall": 0.375,
+        "f1": 0.5,
+        "support": 8,
+        "predicted": 4
+      },
+      "기념물": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "support": 11,
+        "predicted": 5
+      }
+    },
+    "worst_false_positive_keywords": [
+      {
+        "keyword": "성",
+        "fp": 102,
+        "tp": 3
+      },
+      {
+        "keyword": "산",
+        "fp": 73,
+        "tp": 16
+      },
+      {
+        "keyword": "강",
+        "fp": 50,
+        "tp": 6
+      },
+      {
+        "keyword": "문화",
+        "fp": 24,
+        "tp": 12
+      },
+      {
+        "keyword": "자연",
+        "fp": 17,
+        "tp": 25
+      },
+      {
+        "keyword": "역사",
+        "fp": 12,
+        "tp": 11
+      },
+      {
+        "keyword": "탑",
+        "fp": 10,
+        "tp": 1
+      },
+      {
+        "keyword": "등산",
+        "fp": 8,
+        "tp": 4
+      },
+      {
+        "keyword": "섬",
+        "fp": 8,
+        "tp": 9
+      },
+      {
+        "keyword": "전통",
+        "fp": 8,
+        "tp": 5
+      },
+      {
+        "keyword": "하늘",
+        "fp": 7,
+        "tp": 0
+      },
+      {
+        "keyword": "바위",
+        "fp": 6,
+        "tp": 5
+      },
+      {
+        "keyword": "기념물",
+        "fp": 5,
+        "tp": 0
+      },
+      {
+        "keyword": "도시",
+        "fp": 5,
+        "tp": 2
+      },
+      {
+        "keyword": "시장",
+        "fp": 5,
+        "tp": 2
+      }
+    ]
+  },
+  "all": {
+    "micro": {
+      "precision": 0.343,
+      "recall": 0.3814,
+      "f1": 0.3612,
+      "tp": 1401,
+      "fp": 2683,
+      "fn": 2272
+    },
+    "macro": {
+      "precision": 0.4823,
+      "recall": 0.4952,
+      "f1": 0.4157,
+      "labels": 79
+    },
+    "samples": {
+      "items": 1083,
+      "exact_match": 0.0111,
+      "mean_jaccard": 0.2164,
+      "avg_gold_keywords": 3.392,
+      "avg_pred_keywords": 3.771
+    },
+    "per_keyword": {
+      "역사": {
+        "precision": 0.6471,
+        "recall": 0.2457,
+        "f1": 0.3561,
+        "support": 403,
+        "predicted": 153
+      },
+      "역사적인 장소": {
+        "precision": 1.0,
+        "recall": 0.0072,
+        "f1": 0.0143,
+        "support": 278,
+        "predicted": 2
+      },
+      "자연": {
+        "precision": 0.615,
+        "recall": 0.4545,
+        "f1": 0.5227,
+        "support": 253,
+        "predicted": 187
+      },
+      "경치": {
+        "precision": 0.9375,
+        "recall": 0.0725,
+        "f1": 0.1345,
+        "support": 207,
+        "predicted": 16
+      },
+      "문화": {
+        "precision": 0.3929,
+        "recall": 0.7483,
+        "f1": 0.5152,
+        "support": 147,
+        "predicted": 280
+      },
+      "전통": {
+        "precision": 0.4528,
+        "recall": 0.3429,
+        "f1": 0.3902,
+        "support": 140,
+        "predicted": 106
+      },
+      "건축": {
+        "precision": 0.7674,
+        "recall": 0.4748,
+        "f1": 0.5867,
+        "support": 139,
+        "predicted": 86
+      },
+      "산": {
+        "precision": 0.2098,
+        "recall": 0.9922,
+        "f1": 0.3464,
+        "support": 129,
+        "predicted": 610
+      },
+      "역사적 건축": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "support": 120,
+        "predicted": 0
+      },
+      "도시": {
+        "precision": 0.2727,
+        "recall": 0.1607,
+        "f1": 0.2022,
+        "support": 112,
+        "predicted": 66
+      },
+      "불교": {
+        "precision": 0.9074,
+        "recall": 0.5385,
+        "f1": 0.6759,
+        "support": 91,
+        "predicted": 54
+      },
+      "사원": {
+        "precision": 0.25,
+        "recall": 0.0119,
+        "f1": 0.0227,
+        "support": 84,
+        "predicted": 4
+      },
+      "사찰": {
+        "precision": 0.8667,
+        "recall": 0.7738,
+        "f1": 0.8176,
+        "support": 84,
+        "predicted": 75
+      },
+      "유적": {
+        "precision": 0.7742,
+        "recall": 0.2892,
+        "f1": 0.4211,
+        "support": 83,
+        "predicted": 31
+      },
+      "기념물": {
+        "precision": 0.0345,
+        "recall": 0.012,
+        "f1": 0.0179,
+        "support": 83,
+        "predicted": 29
+      }
+    },
+    "worst_false_positive_keywords": [
+      {
+        "keyword": "성",
+        "fp": 692,
+        "tp": 25
+      },
+      {
+        "keyword": "산",
+        "fp": 482,
+        "tp": 128
+      },
+      {
+        "keyword": "강",
+        "fp": 367,
+        "tp": 51
+      },
+      {
+        "keyword": "문화",
+        "fp": 170,
+        "tp": 110
+      },
+      {
+        "keyword": "자연",
+        "fp": 72,
+        "tp": 115
+      },
+      {
+        "keyword": "탑",
+        "fp": 61,
+        "tp": 14
+      },
+      {
+        "keyword": "전통",
+        "fp": 58,
+        "tp": 48
+      },
+      {
+        "keyword": "역사",
+        "fp": 54,
+        "tp": 99
+      },
+      {
+        "keyword": "도시",
+        "fp": 48,
+        "tp": 18
+      },
+      {
+        "keyword": "섬",
+        "fp": 48,
+        "tp": 32
+      },
+      {
+        "keyword": "등산",
+        "fp": 40,
+        "tp": 31
+      },
+      {
+        "keyword": "바위",
+        "fp": 39,
+        "tp": 21
+      },
+      {
+        "keyword": "공연",
+        "fp": 32,
+        "tp": 29
+      },
+      {
+        "keyword": "하늘",
+        "fp": 29,
+        "tp": 1
+      },
+      {
+        "keyword": "기념물",
+        "fp": 28,
+        "tp": 1
+      }
+    ]
+  },
+  "reference_title_plus_overview_test": {
+    "micro": {
+      "precision": 0.3333,
+      "recall": 0.3816,
+      "f1": 0.3558,
+      "tp": 203,
+      "fp": 406,
+      "fn": 329
+    },
+    "macro": {
+      "precision": 0.4175,
+      "recall": 0.4769,
+      "f1": 0.3937,
+      "labels": 61
+    },
+    "samples": {
+      "items": 163,
+      "exact_match": 0.0123,
+      "mean_jaccard": 0.203,
+      "avg_gold_keywords": 3.264,
+      "avg_pred_keywords": 3.736
+    }
+  },
+  "examples": [
+    {
+      "type": "false_positive",
+      "id": "126528",
+      "title": "절두산 순교성지",
+      "keyword": "성",
+      "gold_keywords": [
+        "역사",
+        "박물관",
+        "성당",
+        "역사적인 장소"
+      ],
+      "matched_in_word": "순례성당",
+      "why": "'순례성당' 안의 '성' 글자에 걸렸지만 라벨에는 '성' 가 없음",
+      "fp_count": 692,
+      "most_common_matched_words": [
+        {
+          "word": "조성된",
+          "count": 67
+        },
+        {
+          "word": "조성되어",
+          "count": 45
+        },
+        {
+          "word": "구성되어",
+          "count": 27
+        },
+        {
+          "word": "조성되었다",
+          "count": 17
+        },
+        {
+          "word": "조성한",
+          "count": 16
+        }
+      ]
+    },
+    {
+      "type": "false_positive",
+      "id": "127955",
+      "title": "여의도공원",
+      "keyword": "산",
+      "gold_keywords": [
+        "문화",
+        "자연",
+        "도시"
+      ],
+      "matched_in_word": "산책로",
+      "why": "'산책로' 안의 '산' 글자에 걸렸지만 라벨에는 '산' 가 없음",
+      "fp_count": 482,
+      "most_common_matched_words": [
+        {
+          "word": "산책로",
+          "count": 18
+        },
+        {
+          "word": "산책로와",
+          "count": 9
+        },
+        {
+          "word": "산",
+          "count": 8
+        },
+        {
+          "word": "산책로가",
+          "count": 8
+        },
+        {
+          "word": "산책을",
+          "count": 8
+        }
+      ]
+    },
+    {
+      "type": "false_positive",
+      "id": "125532",
+      "title": "백련사(강화)",
+      "keyword": "강",
+      "gold_keywords": [
+        "사원",
+        "역사",
+        "산",
+        "불교",
+        "사찰"
+      ],
+      "matched_in_word": "강화군",
+      "why": "'강화군' 안의 '강' 글자에 걸렸지만 라벨에는 '강' 가 없음",
+      "fp_count": 367,
+      "most_common_matched_words": [
+        {
+          "word": "강화군",
+          "count": 17
+        },
+        {
+          "word": "한강",
+          "count": 15
+        },
+        {
+          "word": "강남구",
+          "count": 15
+        },
+        {
+          "word": "강화",
+          "count": 14
+        },
+        {
+          "word": "일제강점기",
+          "count": 13
+        }
+      ]
+    },
+    {
+      "type": "false_positive",
+      "id": "126532",
+      "title": "올림픽공원",
+      "keyword": "문화",
+      "gold_keywords": [
+        "조각",
+        "역사",
+        "자연",
+        "스포츠",
+        "공연",
+        "유적"
+      ],
+      "matched_in_word": "문화",
+      "why": "'문화' 안의 '문화' 글자에 걸렸지만 라벨에는 '문화' 가 없음",
+      "fp_count": 170,
+      "most_common_matched_words": [
+        {
+          "word": "문화",
+          "count": 17
+        },
+        {
+          "word": "문화를",
+          "count": 8
+        },
+        {
+          "word": "문화재",
+          "count": 6
+        },
+        {
+          "word": "유형문화유산으로",
+          "count": 5
+        },
+        {
+          "word": "문화적",
+          "count": 4
+        }
+      ]
+    },
+    {
+      "type": "false_positive",
+      "id": "126505",
+      "title": "승가사(서울)",
+      "keyword": "자연",
+      "gold_keywords": [
+        "사원",
+        "역사",
+        "산",
+        "불교",
+        "사찰",
+        "탑",
+        "불상"
+      ],
+      "matched_in_word": "자연",
+      "why": "'자연' 안의 '자연' 글자에 걸렸지만 라벨에는 '자연' 가 없음",
+      "fp_count": 72,
+      "most_common_matched_words": [
+        {
+          "word": "자연스럽게",
+          "count": 11
+        },
+        {
+          "word": "자연",
+          "count": 11
+        },
+        {
+          "word": "자연과",
+          "count": 9
+        },
+        {
+          "word": "자연경관을",
+          "count": 4
+        },
+        {
+          "word": "자연이",
+          "count": 3
+        }
+      ]
+    },
+    {
+      "type": "false_negative",
+      "id": "125468",
+      "title": "마니산(강화)",
+      "keyword": "역사",
+      "gold_keywords": [
+        "역사",
+        "산",
+        "등산",
+        "자연",
+        "경치",
+        "역사적인 장소"
+      ],
+      "why": "라벨은 '역사' 인데 설명문에 '역사' 글자가 없어 부분 문자열 규칙이 놓침",
+      "fn_count": 304
+    },
+    {
+      "type": "false_negative",
+      "id": "125502",
+      "title": "강화도",
+      "keyword": "역사적인 장소",
+      "gold_keywords": [
+        "역사",
+        "섬",
+        "바다",
+        "유적",
+        "역사적인 장소"
+      ],
+      "why": "라벨은 '역사적인 장소' 인데 설명문에 '역사적인 장소' 글자가 없어 부분 문자열 규칙이 놓침",
+      "fn_count": 276
+    },
+    {
+      "type": "false_negative",
+      "id": "125452",
+      "title": "청계산",
+      "keyword": "경치",
+      "gold_keywords": [
+        "산",
+        "등산",
+        "자연",
+        "경치"
+      ],
+      "why": "라벨은 '경치' 인데 설명문에 '경치' 글자가 없어 부분 문자열 규칙이 놓침",
+      "fn_count": 192
+    },
+    {
+      "type": "false_negative",
+      "id": "125497",
+      "title": "장봉도 옹암해변",
+      "keyword": "자연",
+      "gold_keywords": [
+        "해안",
+        "수영",
+        "자연",
+        "해변",
+        "섬",
+        "바다"
+      ],
+      "why": "라벨은 '자연' 인데 설명문에 '자연' 글자가 없어 부분 문자열 규칙이 놓침",
+      "fn_count": 138
+    },
+    {
+      "type": "false_negative",
+      "id": "125534",
+      "title": "강화 전등사",
+      "keyword": "역사적 건축",
+      "gold_keywords": [
+        "사원",
+        "역사",
+        "불교",
+        "사찰",
+        "역사적인 장소",
+        "역사적 건축"
+      ],
+      "why": "라벨은 '역사적 건축' 인데 설명문에 '역사적 건축' 글자가 없어 부분 문자열 규칙이 놓침",
+      "fn_count": 120
+    }
+  ],
+  "korean_rule": {
+    "name": "baseline_korean_rule",
+    "description": "KeywordMask.fromKoreanDescription 규칙 (TourAPI 설명문용, 한 글자 키워드는 독립된 단어일 때만)",
+    "rule": "len(keyword) == 1 이면 앞이 한글 음절(U+AC00~U+D7A3)이 아니고 뒤에 이어지는 한글 음절이 없거나 조사(kt_common.KOREAN_PARTICLES)일 때만, 나머지는 keyword in overview. 빈 설명문은 빈 집합",
+    "single_char_keywords": [
+      "산",
+      "섬",
+      "성",
+      "탑",
+      "강"
+    ],
+    "test": {
+      "micro": {
+        "precision": 0.5158,
+        "recall": 0.3383,
+        "f1": 0.4086,
+        "tp": 180,
+        "fp": 169,
+        "fn": 352
+      },
+      "macro": {
+        "precision": 0.4272,
+        "recall": 0.4236,
+        "f1": 0.3924,
+        "labels": 61
+      },
+      "samples": {
+        "items": 163,
+        "exact_match": 0.0613,
+        "mean_jaccard": 0.2769,
+        "avg_gold_keywords": 3.264,
+        "avg_pred_keywords": 2.141
+      },
+      "per_keyword": {
+        "역사": {
+          "precision": 0.4783,
+          "recall": 0.2391,
+          "f1": 0.3188,
+          "support": 46,
+          "predicted": 23
+        },
+        "역사적인 장소": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 35,
+          "predicted": 0
+        },
+        "자연": {
+          "precision": 0.5952,
+          "recall": 0.5682,
+          "f1": 0.5814,
+          "support": 44,
+          "predicted": 42
+        },
+        "경치": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 30,
+          "predicted": 0
+        },
+        "문화": {
+          "precision": 0.3333,
+          "recall": 0.7059,
+          "f1": 0.4528,
+          "support": 17,
+          "predicted": 36
+        },
+        "전통": {
+          "precision": 0.3846,
+          "recall": 0.2632,
+          "f1": 0.3125,
+          "support": 19,
+          "predicted": 13
+        },
+        "건축": {
+          "precision": 0.7778,
+          "recall": 0.3889,
+          "f1": 0.5185,
+          "support": 18,
+          "predicted": 9
+        },
+        "산": {
+          "precision": 0.5,
+          "recall": 0.1875,
+          "f1": 0.2727,
+          "support": 16,
+          "predicted": 6
+        },
+        "역사적 건축": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 14,
+          "predicted": 0
+        },
+        "도시": {
+          "precision": 0.2857,
+          "recall": 0.1333,
+          "f1": 0.1818,
+          "support": 15,
+          "predicted": 7
+        },
+        "불교": {
+          "precision": 1.0,
+          "recall": 0.6667,
+          "f1": 0.8,
+          "support": 12,
+          "predicted": 8
+        },
+        "사원": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 11,
+          "predicted": 1
+        },
+        "사찰": {
+          "precision": 0.875,
+          "recall": 0.6364,
+          "f1": 0.7368,
+          "support": 11,
+          "predicted": 8
+        },
+        "유적": {
+          "precision": 0.75,
+          "recall": 0.375,
+          "f1": 0.5,
+          "support": 8,
+          "predicted": 4
+        },
+        "기념물": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 11,
+          "predicted": 5
+        }
+      },
+      "worst_false_positive_keywords": [
+        {
+          "keyword": "문화",
+          "fp": 24,
+          "tp": 12
+        },
+        {
+          "keyword": "자연",
+          "fp": 17,
+          "tp": 25
+        },
+        {
+          "keyword": "역사",
+          "fp": 12,
+          "tp": 11
+        },
+        {
+          "keyword": "등산",
+          "fp": 8,
+          "tp": 4
+        },
+        {
+          "keyword": "전통",
+          "fp": 8,
+          "tp": 5
+        },
+        {
+          "keyword": "하늘",
+          "fp": 7,
+          "tp": 0
+        },
+        {
+          "keyword": "바위",
+          "fp": 6,
+          "tp": 5
+        },
+        {
+          "keyword": "기념물",
+          "fp": 5,
+          "tp": 0
+        },
+        {
+          "keyword": "도시",
+          "fp": 5,
+          "tp": 2
+        },
+        {
+          "keyword": "시장",
+          "fp": 5,
+          "tp": 2
+        },
+        {
+          "keyword": "섬",
+          "fp": 4,
+          "tp": 8
+        },
+        {
+          "keyword": "해안",
+          "fp": 4,
+          "tp": 7
+        },
+        {
+          "keyword": "화산",
+          "fp": 4,
+          "tp": 0
+        },
+        {
+          "keyword": "보트",
+          "fp": 3,
+          "tp": 1
+        },
+        {
+          "keyword": "산",
+          "fp": 3,
+          "tp": 3
+        }
+      ]
+    },
+    "all": {
+      "micro": {
+        "precision": 0.5287,
+        "recall": 0.3362,
+        "f1": 0.4111,
+        "tp": 1235,
+        "fp": 1101,
+        "fn": 2438
+      },
+      "macro": {
+        "precision": 0.4994,
+        "recall": 0.4569,
+        "f1": 0.4197,
+        "labels": 79
+      },
+      "samples": {
+        "items": 1083,
+        "exact_match": 0.0563,
+        "mean_jaccard": 0.2798,
+        "avg_gold_keywords": 3.392,
+        "avg_pred_keywords": 2.157
+      },
+      "per_keyword": {
+        "역사": {
+          "precision": 0.6471,
+          "recall": 0.2457,
+          "f1": 0.3561,
+          "support": 403,
+          "predicted": 153
+        },
+        "역사적인 장소": {
+          "precision": 1.0,
+          "recall": 0.0072,
+          "f1": 0.0143,
+          "support": 278,
+          "predicted": 2
+        },
+        "자연": {
+          "precision": 0.615,
+          "recall": 0.4545,
+          "f1": 0.5227,
+          "support": 253,
+          "predicted": 187
+        },
+        "경치": {
+          "precision": 0.9375,
+          "recall": 0.0725,
+          "f1": 0.1345,
+          "support": 207,
+          "predicted": 16
+        },
+        "문화": {
+          "precision": 0.3929,
+          "recall": 0.7483,
+          "f1": 0.5152,
+          "support": 147,
+          "predicted": 280
+        },
+        "전통": {
+          "precision": 0.4528,
+          "recall": 0.3429,
+          "f1": 0.3902,
+          "support": 140,
+          "predicted": 106
+        },
+        "건축": {
+          "precision": 0.7674,
+          "recall": 0.4748,
+          "f1": 0.5867,
+          "support": 139,
+          "predicted": 86
+        },
+        "산": {
+          "precision": 0.5915,
+          "recall": 0.3256,
+          "f1": 0.42,
+          "support": 129,
+          "predicted": 71
+        },
+        "역사적 건축": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 120,
+          "predicted": 0
+        },
+        "도시": {
+          "precision": 0.2727,
+          "recall": 0.1607,
+          "f1": 0.2022,
+          "support": 112,
+          "predicted": 66
+        },
+        "불교": {
+          "precision": 0.9074,
+          "recall": 0.5385,
+          "f1": 0.6759,
+          "support": 91,
+          "predicted": 54
+        },
+        "사원": {
+          "precision": 0.25,
+          "recall": 0.0119,
+          "f1": 0.0227,
+          "support": 84,
+          "predicted": 4
+        },
+        "사찰": {
+          "precision": 0.8667,
+          "recall": 0.7738,
+          "f1": 0.8176,
+          "support": 84,
+          "predicted": 75
+        },
+        "유적": {
+          "precision": 0.7742,
+          "recall": 0.2892,
+          "f1": 0.4211,
+          "support": 83,
+          "predicted": 31
+        },
+        "기념물": {
+          "precision": 0.0345,
+          "recall": 0.012,
+          "f1": 0.0179,
+          "support": 83,
+          "predicted": 29
+        }
+      },
+      "worst_false_positive_keywords": [
+        {
+          "keyword": "문화",
+          "fp": 170,
+          "tp": 110
+        },
+        {
+          "keyword": "자연",
+          "fp": 72,
+          "tp": 115
+        },
+        {
+          "keyword": "전통",
+          "fp": 58,
+          "tp": 48
+        },
+        {
+          "keyword": "역사",
+          "fp": 54,
+          "tp": 99
+        },
+        {
+          "keyword": "도시",
+          "fp": 48,
+          "tp": 18
+        },
+        {
+          "keyword": "등산",
+          "fp": 40,
+          "tp": 31
+        },
+        {
+          "keyword": "바위",
+          "fp": 39,
+          "tp": 21
+        },
+        {
+          "keyword": "공연",
+          "fp": 32,
+          "tp": 29
+        },
+        {
+          "keyword": "산",
+          "fp": 29,
+          "tp": 42
+        },
+        {
+          "keyword": "하늘",
+          "fp": 29,
+          "tp": 1
+        },
+        {
+          "keyword": "기념물",
+          "fp": 28,
+          "tp": 1
+        },
+        {
+          "keyword": "박물관",
+          "fp": 28,
+          "tp": 13
+        },
+        {
+          "keyword": "시장",
+          "fp": 27,
+          "tp": 12
+        },
+        {
+          "keyword": "예술",
+          "fp": 25,
+          "tp": 41
+        },
+        {
+          "keyword": "미로",
+          "fp": 23,
+          "tp": 2
+        }
+      ]
+    }
+  },
+  "single_char_keyword_effect": {
+    "description": "한 글자 키워드별 substring(fromDescription) -> korean_rule(fromKoreanDescription) 전후 비교",
+    "test": {
+      "산": {
+        "support": 16,
+        "substring": {
+          "tp": 16,
+          "fp": 73,
+          "fn": 0,
+          "predicted": 89,
+          "precision": 0.1798,
+          "recall": 1.0,
+          "f1": 0.3048
+        },
+        "korean_rule": {
+          "tp": 3,
+          "fp": 3,
+          "fn": 13,
+          "predicted": 6,
+          "precision": 0.5,
+          "recall": 0.1875,
+          "f1": 0.2727
+        },
+        "korean_rule_remaining_fp_words": [
+          {
+            "word": "산과",
+            "count": 2
+          },
+          {
+            "word": "산",
+            "count": 1
+          }
+        ],
+        "korean_rule_new_fn_words": [
+          {
+            "word": "등산객들에게",
+            "count": 2
+          },
+          {
+            "word": "등산객들의",
+            "count": 2
+          },
+          {
+            "word": "무등산",
+            "count": 2
+          },
+          {
+            "word": "산책",
+            "count": 2
+          },
+          {
+            "word": "계양산",
+            "count": 1
+          }
+        ]
+      },
+      "섬": {
+        "support": 12,
+        "substring": {
+          "tp": 9,
+          "fp": 8,
+          "fn": 3,
+          "predicted": 17,
+          "precision": 0.5294,
+          "recall": 0.75,
+          "f1": 0.6207
+        },
+        "korean_rule": {
+          "tp": 8,
+          "fp": 4,
+          "fn": 4,
+          "predicted": 12,
+          "precision": 0.6667,
+          "recall": 0.6667,
+          "f1": 0.6667
+        },
+        "korean_rule_remaining_fp_words": [
+          {
+            "word": "섬",
+            "count": 3
+          },
+          {
+            "word": "섬과",
+            "count": 1
+          }
+        ],
+        "korean_rule_new_fn_words": [
+          {
+            "word": "섬들인데",
+            "count": 1
+          }
+        ]
+      },
+      "성": {
+        "support": 4,
+        "substring": {
+          "tp": 3,
+          "fp": 102,
+          "fn": 1,
+          "predicted": 105,
+          "precision": 0.0286,
+          "recall": 0.75,
+          "f1": 0.055
+        },
+        "korean_rule": {
+          "tp": 1,
+          "fp": 2,
+          "fn": 3,
+          "predicted": 3,
+          "precision": 0.3333,
+          "recall": 0.25,
+          "f1": 0.2857
+        },
+        "korean_rule_remaining_fp_words": [
+          {
+            "word": "5성",
+            "count": 1
+          },
+          {
+            "word": "성",
+            "count": 1
+          }
+        ],
+        "korean_rule_new_fn_words": [
+          {
+            "word": "거성의",
+            "count": 1
+          },
+          {
+            "word": "궁성이",
+            "count": 1
+          },
+          {
+            "word": "남한산성에서",
+            "count": 1
+          },
+          {
+            "word": "남한산성으로",
+            "count": 1
+          },
+          {
+            "word": "내성으로",
+            "count": 1
+          }
+        ]
+      },
+      "탑": {
+        "support": 1,
+        "substring": {
+          "tp": 1,
+          "fp": 10,
+          "fn": 0,
+          "predicted": 11,
+          "precision": 0.0909,
+          "recall": 1.0,
+          "f1": 0.1667
+        },
+        "korean_rule": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 1,
+          "predicted": 0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0
+        },
+        "korean_rule_remaining_fp_words": [],
+        "korean_rule_new_fn_words": [
+          {
+            "word": "돌탑이",
+            "count": 1
+          },
+          {
+            "word": "소망탑",
+            "count": 1
+          },
+          {
+            "word": "소망탑까지",
+            "count": 1
+          },
+          {
+            "word": "소망탑은",
+            "count": 1
+          }
+        ]
+      },
+      "강": {
+        "support": 7,
+        "substring": {
+          "tp": 6,
+          "fp": 50,
+          "fn": 1,
+          "predicted": 56,
+          "precision": 0.1071,
+          "recall": 0.8571,
+          "f1": 0.1905
+        },
+        "korean_rule": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 7,
+          "predicted": 0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0
+        },
+        "korean_rule_remaining_fp_words": [],
+        "korean_rule_new_fn_words": [
+          {
+            "word": "강남",
+            "count": 2
+          },
+          {
+            "word": "한강",
+            "count": 2
+          },
+          {
+            "word": "강남구와",
+            "count": 1
+          },
+          {
+            "word": "강변",
+            "count": 1
+          },
+          {
+            "word": "강변유원지로",
+            "count": 1
+          }
+        ]
+      }
+    },
+    "all": {
+      "산": {
+        "support": 129,
+        "substring": {
+          "tp": 128,
+          "fp": 482,
+          "fn": 1,
+          "predicted": 610,
+          "precision": 0.2098,
+          "recall": 0.9922,
+          "f1": 0.3464
+        },
+        "korean_rule": {
+          "tp": 42,
+          "fp": 29,
+          "fn": 87,
+          "predicted": 71,
+          "precision": 0.5915,
+          "recall": 0.3256,
+          "f1": 0.42
+        },
+        "korean_rule_remaining_fp_words": [
+          {
+            "word": "산",
+            "count": 13
+          },
+          {
+            "word": "산과",
+            "count": 4
+          },
+          {
+            "word": "산이",
+            "count": 3
+          },
+          {
+            "word": "산에",
+            "count": 2
+          },
+          {
+            "word": "산으로",
+            "count": 2
+          }
+        ],
+        "korean_rule_new_fn_words": [
+          {
+            "word": "북한산",
+            "count": 12
+          },
+          {
+            "word": "관악산",
+            "count": 10
+          },
+          {
+            "word": "무등산",
+            "count": 6
+          },
+          {
+            "word": "산책",
+            "count": 6
+          },
+          {
+            "word": "북악산",
+            "count": 5
+          }
+        ]
+      },
+      "섬": {
+        "support": 46,
+        "substring": {
+          "tp": 32,
+          "fp": 48,
+          "fn": 14,
+          "predicted": 80,
+          "precision": 0.4,
+          "recall": 0.6957,
+          "f1": 0.5079
+        },
+        "korean_rule": {
+          "tp": 27,
+          "fp": 15,
+          "fn": 19,
+          "predicted": 42,
+          "precision": 0.6429,
+          "recall": 0.587,
+          "f1": 0.6136
+        },
+        "korean_rule_remaining_fp_words": [
+          {
+            "word": "섬",
+            "count": 8
+          },
+          {
+            "word": "섬이",
+            "count": 3
+          },
+          {
+            "word": "섬이다",
+            "count": 2
+          },
+          {
+            "word": "섬과",
+            "count": 1
+          },
+          {
+            "word": "섬에",
+            "count": 1
+          }
+        ],
+        "korean_rule_new_fn_words": [
+          {
+            "word": "가능하다.서래섬은",
+            "count": 1
+          },
+          {
+            "word": "노들섬은",
+            "count": 1
+          },
+          {
+            "word": "바위섬에는",
+            "count": 1
+          },
+          {
+            "word": "서래섬은",
+            "count": 1
+          },
+          {
+            "word": "섬들인데",
+            "count": 1
+          }
+        ]
+      },
+      "성": {
+        "support": 26,
+        "substring": {
+          "tp": 25,
+          "fp": 692,
+          "fn": 1,
+          "predicted": 717,
+          "precision": 0.0349,
+          "recall": 0.9615,
+          "f1": 0.0673
+        },
+        "korean_rule": {
+          "tp": 10,
+          "fp": 7,
+          "fn": 16,
+          "predicted": 17,
+          "precision": 0.5882,
+          "recall": 0.3846,
+          "f1": 0.4651
+        },
+        "korean_rule_remaining_fp_words": [
+          {
+            "word": "성",
+            "count": 3
+          },
+          {
+            "word": "5성과",
+            "count": 2
+          },
+          {
+            "word": "5성",
+            "count": 1
+          },
+          {
+            "word": "성을",
+            "count": 1
+          }
+        ],
+        "korean_rule_new_fn_words": [
+          {
+            "word": "성곽",
+            "count": 4
+          },
+          {
+            "word": "한양도성을",
+            "count": 3
+          },
+          {
+            "word": "도성의",
+            "count": 2
+          },
+          {
+            "word": "성곽을",
+            "count": 2
+          },
+          {
+            "word": "성곽의",
+            "count": 2
+          }
+        ]
+      },
+      "탑": {
+        "support": 14,
+        "substring": {
+          "tp": 14,
+          "fp": 61,
+          "fn": 0,
+          "predicted": 75,
+          "precision": 0.1867,
+          "recall": 1.0,
+          "f1": 0.3146
+        },
+        "korean_rule": {
+          "tp": 3,
+          "fp": 12,
+          "fn": 11,
+          "predicted": 15,
+          "precision": 0.2,
+          "recall": 0.2143,
+          "f1": 0.2069
+        },
+        "korean_rule_remaining_fp_words": [
+          {
+            "word": "탑",
+            "count": 4
+          },
+          {
+            "word": "탑으로",
+            "count": 3
+          },
+          {
+            "word": "탑의",
+            "count": 3
+          },
+          {
+            "word": "탑은",
+            "count": 2
+          },
+          {
+            "word": "탑(공적비명",
+            "count": 1
+          }
+        ],
+        "korean_rule_new_fn_words": [
+          {
+            "word": "석탑이",
+            "count": 3
+          },
+          {
+            "word": "석탑",
+            "count": 2
+          },
+          {
+            "word": "금동탑이",
+            "count": 1
+          },
+          {
+            "word": "기념탑",
+            "count": 1
+          },
+          {
+            "word": "돌탑이",
+            "count": 1
+          }
+        ]
+      },
+      "강": {
+        "support": 55,
+        "substring": {
+          "tp": 51,
+          "fp": 367,
+          "fn": 4,
+          "predicted": 418,
+          "precision": 0.122,
+          "recall": 0.9273,
+          "f1": 0.2156
+        },
+        "korean_rule": {
+          "tp": 2,
+          "fp": 5,
+          "fn": 53,
+          "predicted": 7,
+          "precision": 0.2857,
+          "recall": 0.0364,
+          "f1": 0.0645
+        },
+        "korean_rule_remaining_fp_words": [
+          {
+            "word": "강",
+            "count": 2
+          },
+          {
+            "word": "강에서",
+            "count": 1
+          },
+          {
+            "word": "강을",
+            "count": 1
+          },
+          {
+            "word": "강의",
+            "count": 1
+          }
+        ],
+        "korean_rule_new_fn_words": [
+          {
+            "word": "한강",
+            "count": 15
+          },
+          {
+            "word": "한강의",
+            "count": 15
+          },
+          {
+            "word": "한강을",
+            "count": 13
+          },
+          {
+            "word": "강변",
+            "count": 4
+          },
+          {
+            "word": "한강공원",
+            "count": 4
+          }
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,5 @@
+# 직접 설치하는 패키지 (2026-10 확인 버전). macOS 는 PyPI 기본 torch 휠로 CPU/MPS 모두 동작.
+torch==2.14.1
+transformers==5.20.1
+scikit-learn==1.9.1
+numpy==2.5.4

@@ -1,0 +1,262 @@
+{
+  "reference": "primary (data/labels/part_*.jsonl)",
+  "compared": "cross_check (data/labels/cross_check.jsonl)",
+  "cross_check_items": 99,
+  "overlap_items": 99,
+  "micro_vs_primary": {
+    "precision": 0.9271,
+    "recall": 0.9138,
+    "f1": 0.9204,
+    "tp": 318,
+    "fp": 25,
+    "fn": 30
+  },
+  "macro_f1_vs_primary": 0.9136,
+  "mean_item_jaccard": 0.8381,
+  "exact_set_match_rate": 0.596,
+  "avg_keywords": {
+    "primary": 3.515,
+    "cross_check": 3.465
+  },
+  "most_disagreed_keywords": [
+    {
+      "keyword": "야외 활동",
+      "disagreements": 6,
+      "only_primary": 4,
+      "only_cross": 2,
+      "both": 4
+    },
+    {
+      "keyword": "문화",
+      "disagreements": 4,
+      "only_primary": 4,
+      "only_cross": 0,
+      "both": 12
+    },
+    {
+      "keyword": "자연",
+      "disagreements": 4,
+      "only_primary": 0,
+      "only_cross": 4,
+      "both": 24
+    },
+    {
+      "keyword": "레크리에이션",
+      "disagreements": 4,
+      "only_primary": 2,
+      "only_cross": 2,
+      "both": 8
+    },
+    {
+      "keyword": "역사",
+      "disagreements": 3,
+      "only_primary": 2,
+      "only_cross": 1,
+      "both": 34
+    },
+    {
+      "keyword": "건축",
+      "disagreements": 3,
+      "only_primary": 0,
+      "only_cross": 3,
+      "both": 14
+    },
+    {
+      "keyword": "스포츠",
+      "disagreements": 3,
+      "only_primary": 0,
+      "only_cross": 3,
+      "both": 5
+    },
+    {
+      "keyword": "유적",
+      "disagreements": 3,
+      "only_primary": 3,
+      "only_cross": 0,
+      "both": 2
+    },
+    {
+      "keyword": "경치",
+      "disagreements": 2,
+      "only_primary": 0,
+      "only_cross": 2,
+      "both": 23
+    },
+    {
+      "keyword": "도시",
+      "disagreements": 2,
+      "only_primary": 2,
+      "only_cross": 0,
+      "both": 7
+    },
+    {
+      "keyword": "트레킹",
+      "disagreements": 2,
+      "only_primary": 0,
+      "only_cross": 2,
+      "both": 1
+    },
+    {
+      "keyword": "전통",
+      "disagreements": 2,
+      "only_primary": 1,
+      "only_cross": 1,
+      "both": 14
+    },
+    {
+      "keyword": "정원",
+      "disagreements": 2,
+      "only_primary": 2,
+      "only_cross": 0,
+      "both": 3
+    },
+    {
+      "keyword": "역사적인 장소",
+      "disagreements": 2,
+      "only_primary": 1,
+      "only_cross": 1,
+      "both": 23
+    },
+    {
+      "keyword": "역사적 건축",
+      "disagreements": 2,
+      "only_primary": 1,
+      "only_cross": 1,
+      "both": 13
+    }
+  ],
+  "lowest_jaccard_items": [
+    {
+      "id": "2763675",
+      "jaccard": 0.0,
+      "only_primary": [],
+      "only_cross": [
+        "자연",
+        "스포츠"
+      ]
+    },
+    {
+      "id": "2990289",
+      "jaccard": 0.0,
+      "only_primary": [],
+      "only_cross": [
+        "레크리에이션"
+      ]
+    },
+    {
+      "id": "3057979",
+      "jaccard": 0.0,
+      "only_primary": [
+        "레크리에이션"
+      ],
+      "only_cross": [
+        "자연"
+      ]
+    },
+    {
+      "id": "3449028",
+      "jaccard": 0.0,
+      "only_primary": [
+        "레크리에이션"
+      ],
+      "only_cross": []
+    },
+    {
+      "id": "3457335",
+      "jaccard": 0.25,
+      "only_primary": [
+        "야생동물",
+        "야외 활동"
+      ],
+      "only_cross": [
+        "강"
+      ]
+    },
+    {
+      "id": "2591833",
+      "jaccard": 0.5,
+      "only_primary": [
+        "유적"
+      ],
+      "only_cross": [
+        "전통"
+      ]
+    },
+    {
+      "id": "2783003",
+      "jaccard": 0.5,
+      "only_primary": [],
+      "only_cross": [
+        "야외 활동"
+      ]
+    },
+    {
+      "id": "3006943",
+      "jaccard": 0.5,
+      "only_primary": [],
+      "only_cross": [
+        "야외 활동"
+      ]
+    },
+    {
+      "id": "3065955",
+      "jaccard": 0.5,
+      "only_primary": [
+        "역사",
+        "기념물"
+      ],
+      "only_cross": [
+        "트레킹"
+      ]
+    },
+    {
+      "id": "3357819",
+      "jaccard": 0.5,
+      "only_primary": [
+        "문화"
+      ],
+      "only_cross": []
+    }
+  ],
+  "gold_summary": {
+    "items": 1083,
+    "label_files": [
+      "part_00.jsonl",
+      "part_01.jsonl",
+      "part_02.jsonl",
+      "part_03.jsonl",
+      "part_04.jsonl",
+      "part_05.jsonl",
+      "part_06.jsonl"
+    ],
+    "empty_label_items": 55,
+    "keywords_per_item": {
+      "0": 55,
+      "1": 109,
+      "2": 142,
+      "3": 266,
+      "4": 195,
+      "5": 198,
+      "6": 114,
+      "7": 4
+    },
+    "avg_keywords_per_item": 3.392,
+    "keywords_never_used": [
+      "사막",
+      "사파리",
+      "열기구",
+      "원숭이",
+      "탐험",
+      "협곡",
+      "지열",
+      "빙하",
+      "설산",
+      "호랑이",
+      "낙타",
+      "열대우림",
+      "서핑",
+      "산호",
+      "설경"
+    ]
+  }
+}
