@@ -1,7 +1,11 @@
 package proj.travien.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 import proj.travien.domain.Booking;
 import proj.travien.domain.User;
 import proj.travien.repository.BookingRepository;
@@ -10,6 +14,7 @@ import proj.travien.repository.UserRepository;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -22,39 +27,62 @@ public class BookingService {
     @Autowired
     private UserRepository userRepository; // 유저를 조회하기 위해 추가
 
-    public void updateProgress(String userNickname, String agentNickname, int progress) {
-        // userNickname과 agentNickname으로 Booking을 조회하거나 새로 생성
-        Optional<Booking> bookingOptional = bookingRepository.findByUser_NicknameAndAgent_Nickname(userNickname, agentNickname);
-        Booking booking;
-
-        if (bookingOptional.isPresent()) {
-            // 기존 Booking이 있는 경우
-            booking = bookingOptional.get();
-        } else {
-            // Booking이 없으면 새로 생성
-            User user = userRepository.findByNickname(userNickname).orElseThrow(() -> new RuntimeException("User not found"));
-            User agent = userRepository.findByNickname(agentNickname).orElseThrow(() -> new RuntimeException("Agent not found"));
-            booking = new Booking(user, agent, progress);
+    /**
+     * 예약 진행 단계 변경. me = 토큰 사용자, counterpartNickname = 상대(컨트롤러가 '당사자인지' 확인한 뒤 넘긴다).
+     * <ul>
+     *   <li>1: 예약 요청 · 2: 대행자 수락 · 3: 입금 완료 · 4: 여행 완료</li>
+     *   <li>손님(승인된 대행자가 아닌 쪽): 예약이 없거나 끝났을 때(4) 1로 새 예약만 만든다.</li>
+     *   <li>대행자(승인된 대행자 쪽): 있는 예약을 1(초기화)·2·4로 바꾼다.</li>
+     *   <li>3은 포인트 이체로 송금 표시(isSended)가 된 예약에서만, 여행 완료(4)를 되돌리지 않는 범위에서 허용한다.</li>
+     *   <li>1로 돌아가면 송금 표시도 지운다. (다음 예약에서 송금 없이 3을 찍지 못하게)</li>
+     * </ul>
+     * 그 밖은 403, 단계 값이 1~4가 아니면 400, 상대가 없으면 404.
+     */
+    @Transactional
+    public void updateProgressAs(User me, String counterpartNickname, int progress) {
+        if (progress < 1 || progress > 4) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "progress는 1 이상 4 이하여야 합니다.");
+        }
+        User counterpart = userRepository.findByNickname(counterpartNickname)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "상대 사용자를 찾을 수 없습니다."));
+        if (Objects.equals(counterpart.getId(), me.getId())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "자기 자신과는 예약할 수 없습니다.");
         }
 
-        // 진행도 업데이트
+        boolean meIsAgent = UserService.isApprovedAgent(me);
+        if (!meIsAgent && !UserService.isApprovedAgent(counterpart)) {
+            throw new AccessDeniedException("승인된 예약대행자와만 예약할 수 있습니다.");
+        }
+
+        Optional<Booking> mine = bookingRepository.findByUser_NicknameAndAgent_Nickname(me.getNickname(), counterpart.getNickname());
+        Optional<Booking> reverse = bookingRepository.findByUser_NicknameAndAgent_Nickname(counterpart.getNickname(), me.getNickname());
+        boolean exists = mine.isPresent() || reverse.isPresent();
+        int current = mine.or(() -> reverse).map(Booking::getProgress).orElse(0);
+        boolean sended = mine.map(Booking::isSended).orElse(false) || reverse.map(Booking::isSended).orElse(false);
+
+        if (progress == 3) {
+            if (!exists || !sended || current == 4) {
+                throw new AccessDeniedException("입금 완료(3)는 포인트를 보낸 예약에서만 표시할 수 있습니다.");
+            }
+        } else if (meIsAgent) {
+            if (!exists) {
+                throw new AccessDeniedException("손님이 만든 예약만 바꿀 수 있습니다.");
+            }
+        } else if (progress != 1 || (exists && current != 4)) {
+            throw new AccessDeniedException("손님은 새 예약 요청(1)만 할 수 있습니다.");
+        }
+
+        applyProgress(mine.orElseGet(() -> new Booking(me, counterpart, progress)), progress);
+        applyProgress(reverse.orElseGet(() -> new Booking(counterpart, me, progress)), progress);
+    }
+
+    // 양방향 Booking(손님→대행자, 대행자→손님) 두 행에 같은 진행도를 쓴다
+    private void applyProgress(Booking booking, int progress) {
         booking.setProgress(progress);
-        bookingRepository.save(booking);
-
-        // 양방향 관계를 위해 reverse(반대) Booking도 업데이트
-        Optional<Booking> reverseBookingOptional = bookingRepository.findByUser_NicknameAndAgent_Nickname(agentNickname, userNickname);
-
-        if (reverseBookingOptional.isPresent()) {
-            Booking reverseBooking = reverseBookingOptional.get();
-            reverseBooking.setProgress(progress);
-            bookingRepository.save(reverseBooking);
-        } else {
-            // 반대 Booking이 없으면 생성
-            User agentUser = userRepository.findByNickname(agentNickname).orElseThrow(() -> new RuntimeException("Agent not found"));
-            User normalUser = userRepository.findByNickname(userNickname).orElseThrow(() -> new RuntimeException("User not found"));
-            Booking reverseBooking = new Booking(agentUser, normalUser, progress);
-            bookingRepository.save(reverseBooking);
+        if (progress == 1) {
+            booking.setSended(false);
         }
+        bookingRepository.save(booking);
     }
 
     public int getProgress(String userNickname, String agentNickname) {
@@ -78,13 +106,7 @@ public class BookingService {
         return new ArrayList<>(uniqueBookings.values());
     }
 
-    public boolean setSendedStatus(String userNickname, String agentNickname, boolean status) {
-        Booking booking = bookingRepository.findByUser_NicknameAndAgent_Nickname(userNickname, agentNickname)
-                .orElseThrow(() -> new IllegalArgumentException("Booking not found"));
-        booking.setSended(status);
-        bookingRepository.save(booking);
-        return true;
-    }
+    // 송금 표시(isSended)는 포인트 이체가 성공할 때 UserService.transferPointsToAgent만 설정한다.
 
     public Boolean checkSendedStatus(String userNickname, String agentNickname) {
         return bookingRepository.findByUser_NicknameAndAgent_Nickname(userNickname, agentNickname)

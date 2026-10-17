@@ -11,6 +11,7 @@ import proj.travien.domain.Addresses;
 import proj.travien.domain.Post;
 import proj.travien.domain.User;
 import proj.travien.dto.AddressResponseDto;
+import proj.travien.jwt.CurrentUser;
 import proj.travien.service.PostService;
 import proj.travien.service.UploadPaths;
 import proj.travien.service.UserService;
@@ -31,6 +32,10 @@ public class PostController {
     private PostService postService;
     @Autowired
     private UserService userService;  // 새로 추가된 UserService
+
+    // 작성자는 토큰 사용자. 수정·삭제·썸네일 저장은 작성자 본인 또는 관리자만
+    @Autowired
+    private CurrentUser currentUser;
 
 
     // 업로드 저장 위치 (/image/** 로 서빙되는 디렉터리)
@@ -68,14 +73,11 @@ public class PostController {
                                            @RequestParam("addresses") Set<String> addresses,
                                            @RequestParam("addressTitle") String addressTitle,
                                            @RequestParam("country") String country,
-                                           @RequestParam("userId") String userId) {
+                                           @RequestParam(value = "userId", required = false) String userId) {
 
-        // 사용자 조회 로직 추가
-        User user = userService.findByUserId(userId);  // 사용자 정보를 UserService에서 조회
-
-        if (user == null) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();  // 사용자 없는 경우 처리
-        }
+        // 작성자 = 토큰 사용자. userId는 호환을 위해 받되 본인이 아니면 403
+        User user = currentUser.requireUser();
+        currentUser.requireSelf(userId);
 
         // 게시물 생성 로직 (기존 코드 유지)
         Set<Addresses> addressEntities = addresses.stream()
@@ -154,8 +156,12 @@ public class PostController {
                                            @RequestParam("addresses") Set<String> addresses,
                                            @RequestParam("addressTitle") String addressTitle,
                                            @RequestParam("country") String country,
-                                           @RequestParam("userId") String userId) {
+                                           @RequestParam(value = "userId", required = false) String userId) {
 
+        // 작성자 확인은 아래 try 앞에서 한다. (try 안에서 던지면 catch(RuntimeException)가 403을 404로 바꾼다)
+        User me = currentUser.requireUser();
+        currentUser.requireSelf(userId);
+        postService.requireEditablePost(boardID, me, currentUser.isAdmin());
 
         // 게시물 수정 로직
         Set<Addresses> addressEntities = addresses.stream()
@@ -182,6 +188,7 @@ public class PostController {
 
     @DeleteMapping("/{id}/")
     public ResponseEntity<Void> deletePost(@PathVariable Long id) {
+        postService.requireEditablePost(id, currentUser.requireUser(), currentUser.isAdmin());
         postService.deletePost(id);
         return ResponseEntity.noContent().build();
     }
@@ -236,6 +243,7 @@ public class PostController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("body 값이 필요합니다.");
         }
 
+        postService.requireEditablePost(boardID, currentUser.requireUser(), currentUser.isAdmin());
         String body = requestBody.get("body");
         postService.saveThumbnail(boardID, body);
         return ResponseEntity.ok("썸네일 저장 완료");

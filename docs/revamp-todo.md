@@ -46,14 +46,17 @@
 - **로그인 JWT에 subject가 없어 인증 principal이 항상 null** · 누가: Claude · 크기: S
   - 왜: 이후의 사용자별 API(로드맵 4 에이전트 도구 호출, 6 일정·AI 리뷰)나 인가 개선은 '토큰에서 현재 사용자 꺼내기'가 전제입니다. 그런데 실제 로그인 토큰으로 만든 Authentication의 이름이 null입니다. 기존 테스트는 subject를 직접 넣은 토큰으로만 검증해서 이 문제를 잡지 못합니다.
   - 근거: JwtUtil.java:32-43은 setClaims(id,userId,nickname,role)만 하고 setSubject가 없습니다. JwtTokenProvider.java:25 username = claims.getSubject()를 :34에서 principal로 씁니다 → null. JwtTokenProviderTest.addsPrefixWhenRoleClaimHasNone(:50-53)만 setSubject("admin")를 직접 넣습니다. 해결: setClaims 뒤에 .setSubject(userId)를 넣거나(순서 주의: setClaims가 덮어씀) provider에서 claims.get("userId")를 씁니다. 그리고 getAuthentication(jwtUtil.generateToken(...)).getName()을 검증하는 테스트를 추가합니다. jjwt 0.9.1(build.gradle:37, 2018년)과 jaxb-api는 0.12.x 업그레이드 후보입니다. 로컬 시크릿은 base64 48바이트라 0.12의 256비트 요구를 충족합니다.
+  - 상태: 처리함. subject = 로그인 아이디, subject 없는 예전 토큰은 userId 클레임으로 인정합니다. [authorization.md](authorization.md)
 
 - **인가가 요청 파라미터(userId/nickname)를 그대로 믿음: 포인트 발행·대행자 승인·남의 글 삭제·DM 열람이 누구나 가능** · 누가: 함께 · 크기: L
   - 왜: /api/admin/**만 토큰을 검사하고 나머지는 전부 permitAll입니다. 그래서 행위 주체를 클라이언트가 보낸 파라미터로 정합니다. 포트폴리오 리뷰어가 Swagger만 열어도 재현되는 수준의 구멍입니다.
   - 근거: SecurityConfig.java:28-34(/api/public·/api/private 경로는 실제로 없고 anyRequest().permitAll()). UserController.java:72 POST /api/users/approve-agent/{userId}(관리자 기능이 /api/admin 밖에 있음), :268 /{nickname}/points/add(포인트 무제한 발행), :298 /transfer-points(남의 포인트 이체), :159 /update-profile?userId=. PostController.java:178 DELETE /api/posts/{id}/(소유자 확인 없음). ChatController.java:84 GET /chat/history/{roomId}에서 roomId가 "닉A_닉B"(:99-100)라 추측 가능합니다 → 남의 DM 열람. UserService.applyAsAgent(:88-109)가 신청 즉시 ROLE_AGENT를 부여해서 승인 절차가 의미가 없습니다. 프론트에서 Authorization 헤더를 보내는 곳은 5곳뿐입니다(grep). 해결 순서: (1) approve-agent와 points add/deduct를 /api/admin으로 옮깁니다. (2) subject 수정 후 주체를 SecurityContext에서 꺼냅니다. (3) 변경 메서드는 기본 authenticated로 두고 로그인·가입·조회·/api/search만 화이트리스트로 엽니다. 프론트 axios 헤더 수정이 같이 필요합니다.
+  - 상태: 처리함. 행위자는 토큰으로만 정하고, 기본은 로그인 필요입니다. 관리자 기능은 ROLE_ADMIN만, STOMP도 인증·인가합니다. 프론트는 공통 인터셉터(frontend/src/api/auth.js)가 백엔드 요청에만 쿠키 토큰을 붙입니다. 규칙은 [authorization.md](authorization.md)에 적었습니다. 2026-10-17 실서버에서 테스트 계정으로 REST·STOMP 358건을 점검했고 우회는 없었습니다.
 
 - **업로드 파일명 경로 조작(../)과 대행자 검증 서류의 공개 서빙** · 누가: Claude · 크기: S
   - 왜: 클라이언트가 보낸 파일명을 그대로 경로에 붙입니다. 인증 없이 서버의 임의 위치(예: application.properties)를 덮어쓸 수 있습니다. 대행자 신원 확인 서류는 정적 리소스로 누구나 내려받을 수 있습니다.
   - 근거: PostController.java:45 Paths.get(UPLOAD_DIR + file.getOriginalFilename())은 permitAll인 POST /api/posts/upload입니다. UserService.java:194-196 absoluteDirectory.resolve(filename) → transferTo. 같은 저장소의 FileUploadeService.java:22는 이미 UUID 파일명을 씁니다. WebConfig.java:15-16은 /verification-files/**를 인증 없이 서빙합니다. git ls-files src/main/resources/static/verification-files → 10개(PDF, mp4, 회의록 txt 포함)가 git에 올라가 있습니다. 해결: UUID 파일명, StringUtils.getFilename 후 normalize + startsWith 검사, 검증 파일은 관리자 인증 엔드포인트로만 제공합니다. 팀 시절 업로드 파일의 git rm --cached와 히스토리 처리는 오너가 결정합니다.
+  - 상태: 검증 서류 정적 서빙을 막았습니다. WebConfig 매핑을 삭제하고 SecurityConfig로 대소문자 무시 차단을 걸었습니다. 이제 본인·관리자만 GET /api/users/verification-file/{userId}로 받습니다. git에 올라간 기존 파일과 히스토리 정리는 오너가 결정합니다.
 
 - **관리자 초기 비밀번호 하드코딩: .env로 옮기고 기존 admin 행 비밀번호도 교체** · 누가: 함께 · 크기: S
   - 왜: 공개 GitHub 저장소에 관리자 비밀번호가 있습니다. 관리자 토큰으로 /api/admin/tour-sync/*를 호출하면 하루 1,000건인 TourAPI 한도를 소진시킬 수 있고, delete-user도 가능합니다. 초기화 코드는 admin이 없을 때만 돌기 때문에 코드만 고쳐서는 이미 만들어진 행의 비밀번호가 바뀌지 않습니다.
@@ -62,6 +65,7 @@
 - **UserServiceTest 2건 실패의 정확한 원인과 UserControllerTest 컨텍스트 실패** · 누가: Claude · 크기: S
   - 왜: sh gradlew test 전체가 초록이 아니라서 회귀를 잡을 수 없습니다. 두 실패 모두 테스트 코드 쪽 결함이라 몇 줄로 고칠 수 있습니다.
   - 근거: (1) testCreateUser: UserServiceTest.java:30 profilePictureFile이 @Mock이라 isEmpty()=false입니다 → UserService.createUser:79-81 saveProfilePicture → :194 getOriginalFilename()=null → :195 Objects.requireNonNull NPE. 해결: null을 넘기거나 isEmpty()를 true로 stub합니다(그렇지 않으면 실제 src/main/resources/static에 파일을 쓰려 함). (2) testLogin: UserServiceTest.java:60 "$2a$10$1234567890123456789012"는 60자짜리 유효한 bcrypt 해시가 아닙니다 → checkpw false → null. 해결: BCrypt.hashpw("testPass", BCrypt.gensalt(4))를 씁니다. (3) UserControllerTest(@WebMvcTest, :25): JwtAuthenticationFilter는 Filter라 로드되지만 @Autowired JwtTokenProvider(JwtAuthenticationFilter.java:18-19)는 로드되지 않아 컨텍스트 생성 실패가 유력합니다(sh gradlew test --tests proj.travien.controller.UserControllerTest로 확인 필요). SecurityConfig(@Component)도 빠져 기본 보안이 적용됩니다. testSignUp은 .param("user")를 보내는데 컨트롤러는 @RequestPart("user")를 받습니다(UserController.java:40). 해결: @Import(SecurityConfig, JwtTokenProvider), multipart JSON part를 사용합니다. build/test-results에는 이 세 클래스의 결과가 없고 마지막 실행은 선택 실행이었습니다.
+  - 상태: 처리함. UserServiceTest와 UserControllerTest 모두 DB 없이 통과합니다. UserControllerTest는 실제 SecurityConfig·JWT 필터를 올립니다.
 
 - **@SpringBootTest 테스트가 실제 travien DB(19,949행)에 쓰기, 테스트 격리 필요** · 누가: Claude · 크기: M
   - 왜: 전체 테스트를 돌리는 순간 유일한 수집 데이터 DB에 ddl-auto=update, 관리자 생성, 마스크 백필, 테스트 사용자 insert가 실행됩니다. UserRepositoryTest는 두 번째 실행부터 항상 실패합니다.
@@ -232,6 +236,7 @@
 - **CORS 출처 하드코딩 일원화, http.cors() 누락, @PreAuthorize 무효** · 누가: Claude · 크기: S
   - 왜: 출처가 6곳 이상에 고정돼 있습니다. Security 필터가 CORS를 처리하지 않아서 보호 경로에 대한 브라우저 preflight는 403이 납니다. 로드맵 6 UI가 :3000에서 관리자·인증 API를 직접 부르면 바로 걸립니다. @PreAuthorize는 동작하지 않는데 테스트는 어노테이션이 붙어 있는지만 확인합니다.
   - 근거: CorsConfig.java:13, WebSocketConfig.java:22, @CrossOrigin PostApiController.java:16, PostController.java:25, NavigationController.java:12, nginx.conf:44/61, frontend/src/setupProxy.js. SecurityConfig.java:24-44에 .cors()가 없어 OPTIONS 요청이 /api/admin/**에서 Http403ForbiddenEntryPoint로 막힙니다. src 전체에서 EnableMethodSecurity grep 0건 → AdminController와 TourSyncController의 @PreAuthorize는 아무 효과가 없습니다(URL 규칙 :32만 보호). TourSyncControllerTest의 mapsSummaryRebuildToAdminOnlyPost는 어노테이션 존재만 검사합니다. 해결: glople.cors.allowed-origins 속성 → CorsConfigurationSource 빈 + http.cors(withDefaults()), @CrossOrigin 제거, SecurityConfig에 @EnableMethodSecurity 추가입니다.
+  - 상태: 일부 처리함. http.cors(withDefaults())와 @EnableMethodSecurity를 넣었습니다. 출처 하드코딩 일원화는 남아 있습니다.
 
 - **devtools를 implementation으로 포함: bootRun 중 컴파일하면 재시작되어 수집이 끊김, 105MB jar** · 누가: Claude · 크기: S
   - 왜: 설명문 수집을 돌리는 동안 다른 에이전트나 IDE가 compileJava를 하면 devtools가 앱을 재시작합니다. 그러면 백그라운드 수집 스레드가 shutdownNow로 끊기고 백필과 관리자 초기화가 다시 실행됩니다. 오래된 Speech 라이브러리가 jar를 키우고 오래된 grpc와 guava를 끌고 옵니다.

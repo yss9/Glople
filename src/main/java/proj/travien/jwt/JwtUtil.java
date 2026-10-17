@@ -35,8 +35,11 @@ public class JwtUtil {
         claims.put("nickname", nickname);
         claims.put("role", role);  // role 추가
 
+        // setClaims()는 claims 전체를 바꾸므로 subject(로그인 아이디)는 그 뒤에 넣는다.
+        // 서버는 이 subject만으로 요청한 사용자를 정한다. (JwtTokenProvider, CurrentUser)
         return Jwts.builder()
                 .setClaims(claims)
+                .setSubject(userId)
                 .setIssuedAt(new Date(now))
                 .setExpiration(new Date(now + expiration)) // 만료 시간 설정
                 .signWith(SignatureAlgorithm.HS256, secretKey)

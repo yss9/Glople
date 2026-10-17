@@ -25,20 +25,19 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String token = resolveToken(request);
 
         // 토큰이 존재하고 유효하다면, 인증 정보 설정
+        // 무효·만료 토큰은 인증 없이 넘긴다. 공개 경로는 그대로 열리고, 보호 경로는 SecurityConfig가 401로 막는다.
         if (token != null && jwtTokenProvider.validateToken(token)) {
             Authentication auth = jwtTokenProvider.getAuthentication(token);
-            SecurityContextHolder.getContext().setAuthentication(auth);
+            if (auth != null) {
+                SecurityContextHolder.getContext().setAuthentication(auth);
+            }
         }
 
         filterChain.doFilter(request, response);
     }
 
-    // Authorization 헤더에서 JWT 토큰을 추출
+    // Authorization 헤더에서 JWT 토큰을 추출 ("Bearer undefined" 같은 값은 토큰 없음)
     private String resolveToken(HttpServletRequest request) {
-        String bearerToken = request.getHeader("Authorization");
-        if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
-            return bearerToken.substring(7);
-        }
-        return null;
+        return JwtTokenProvider.resolveBearerToken(request.getHeader("Authorization"));
     }
 }

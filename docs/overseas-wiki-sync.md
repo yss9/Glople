@@ -210,7 +210,8 @@ curl -X POST http://localhost:8080/api/admin/wiki-sync/summaries -H "Authorizati
 | :-- | :-- |
 | `202` | 동기화를 시작함. 본문은 현재 상태 (`task`: `WIKI_DESTINATIONS`·`WIKI_DESCRIPTIONS`·`WIKI_SUMMARIES`) |
 | `400` | `countries`가 ISO 두 글자 코드가 아니거나 `KR`·`KP`, `limit`이 범위(목록 1~500, 설명문 1~20,000)를 벗어남 |
-| `403` | 토큰이 없거나 관리자가 아님 |
+| `401` | 토큰이 없거나 만료·위조됨 |
+| `403` | 로그인했지만 관리자가 아님 |
 | `409` | 다른 동기화(국내 포함)가 이미 진행 중 |
 
 TourAPI 인증키가 없어도 위키 작업은 실행됩니다(`503 NOT_CONFIGURED`는 TourAPI 작업에만 해당). 수집 대상 목록에 없는 국가 코드를 넣으면 실행은 시작되지만 바로 실패하고 상태의 `lastError`에 코드가 나옵니다.

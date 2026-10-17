@@ -4,17 +4,22 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+import proj.travien.domain.Booking;
 import proj.travien.domain.PointsHistory;
+import proj.travien.domain.Post;
 import proj.travien.domain.Role;
 import proj.travien.domain.User;
 import proj.travien.dto.AgentApplicationDTO;
 import proj.travien.dto.UserDTO;
 import proj.travien.dto.AgentDTO;
+import proj.travien.repository.BookingRepository;
 import proj.travien.repository.PointsHistoryRepository;
+import proj.travien.repository.PostRepository;
 import proj.travien.repository.UserRepository;
 
 import java.io.FileNotFoundException;
@@ -25,6 +30,7 @@ import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -36,6 +42,10 @@ public class UserService {
 
     private final PointsHistoryRepository pointsHistoryRepository;
 
+    private final PostRepository postRepository;
+
+    private final BookingRepository bookingRepository;
+
     // 업로드 파일 기준 경로 (static/profile-pictures, static/verification-files 가 이 아래에 있다)
     private Path uploadRoot = Paths.get("src/main/resources");
 
@@ -43,9 +53,23 @@ public class UserService {
     private static final Path VERIFICATION_FILE_DIR = Paths.get("static/verification-files");
 
     @Autowired
-    public UserService(UserRepository userRepository, PointsHistoryRepository pointsHistoryRepository) {
+    public UserService(UserRepository userRepository, PointsHistoryRepository pointsHistoryRepository,
+                       PostRepository postRepository, BookingRepository bookingRepository) {
         this.userRepository = userRepository;
         this.pointsHistoryRepository = pointsHistoryRepository;
+        this.postRepository = postRepository;
+        this.bookingRepository = bookingRepository;
+    }
+
+    // 프로필 수정 결과
+    public enum ProfileUpdateResult {
+        UPDATED, USER_NOT_FOUND, NICKNAME_IN_USE
+    }
+
+    // 관리자가 승인한 예약대행자인지. 신청만 한 사용자(isAgent=true, 승인일 없음)는 아직 대행자가 아니다.
+    // 공개 대행자 목록, 포인트 이체 대상, 예약 진행 단계(대행자 쪽 권한), 리뷰 대상 판정에 같이 쓴다.
+    public static boolean isApprovedAgent(User user) {
+        return user != null && user.isAgent() && user.getAgentApprovedDate() != null;
     }
 
 
@@ -104,13 +128,13 @@ public class UserService {
             verificationFilePath = saveVerificationFile(verificationFile);
         }
 
-        user.setAgent(true); // 예약대행자로 설정
+        // isAgent=true는 '신청함'이라는 뜻이다. 역할(ROLE_AGENT)과 승인일은 관리자가 승인할 때 정한다. (approveAgentApplication)
+        user.setAgent(true);
         user.setAgentCountry(agentDTO.getAgentCountry());
         user.setIntroduction(agentDTO.getIntroduction());
         user.setHashtags(agentDTO.getHashtags());
         user.setSpecIntroduction(agentDTO.getSpecIntroduction());
-        user.setAverageReviewRating(agentDTO.getAverageReviewRating());
-        user.setRole(Role.ROLE_AGENT);
+        // 별점은 리뷰로만 계산한다. 신청자가 보낸 averageReviewRating은 쓰지 않는다.
 
         if (verificationFilePath != null) {
             user.setVerificationFile(verificationFilePath);
@@ -126,8 +150,10 @@ public class UserService {
             return false;
         }
 
-        // 역할을 예약대행자로 설정하고 승인 날짜를 현재 시점으로 설정
-        user.setRole(Role.ROLE_AGENT);
+        // 역할을 예약대행자로 설정하고 승인 날짜를 현재 시점으로 설정 (관리자 계정은 관리자 권한을 유지)
+        if (user.getRole() != Role.ROLE_ADMIN) {
+            user.setRole(Role.ROLE_AGENT);
+        }
         user.setAgentApprovedDate(LocalDateTime.now()); // 현재 시점을 저장
         userRepository.save(user);
         return true;
@@ -136,6 +162,7 @@ public class UserService {
     public List<Map<String, Object>> getRecentAgents(int limit) {
         return userRepository.findByIsAgentTrueOrderByAgentApprovedDateDesc(PageRequest.of(0, limit))
                 .stream()
+                .filter(UserService::isApprovedAgent) // 승인 전 신청자는 공개 목록에 싣지 않는다
                 .map(user -> Map.of(
                         "nickname", user.getNickname(),
                         "profilePicture", user.getProfilePicture(),
@@ -264,11 +291,25 @@ public class UserService {
         return userRepository.findByUserId(userId).orElse(null);
     }
 
-    // 프로필 수정 메서드
-    public boolean updateUserProfile(String userId, UserDTO userDTO) {
+    // 프로필 수정 메서드 (대상은 컨트롤러가 토큰 사용자로 정한다)
+    // 닉네임은 게시글(Post.nickname)·예약·팔로우·이체가 주인을 가리는 키라서, 남이 쓰는 닉네임으로는 바꾸지 못하게 하고
+    // 바뀌면 같은 트랜잭션에서 내 게시글의 닉네임도 바꾼다. (옛 닉네임을 다른 사람이 가져가 내 글의 주인이 되는 것 방지)
+    @Transactional
+    public ProfileUpdateResult updateUserProfile(String userId, UserDTO userDTO) {
         User user = userRepository.findByUserId(userId).orElse(null);
         if (user == null) {
-            return false;
+            return ProfileUpdateResult.USER_NOT_FOUND;
+        }
+
+        String oldNickname = user.getNickname();
+        String newNickname = userDTO.getNickname();
+        boolean nicknameChanged = newNickname != null && !newNickname.isBlank() && !newNickname.equals(oldNickname);
+        if (nicknameChanged) {
+            // 본인은 제외한다 (대소문자만 바꾸는 경우 — DB 기본 정렬은 대소문자를 가리지 않는다)
+            Optional<User> holder = userRepository.findByNickname(newNickname);
+            if (holder.isPresent() && !Objects.equals(holder.get().getId(), user.getId())) {
+                return ProfileUpdateResult.NICKNAME_IN_USE;
+            }
         }
 
         // ID를 제외한 모든 필드를 수정
@@ -277,8 +318,10 @@ public class UserService {
         user.setDateOfBirth(userDTO.getDateOfBirth());
         user.setGender(userDTO.getGender());
         user.setMbti(userDTO.getMbti());
-        user.setProfilePicture(userDTO.getProfilePicture());
-        user.setNickname(userDTO.getNickname());
+        // 프로필 사진은 업로드 API(upload-profile-picture)로만 바꾼다. 요청 본문의 profilePicture는 쓰지 않는다.
+        if (nicknameChanged) {
+            user.setNickname(newNickname);
+        }
         user.setStatusMessage(userDTO.getStatusMessage()); // 상태 메시지 추가
 
         // 포인트는 수정하지 않음
@@ -286,7 +329,13 @@ public class UserService {
 
         userRepository.save(user);
 
-        return true;
+        if (nicknameChanged && oldNickname != null) {
+            List<Post> posts = postRepository.findByNickname(oldNickname);
+            posts.forEach(post -> post.setNickname(newNickname));
+            postRepository.saveAll(posts);
+        }
+
+        return ProfileUpdateResult.UPDATED;
     }
 
     // 예약대행자 정보 업데이트
@@ -300,7 +349,7 @@ public class UserService {
         user.setIntroduction(agentDTO.getIntroduction());
         user.setHashtags(agentDTO.getHashtags());
         user.setSpecIntroduction(agentDTO.getSpecIntroduction());
-        user.setAverageReviewRating(agentDTO.getAverageReviewRating());
+        // 별점은 리뷰로만 계산한다. 요청의 averageReviewRating은 쓰지 않는다.
 
         userRepository.save(user);
         return true;
@@ -309,6 +358,7 @@ public class UserService {
     // 예약대행자 목록 조회
     public List<AgentDTO> getAllAgents() {
         return userRepository.findByIsAgentTrue().stream()
+                .filter(UserService::isApprovedAgent) // 승인된 대행자만
                 .map(user -> new AgentDTO(
                         user.getAgentCountry(),
                         user.getIntroduction(),
@@ -324,6 +374,7 @@ public class UserService {
     // 해시태그로 예약대행자 검색
     public List<AgentDTO> searchAgentsByHashtag(String hashtag) {
         return userRepository.findByIsAgentTrue().stream()
+                .filter(UserService::isApprovedAgent) // 승인된 대행자만
                 .filter(user -> user.getHashtags() != null && user.getHashtags().contains(hashtag))
                 .map(user -> new AgentDTO(
                         user.getAgentCountry(),
@@ -340,6 +391,7 @@ public class UserService {
     // 특정 국가의 예약대행자 목록 조회
     public List<AgentDTO> getAgentsByCountry(String country) {
         return userRepository.findByIsAgentTrueAndAgentCountry(country).stream()
+                .filter(UserService::isApprovedAgent) // 승인된 대행자만
                 .map(user -> new AgentDTO(
                         user.getAgentCountry(),
                         user.getIntroduction(),
@@ -454,6 +506,41 @@ public class UserService {
         return true;
     }
 
+
+    // 포인트 이체: 보내는 사람(토큰 사용자)이 예약한 승인 대행자에게만 보낸다.
+    // 차감·적립·송금 표시를 한 트랜잭션으로 묶어, 중간에 실패하면 모두 되돌린다.
+    @Transactional
+    public void transferPointsToAgent(User sender, String agentNickname, int points) {
+        if (points <= 0) {
+            throw new IllegalArgumentException("Points to transfer must be positive");
+        }
+        User agent = userRepository.findByNickname(agentNickname)
+                .orElseThrow(() -> new IllegalArgumentException("Agent not found"));
+        if (Objects.equals(agent.getId(), sender.getId())) {
+            throw new IllegalArgumentException("Cannot transfer points to yourself");
+        }
+        if (!isApprovedAgent(agent)) {
+            throw new AccessDeniedException("승인된 예약대행자에게만 포인트를 보낼 수 있습니다.");
+        }
+        Booking booking = bookingRepository.findByUser_NicknameAndAgent_Nickname(sender.getNickname(), agent.getNickname())
+                .orElseThrow(() -> new AccessDeniedException("예약한 예약대행자에게만 포인트를 보낼 수 있습니다."));
+
+        deductPointsByNickname(sender.getNickname(), points);
+        addPointsByNickname(agent.getNickname(), points);
+
+        // 송금 표시와 진행 단계(3: 입금 완료)는 서버가 정한다. 클라이언트가 set-sended·update-progress로 위조하지 못하게 한다.
+        markSended(booking);
+        bookingRepository.findByUser_NicknameAndAgent_Nickname(agent.getNickname(), sender.getNickname())
+                .ifPresent(this::markSended);
+    }
+
+    private void markSended(Booking booking) {
+        booking.setSended(true);
+        if (booking.getProgress() < 3) {
+            booking.setProgress(3);
+        }
+        bookingRepository.save(booking);
+    }
 
     //관리자 포인트 조정
     public boolean adjustPoints(String userId, int points) {

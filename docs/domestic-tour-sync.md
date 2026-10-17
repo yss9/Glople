@@ -122,7 +122,8 @@ curl -X POST http://localhost:8080/api/admin/tour-sync/summaries -H "Authorizati
 | :-- | :-- |
 | `202` | 동기화를 시작함. 본문은 현재 상태 |
 | `400` | `limit`이 1~10,000 범위를 벗어남 |
-| `403` | 토큰이 없거나, 만료·위조되었거나, 관리자(`ROLE_ADMIN`)가 아님 |
+| `401` | 토큰이 없거나 만료·위조됨 (응답 JSON은 [authorization.md](authorization.md#오류-응답)) |
+| `403` | 로그인했지만 관리자(`ROLE_ADMIN`)가 아님 |
 | `409` | 다른 동기화가 이미 진행 중 (소개 재계산도 같은 행을 저장하므로 다른 작업과 동시에 돌지 않음) |
 | `503` | `tour.api.service-key`가 설정되지 않음 (`summaries`는 TourAPI를 부르지 않아 해당 없음) |
 

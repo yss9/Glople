@@ -100,6 +100,53 @@ class JwtTokenProviderTest {
         assertThat(SecurityContextHolder.getContext().getAuthentication()).isNull();
     }
 
+    @Test
+    void tokenSubjectIsLoginIdAndBecomesThePrincipal() {
+        // setClaims()가 claims를 통째로 바꾸므로 subject는 그 뒤에 넣어야 남는다
+        String token = jwtUtil.generateToken(5L, "alice", "앨리스", Role.ROLE_USER);
+
+        assertThat(jwtUtil.extractClaims(token).getSubject()).isEqualTo("alice");
+        assertThat(jwtUtil.extractUserId(token)).isEqualTo("alice");
+        assertThat(jwtUtil.extractNickname(token)).isEqualTo("앨리스");
+        assertThat(jwtUtil.extractId(token)).isEqualTo(5L);
+        assertThat(provider.getAuthentication(token).getName()).isEqualTo("alice");
+    }
+
+    @Test
+    void legacyTokenWithoutSubjectFallsBackToUserIdClaim() {
+        // 수정 전에 발급된 토큰(subject 없음)도 만료 전까지는 같은 사용자로 인정한다
+        String legacy = Jwts.builder()
+                .claim("id", 5L)
+                .claim("userId", "alice")
+                .claim("role", "ROLE_USER")
+                .setExpiration(new Date(System.currentTimeMillis() + 60_000))
+                .signWith(SignatureAlgorithm.HS256, SECRET)
+                .compact();
+
+        assertThat(provider.getAuthentication(legacy).getName()).isEqualTo("alice");
+    }
+
+    @Test
+    void tokenWithoutAnyUserIsNotAuthenticated() {
+        String anonymous = Jwts.builder()
+                .claim("role", "ROLE_ADMIN")
+                .setExpiration(new Date(System.currentTimeMillis() + 60_000))
+                .signWith(SignatureAlgorithm.HS256, SECRET)
+                .compact();
+
+        assertThat(provider.getAuthentication(anonymous)).isNull();
+    }
+
+    @Test
+    void bearerUndefinedIsNoToken() {
+        assertThat(JwtTokenProvider.resolveBearerToken(null)).isNull();
+        assertThat(JwtTokenProvider.resolveBearerToken("Bearer undefined")).isNull();
+        assertThat(JwtTokenProvider.resolveBearerToken("Bearer null")).isNull();
+        assertThat(JwtTokenProvider.resolveBearerToken("Bearer ")).isNull();
+        assertThat(JwtTokenProvider.resolveBearerToken("Basic abc")).isNull();
+        assertThat(JwtTokenProvider.resolveBearerToken("Bearer abc.def.ghi")).isEqualTo("abc.def.ghi");
+    }
+
     private static boolean isGranted(String role, Authentication authentication) {
         return AuthorityAuthorizationManager.hasRole(role).check(() -> authentication, new Object()).isGranted();
     }

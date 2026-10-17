@@ -9,7 +9,10 @@ import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import org.springframework.test.util.ReflectionTestUtils;
 import proj.travien.controller.FollowController;
 import proj.travien.dto.UserDTO;
+import proj.travien.jwt.CurrentUser;
+import proj.travien.repository.BookingRepository;
 import proj.travien.repository.PointsHistoryRepository;
+import proj.travien.repository.PostRepository;
 import proj.travien.repository.UserRepository;
 import proj.travien.service.FollowService;
 import proj.travien.service.UserService;
@@ -206,10 +209,15 @@ class UserJsonExposureTest {
     void followedAgentsExposeOnlyPublicAgentProfile() throws Exception {
         // GET /api/follow/followed-agents 는 다른 사용자(대행자)의 정보라 agentDetails(공개 대행자 프로필)만 내보낸다
         FollowService followService = mock(FollowService.class);
-        UserService userService = new UserService(mock(UserRepository.class), mock(PointsHistoryRepository.class));
+        UserService userService = new UserService(mock(UserRepository.class), mock(PointsHistoryRepository.class),
+                mock(PostRepository.class), mock(BookingRepository.class));
         FollowController controller = new FollowController();
         ReflectionTestUtils.setField(controller, "followService", followService);
         ReflectionTestUtils.setField(controller, "userService", userService);
+        // 조회 대상은 토큰 사용자(me-login)로 정해진다
+        CurrentUser currentUser = mock(CurrentUser.class);
+        when(currentUser.targetUserId("me-login")).thenReturn("me-login");
+        ReflectionTestUtils.setField(controller, "currentUser", currentUser);
         when(followService.getFollowedAgents("me-login")).thenReturn(List.of(user(1L, "alice"), user(2L, "bob")));
 
         ResponseEntity<?> response = controller.getFollowedAgents("me-login");

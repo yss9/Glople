@@ -8,7 +8,9 @@ import org.springframework.mock.web.MockMultipartFile;
 import proj.travien.domain.User;
 import proj.travien.dto.AgentApplicationDTO;
 import proj.travien.dto.UserDTO;
+import proj.travien.repository.BookingRepository;
 import proj.travien.repository.PointsHistoryRepository;
+import proj.travien.repository.PostRepository;
 import proj.travien.repository.UserRepository;
 
 import java.io.FileNotFoundException;
@@ -40,7 +42,8 @@ class UserServiceUploadTest {
 
     private Path uploadRoot;
     private final UserRepository userRepository = mock(UserRepository.class);
-    private final UserService userService = new UserService(userRepository, mock(PointsHistoryRepository.class));
+    private final UserService userService = new UserService(userRepository, mock(PointsHistoryRepository.class),
+            mock(PostRepository.class), mock(BookingRepository.class));
     private final User user = new User();
 
     @BeforeEach

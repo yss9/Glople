@@ -132,10 +132,10 @@ MBTI 여행지 카드는 유형별로 미리 정한 목록을 보여주는 화�
 
 ![Glople 아키텍처 - React 프론트엔드, Spring Boot 백엔드, MySQL, 로컬 파일 저장소, 외부 API 연동, Docker Compose 배포 구조](docs/images/architecture.png)
 
-- React 화면은 REST로 Spring Boot를 호출하고, 채팅과 챗봇은 `/ws` SockJS 엔드포인트에 STOMP로 연결합니다. 메시지는 `/app/...`으로 보내고 SimpleBroker의 `/topic/public/{roomId}`(채팅방)와 `/topic/public`(챗봇)에서 받습니다.
+- React 화면은 REST로 Spring Boot를 호출하고, 채팅과 챗봇은 `/ws` SockJS 엔드포인트에 STOMP로 연결합니다. 메시지는 `/app/...`으로 보내고, 채팅방은 SimpleBroker의 `/topic/public/{roomId}`에서, 챗봇 답은 보낸 사람만 `/user/topic/chatbot`에서 받습니다. 토큰은 STOMP CONNECT 헤더로 보냅니다.
 - 추천 연산(비트마스크 필터, 코사인 유사도 Top-K)은 서버와 DB에서 처리하고, 화면은 결과에 Google Places 사진과 지도를 붙여 보여줍니다.
 - OpenAI(WebClient), Google Speech-to-Text(클라이언트 라이브러리), Google Places 텍스트 검색(RestTemplate)은 백엔드가 호출합니다. Google Maps JavaScript API, RestCountries(국가 좌표), Pixabay(국가 이미지)는 화면에서 직접 호출하고, 위키백과도 화면에서 바로 조회합니다. 같은 위키백과 조회를 대신하는 백엔드 엔드포인트(`/api/wikipedia`, `/api/country-info`)도 있습니다.
-- Spring Security는 JWT 필터로 인증 정보를 채우고 `/api/admin/**`에 관리자 권한을 요구합니다. 프로필 사진, 글로플러 인증 파일, 채팅 이미지는 서버 로컬 디렉터리에 저장해 `/profile-pictures/**`, `/verification-files/**`, `/image/**` 경로로 제공합니다.
+- Spring Security는 JWT 필터로 인증 정보를 채웁니다. 기본은 로그인 필요이고, 공개 경로는 화이트리스트로만 엽니다. 요청한 사용자는 토큰으로만 정하고, `/api/admin/**`과 관리자 기능에는 관리자 권한을 요구합니다(규칙: [docs/authorization.md](docs/authorization.md)). 프로필 사진, 글로플러 인증 파일, 채팅 이미지는 서버 로컬 디렉터리에 저장합니다. 프로필 사진과 채팅 이미지는 `/profile-pictures/**`, `/image/**` 경로로 제공하고, 인증 파일은 본인·관리자만 `GET /api/users/verification-file/{userId}`로 받습니다.
 - Docker Compose는 MySQL, 백엔드, 프론트엔드(빌드 결과를 Nginx로 서빙), 리버스 프록시 Nginx 네 컨테이너로 구성되고, 리버스 프록시가 `/`는 프론트엔드로, `/api/`와 `/ws/`는 백엔드로 보냅니다.
 
 ### 주요 API

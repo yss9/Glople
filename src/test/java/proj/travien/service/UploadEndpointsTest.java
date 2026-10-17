@@ -11,6 +11,10 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import proj.travien.controller.ChatController;
 import proj.travien.controller.FileController;
 import proj.travien.controller.PostController;
+import proj.travien.domain.Role;
+import proj.travien.domain.User;
+import proj.travien.jwt.CurrentUser;
+import proj.travien.jwt.TestTokens;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -21,6 +25,8 @@ import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -59,7 +65,7 @@ class UploadEndpointsTest {
     @Test
     void chatFileUploadReturnsImageUrlWithGeneratedName() throws IOException {
         Path imageDir = Files.createDirectories(tempDir.resolve("static/image"));
-        ChatController controller = new ChatController();
+        ChatController controller = participantChatController("a");
         // application.properties 의 upload.location 처럼 끝에 / 가 붙은 값
         ReflectionTestUtils.setField(controller, "uploadDir", imageDir + "/");
 
@@ -73,7 +79,7 @@ class UploadEndpointsTest {
     @Test
     void chatFileUploadRejectsActiveContent() throws IOException {
         Path imageDir = Files.createDirectories(tempDir.resolve("static/image"));
-        ChatController controller = new ChatController();
+        ChatController controller = participantChatController("a");
         ReflectionTestUtils.setField(controller, "uploadDir", imageDir.toString());
 
         for (String name : List.of("page.html", "../../index.html", "image.svg", "noextension", "photo.png.js")) {
@@ -115,6 +121,19 @@ class UploadEndpointsTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.imageUrl").value(org.hamcrest.Matchers.matchesPattern(UUID_NAME + "\\.jpg")));
         assertThat(filesUnder(tempDir)).hasSize(1);
+    }
+
+    // 업로드 규칙만 보려고, 로그인 사용자(닉네임 a)가 방 a_b의 참가자인 상태로 만든다
+    private static ChatController participantChatController(String nickname) {
+        ChatController controller = new ChatController();
+        User me = TestTokens.user(1L, nickname, nickname, Role.ROLE_USER);
+        CurrentUser currentUser = mock(CurrentUser.class);
+        when(currentUser.requireUser()).thenReturn(me);
+        proj.travien.service.ChatAccessService access = mock(proj.travien.service.ChatAccessService.class);
+        when(access.isParticipant("a_b", 1L)).thenReturn(true);
+        ReflectionTestUtils.setField(controller, "currentUser", currentUser);
+        ReflectionTestUtils.setField(controller, "chatAccessService", access);
+        return controller;
     }
 
     private static MockMultipartFile file(String param, String originalName, String content) {
