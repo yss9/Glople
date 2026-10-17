@@ -14,6 +14,7 @@ import TopBarComponent from "../../components/TopBar/TopBar";
 import MyProfile2 from '../../images/도라에몽.jpeg';
 import Cookies from "js-cookie";
 import { jwtDecode } from "jwt-decode";
+import { authFetch } from "../../api/auth";
 
 const getAuthToken = () => {
     return Cookies.get('jwt');
@@ -37,7 +38,7 @@ export default function ReservationPage() {
         const decodedToken = jwtDecode(token);
         const userId = decodedToken.userId;
 
-        fetch(`http://localhost:8080/api/users/my-info?userId=${userId}`)
+        authFetch(`http://localhost:8080/api/users/my-info?userId=${userId}`)
             .then(response => response.json())
             .then(data => {
                 const formattedData = {

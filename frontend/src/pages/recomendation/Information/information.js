@@ -13,6 +13,7 @@ import PlaceReview from "../../../components/PlaceReview/placeReview";
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import MyProfile2 from "../../../public/Img/forprofile/img_1.png";
 import axios from "axios";
+import { authFetch } from "../../../api/auth";
 import styled from "styled-components";
 import SourceAttribution, {
     SOURCE_TOUR_API, SOURCE_WIKIDATA, SOURCE_WIKIPEDIA
@@ -129,7 +130,7 @@ export default function Information() {
     };
 
     const fetchReviews = (placeName) => {
-        fetch(`http://localhost:8080/api/posts/titles/${placeName}`)
+        authFetch(`http://localhost:8080/api/posts/titles/${placeName}`)
             .then((response) => {
                 if (!response.ok) {
                     throw new Error('Failed to fetch reviews');

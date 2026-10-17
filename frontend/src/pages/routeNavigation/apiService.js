@@ -1,9 +1,11 @@
+import { authFetch } from "../../api/auth";
+
 export const searchPlaceInCountry = async (query) => {
     const code = localStorage.getItem("code");
     const url = `/api/search-place?country=${code}&query=${encodeURIComponent(query)}`;
 
     try {
-        const response = await fetch(url);
+        const response = await authFetch(url);
         console.log('response:', response)
         const data = await response.json();
         if (data.status === "200") {

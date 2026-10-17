@@ -169,7 +169,8 @@ const Chatbot = () => {
             },
             reconnectDelay: 5000,
             onConnect: () => {
-                stompClient.subscribe('/topic/public', (message) => {
+                // 챗봇 답은 보낸 사람에게만 온다(서버 @SendToUser("/topic/chatbot")). 공용 /topic/public을 구독하면 남의 질문·답이 보였음
+                stompClient.subscribe('/user/topic/chatbot', (message) => {
                     setLoading(false); // 응답이 오면 로딩을 해제합니다
                     const msg = JSON.parse(message.body);
                     setMessages((prevMessages) => [...prevMessages, msg]);
@@ -177,7 +178,8 @@ const Chatbot = () => {
 
                 stompClient.publish({
                     destination: "/app/chat.addUser",
-                    body: JSON.stringify({ sender: extractedUsername, type: 'JOIN', token: `Bearer ${token}` })
+                    // 토큰은 본문에 싣지 않는다(서버가 받은 메시지를 그대로 방송하면 남에게 JWT가 샘). 인증은 CONNECT 헤더로만
+                    body: JSON.stringify({ sender: extractedUsername, type: 'JOIN' })
                 });
             }
         });

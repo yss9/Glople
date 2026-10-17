@@ -3,6 +3,7 @@ import styled from 'styled-components';
 import MyProfile2 from "../../../public/Img/forprofile/img.png";
 import Cookies from "js-cookie";
 import {jwtDecode} from "jwt-decode";
+import { authFetch } from "../../../api/auth";
 const getAuthToken = () => {
     return Cookies.get('jwt');
 };
@@ -229,7 +230,7 @@ const IamAgent = ({ review, closeModal }) => {
         };
 
         try {
-            const response = await fetch(`http://localhost:8080/api/users/update-agent-details?userId=${userId}`, {
+            const response = await authFetch(`http://localhost:8080/api/users/update-agent-details?userId=${userId}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import { jwtDecode } from "jwt-decode";
 import axios from "axios";
 import Cookies from "js-cookie";
+import { setAuthToken } from "../../api/auth";
 import MyProfile2 from "../../public/Img/forprofile/img.png";
 
 const Wrapper = styled.div`
@@ -164,7 +165,7 @@ const Myprofilemodify = () => {
             if (profileImage && profileImage instanceof File) {
                 const formData = new FormData();
                 formData.append("profilePicture", profileImage);
-                formData.append("userId", userId);
+                // userId는 쿼리로만 보낸다. form에도 넣으면 서버에 'id,id'로 합쳐져 본인 확인이 틀어짐
 
                 const uploadResponse = await axios.post(
                     `http://localhost:8080/api/users/upload-profile-picture?userId=${userId}`,
@@ -196,6 +197,10 @@ const Myprofilemodify = () => {
             );
 
             if (response.status === 200) {
+                // 닉네임이 바뀌면 서버가 새 토큰을 내려준다 → 쿠키를 바꿔야 예약·채팅·이체가 새 닉네임으로 동작
+                if (response.data && typeof response.data === "object" && response.data.token) {
+                    setAuthToken(response.data.token);
+                }
                 console.log("프로필이 성공적으로 업데이트되었습니다.");
                 alert("프로필이 성공적으로 업데이트되었습니다.");
             } else {
