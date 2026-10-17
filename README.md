@@ -169,25 +169,37 @@ CREATE DATABASE travien;
 
 ### 2. 백엔드
 
-`src/main/resources/application.properties`는 `.gitignore` 대상이라 직접 만듭니다.
+비밀값은 프로젝트 루트의 `.env`에 둡니다. `.env`는 `.gitignore` 대상이므로 [`.env.example`](.env.example)을 복사해 값을 채웁니다.
+
+```bash
+cp .env.example .env           # TOUR_API_SERVICE_KEY, GLOPLE_DB_PASSWORD, GLOPLE_JWT_SECRET, GLOPLE_ADMIN_PASSWORD, (선택) OPENAI_API_KEY
+```
+
+`src/main/resources/application.properties`도 `.gitignore` 대상이라 직접 만듭니다. 첫 줄의 `spring.config.import`가 `.env` 값을 읽습니다.
 
 ```properties
+spring.config.import=optional:file:.env[.properties]
+
 spring.datasource.url=jdbc:mysql://localhost:3306/travien
 spring.datasource.username=<DB 사용자>
-spring.datasource.password=<DB 비밀번호>
+spring.datasource.password=${GLOPLE_DB_PASSWORD}
 spring.jpa.hibernate.ddl-auto=update
 
-jwt.secret=<JWT 서명 키>
+jwt.secret=${GLOPLE_JWT_SECRET}
 jwt.expiration=<토큰 만료 시간(ms)>
-gpt_api.key=<OpenAI API 키>
+gpt_api.key=${OPENAI_API_KEY:}
 upload.location=src/main/resources/static/image/
+
+tour.api.service-key=${TOUR_API_SERVICE_KEY:}
 ```
 
 | 설정 | 용도 |
 | :-- | :-- |
-| `jwt.secret`, `jwt.expiration` | JWT 발급·검증 |
+| `jwt.secret`, `jwt.expiration` | JWT 발급·검증 (`GLOPLE_JWT_SECRET`은 Base64 문자열) |
 | `gpt_api.key` | AI 챗봇(OpenAI) |
 | `upload.location` | 리뷰·채팅 이미지 저장 경로 (`/image/**`로 제공되는 위치, 끝에 `/` 포함) |
+| `tour.api.service-key` | 국내 여행지 수집(TourAPI) 인증키 ([수집 문서](docs/domestic-tour-sync.md)) |
+| `.env`의 `GLOPLE_ADMIN_PASSWORD` | 관리자 계정 `admin`의 비밀번호 (아래 참고) |
 | 환경 변수 `GOOGLE_APPLICATION_CREDENTIALS` | Google Speech-to-Text 서비스 계정 키 파일 경로 (음성 메시지 변환) |
 
 Google Places 텍스트 검색 키는 [`PlaceController.java`](src/main/java/proj/travien/controller/PlaceController.java)의 `API_KEY` 상수에서 지정합니다.
@@ -198,7 +210,9 @@ sh gradlew bootRun             # Windows: gradlew.bat bootRun  →  http://local
 
 API 문서는 서버 실행 후 `http://localhost:8080/swagger-ui/index.html`에서 확인합니다.
 
-서버가 시작될 때 `admin` 관리자 계정이 없으면 [`AdminAccountInitializer`](src/main/java/proj/travien/AdminAccountInitializer.java)가 만듭니다. 초기 비밀번호가 코드에 있으므로 로컬 개발용으로만 사용합니다.
+서버가 시작될 때 [`AdminAccountInitializer`](src/main/java/proj/travien/AdminAccountInitializer.java)가 `admin` 관리자 계정의 비밀번호를 `.env`의 `GLOPLE_ADMIN_PASSWORD`에 맞춥니다. 계정이 없으면 만들고, 있으면 저장된 비밀번호가 이 값과 다를 때만 바꿉니다. 그래서 관리자 비밀번호를 바꾸려면 `.env` 값을 고치고 서버를 다시 시작합니다. 값이 비어 있으면 계정을 만들지 않고 경고 로그만 남깁니다(이미 있는 계정의 비밀번호는 그대로 둡니다). 비밀번호는 코드에도 로그에도 남지 않습니다.
+
+관리자 토큰은 `POST /api/users/login`에 `{"userId":"admin","password":"<GLOPLE_ADMIN_PASSWORD 값>"}`을 보내 받습니다.
 
 추천 로직 단위 테스트는 DB 없이 실행됩니다.
 
@@ -225,7 +239,7 @@ cd docker
 docker compose up --build      # 리버스 프록시 http://localhost, MySQL은 호스트 3307 포트
 ```
 
-백엔드 이미지는 저장소 전체를 복사해 빌드하므로 `application.properties`를 먼저 만들어 두어야 합니다. DB 접속 정보는 `docker-compose.yml`의 환경 변수가 덮어씁니다.
+백엔드 이미지는 저장소 전체를 복사해 빌드하므로 `application.properties`를 먼저 만들어 두어야 합니다. DB 접속 정보는 `docker-compose.yml`의 환경 변수가 덮어씁니다. 실행 이미지에는 `.env`가 들어가지 않으므로 `GLOPLE_JWT_SECRET`, `GLOPLE_ADMIN_PASSWORD` 같은 값은 컨테이너 환경 변수로 넘깁니다. `GLOPLE_ADMIN_PASSWORD`를 넘기지 않으면 관리자 계정을 만들지 않습니다.
 
 <br>
 
