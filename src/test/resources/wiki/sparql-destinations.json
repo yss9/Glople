@@ -1,0 +1,955 @@
+{
+ "head": {
+  "vars": [
+   "item",
+   "article",
+   "koLabel",
+   "enLabel",
+   "coord",
+   "type",
+   "heritage",
+   "admin",
+   "adminLabel"
+  ]
+ },
+ "results": {
+  "bindings": [
+   {
+    "item": {
+     "type": "uri",
+     "value": "http://www.wikidata.org/entity/Q120730"
+    },
+    "admin": {
+     "type": "uri",
+     "value": "http://www.wikidata.org/entity/Q17"
+    },
+    "adminLabel": {
+     "xml:lang": "ko",
+     "type": "literal",
+     "value": "일본"
+    },
+    "heritage": {
+     "datatype": "http://www.w3.org/2001/XMLSchema#boolean",
+     "type": "literal",
+     "value": "true"
+    },
+    "enLabel": {
+     "xml:lang": "en",
+     "type": "literal",
+     "value": "Kyoto Prefecture"
+    },
+    "koLabel": {
+     "xml:lang": "ko",
+     "type": "literal",
+     "value": "교토부"
+    },
+    "article": {
+     "type": "uri",
+     "value": "https://ko.wikipedia.org/wiki/%EA%B5%90%ED%86%A0%EB%B6%80"
+    },
+    "coord": {
+     "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+     "type": "literal",
+     "value": "Point(135.755583333 35.021027777)"
+    },
+    "type": {
+     "type": "uri",
+     "value": "http://www.wikidata.org/entity/Q50337"
+    }
+   },
+   {
+    "item": {
+     "type": "uri",
+     "value": "http://www.wikidata.org/entity/Q120730"
+    },
+    "admin": {
+     "type": "uri",
+     "value": "http://www.wikidata.org/entity/Q17"
+    },
+    "adminLabel": {
+     "xml:lang": "ko",
+     "type": "literal",
+     "value": "일본"
+    },
+    "heritage": {
+     "datatype": "http://www.w3.org/2001/XMLSchema#boolean",
+     "type": "literal",
+     "value": "true"
+    },
+    "enLabel": {
+     "xml:lang": "en",
+     "type": "literal",
+     "value": "Kyoto Prefecture"
+    },
+    "koLabel": {
+     "xml:lang": "ko",
+     "type": "literal",
+     "value": "교토부"
+    },
+    "article": {
+     "type": "uri",
+     "value": "https://ko.wikipedia.org/wiki/%EA%B5%90%ED%86%A0%EB%B6%80"
+    },
+    "coord": {
+     "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+     "type": "literal",
+     "value": "Point(135.755583333 35.021027777)"
+    },
+    "type": {
+     "type": "uri",
+     "value": "http://www.wikidata.org/entity/Q839328"
+    }
+   },
+   {
+    "item": {
+     "type": "uri",
+     "value": "http://www.wikidata.org/entity/Q63465"
+    },
+    "admin": {
+     "type": "uri",
+     "value": "http://www.wikidata.org/entity/Q38234"
+    },
+    "adminLabel": {
+     "xml:lang": "ko",
+     "type": "literal",
+     "value": "나가사키시"
+    },
+    "enLabel": {
+     "xml:lang": "en",
+     "type": "literal",
+     "value": "Glover Garden"
+    },
+    "koLabel": {
+     "xml:lang": "ko",
+     "type": "literal",
+     "value": "구라바엔"
+    },
+    "article": {
+     "type": "uri",
+     "value": "https://ko.wikipedia.org/wiki/%EA%B5%AC%EB%9D%BC%EB%B0%94%EC%97%94"
+    },
+    "coord": {
+     "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+     "type": "literal",
+     "value": "Point(129.86888889 32.73444444)"
+    },
+    "type": {
+     "type": "uri",
+     "value": "http://www.wikidata.org/entity/Q33506"
+    }
+   },
+   {
+    "item": {
+     "type": "uri",
+     "value": "http://www.wikidata.org/entity/Q63465"
+    },
+    "admin": {
+     "type": "uri",
+     "value": "http://www.wikidata.org/entity/Q38234"
+    },
+    "adminLabel": {
+     "xml:lang": "ko",
+     "type": "literal",
+     "value": "나가사키시"
+    },
+    "enLabel": {
+     "xml:lang": "en",
+     "type": "literal",
+     "value": "Glover Garden"
+    },
+    "koLabel": {
+     "xml:lang": "ko",
+     "type": "literal",
+     "value": "구라바엔"
+    },
+    "article": {
+     "type": "uri",
+     "value": "https://ko.wikipedia.org/wiki/%EA%B5%AC%EB%9D%BC%EB%B0%94%EC%97%94"
+    },
+    "coord": {
+     "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+     "type": "literal",
+     "value": "Point(129.86888889 32.73444444)"
+    },
+    "type": {
+     "type": "uri",
+     "value": "http://www.wikidata.org/entity/Q756102"
+    }
+   },
+   {
+    "item": {
+     "type": "uri",
+     "value": "http://www.wikidata.org/entity/Q63465"
+    },
+    "admin": {
+     "type": "uri",
+     "value": "http://www.wikidata.org/entity/Q38234"
+    },
+    "adminLabel": {
+     "xml:lang": "ko",
+     "type": "literal",
+     "value": "나가사키시"
+    },
+    "enLabel": {
+     "xml:lang": "en",
+     "type": "literal",
+     "value": "Glover Garden"
+    },
+    "koLabel": {
+     "xml:lang": "ko",
+     "type": "literal",
+     "value": "구라바엔"
+    },
+    "article": {
+     "type": "uri",
+     "value": "https://ko.wikipedia.org/wiki/%EA%B5%AC%EB%9D%BC%EB%B0%94%EC%97%94"
+    },
+    "coord": {
+     "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+     "type": "literal",
+     "value": "Point(129.86888889 32.73444444)"
+    },
+    "type": {
+     "type": "uri",
+     "value": "http://www.wikidata.org/entity/Q1107656"
+    }
+   },
+   {
+    "item": {
+     "type": "uri",
+     "value": "http://www.wikidata.org/entity/Q501638"
+    },
+    "admin": {
+     "type": "uri",
+     "value": "http://www.wikidata.org/entity/Q71699"
+    },
+    "adminLabel": {
+     "xml:lang": "ko",
+     "type": "literal",
+     "value": "아오모리현"
+    },
+    "heritage": {
+     "datatype": "http://www.w3.org/2001/XMLSchema#boolean",
+     "type": "literal",
+     "value": "true"
+    },
+    "enLabel": {
+     "xml:lang": "en",
+     "type": "literal",
+     "value": "Shirakami-Sanchi"
+    },
+    "koLabel": {
+     "xml:lang": "ko",
+     "type": "literal",
+     "value": "시라카미 산지"
+    },
+    "article": {
+     "type": "uri",
+     "value": "https://ko.wikipedia.org/wiki/%EC%8B%9C%EB%9D%BC%EC%B9%B4%EB%AF%B8_%EC%82%B0%EC%A7%80"
+    },
+    "coord": {
+     "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+     "type": "literal",
+     "value": "Point(140.198611111 40.450277777)"
+    },
+    "type": {
+     "type": "uri",
+     "value": "http://www.wikidata.org/entity/Q46831"
+    }
+   },
+   {
+    "item": {
+     "type": "uri",
+     "value": "http://www.wikidata.org/entity/Q501638"
+    },
+    "admin": {
+     "type": "uri",
+     "value": "http://www.wikidata.org/entity/Q71699"
+    },
+    "adminLabel": {
+     "xml:lang": "ko",
+     "type": "literal",
+     "value": "아오모리현"
+    },
+    "heritage": {
+     "datatype": "http://www.w3.org/2001/XMLSchema#boolean",
+     "type": "literal",
+     "value": "true"
+    },
+    "enLabel": {
+     "xml:lang": "en",
+     "type": "literal",
+     "value": "Shirakami-Sanchi"
+    },
+    "koLabel": {
+     "xml:lang": "ko",
+     "type": "literal",
+     "value": "시라카미 산지"
+    },
+    "article": {
+     "type": "uri",
+     "value": "https://ko.wikipedia.org/wiki/%EC%8B%9C%EB%9D%BC%EC%B9%B4%EB%AF%B8_%EC%82%B0%EC%A7%80"
+    },
+    "coord": {
+     "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+     "type": "literal",
+     "value": "Point(140.13 40.47)"
+    },
+    "type": {
+     "type": "uri",
+     "value": "http://www.wikidata.org/entity/Q46831"
+    }
+   },
+   {
+    "item": {
+     "type": "uri",
+     "value": "http://www.wikidata.org/entity/Q501638"
+    },
+    "admin": {
+     "type": "uri",
+     "value": "http://www.wikidata.org/entity/Q71699"
+    },
+    "adminLabel": {
+     "xml:lang": "ko",
+     "type": "literal",
+     "value": "아오모리현"
+    },
+    "heritage": {
+     "datatype": "http://www.w3.org/2001/XMLSchema#boolean",
+     "type": "literal",
+     "value": "true"
+    },
+    "enLabel": {
+     "xml:lang": "en",
+     "type": "literal",
+     "value": "Shirakami-Sanchi"
+    },
+    "koLabel": {
+     "xml:lang": "ko",
+     "type": "literal",
+     "value": "시라카미 산지"
+    },
+    "article": {
+     "type": "uri",
+     "value": "https://ko.wikipedia.org/wiki/%EC%8B%9C%EB%9D%BC%EC%B9%B4%EB%AF%B8_%EC%82%B0%EC%A7%80"
+    },
+    "coord": {
+     "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+     "type": "literal",
+     "value": "Point(140.198611111 40.450277777)"
+    },
+    "type": {
+     "type": "uri",
+     "value": "http://www.wikidata.org/entity/Q1141462"
+    }
+   },
+   {
+    "item": {
+     "type": "uri",
+     "value": "http://www.wikidata.org/entity/Q501638"
+    },
+    "admin": {
+     "type": "uri",
+     "value": "http://www.wikidata.org/entity/Q71699"
+    },
+    "adminLabel": {
+     "xml:lang": "ko",
+     "type": "literal",
+     "value": "아오모리현"
+    },
+    "heritage": {
+     "datatype": "http://www.w3.org/2001/XMLSchema#boolean",
+     "type": "literal",
+     "value": "true"
+    },
+    "enLabel": {
+     "xml:lang": "en",
+     "type": "literal",
+     "value": "Shirakami-Sanchi"
+    },
+    "koLabel": {
+     "xml:lang": "ko",
+     "type": "literal",
+     "value": "시라카미 산지"
+    },
+    "article": {
+     "type": "uri",
+     "value": "https://ko.wikipedia.org/wiki/%EC%8B%9C%EB%9D%BC%EC%B9%B4%EB%AF%B8_%EC%82%B0%EC%A7%80"
+    },
+    "coord": {
+     "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+     "type": "literal",
+     "value": "Point(140.13 40.47)"
+    },
+    "type": {
+     "type": "uri",
+     "value": "http://www.wikidata.org/entity/Q1141462"
+    }
+   },
+   {
+    "item": {
+     "type": "uri",
+     "value": "http://www.wikidata.org/entity/Q501638"
+    },
+    "admin": {
+     "type": "uri",
+     "value": "http://www.wikidata.org/entity/Q71699"
+    },
+    "adminLabel": {
+     "xml:lang": "ko",
+     "type": "literal",
+     "value": "아오모리현"
+    },
+    "heritage": {
+     "datatype": "http://www.w3.org/2001/XMLSchema#boolean",
+     "type": "literal",
+     "value": "true"
+    },
+    "enLabel": {
+     "xml:lang": "en",
+     "type": "literal",
+     "value": "Shirakami-Sanchi"
+    },
+    "koLabel": {
+     "xml:lang": "ko",
+     "type": "literal",
+     "value": "시라카미 산지"
+    },
+    "article": {
+     "type": "uri",
+     "value": "https://ko.wikipedia.org/wiki/%EC%8B%9C%EB%9D%BC%EC%B9%B4%EB%AF%B8_%EC%82%B0%EC%A7%80"
+    },
+    "coord": {
+     "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+     "type": "literal",
+     "value": "Point(140.198611111 40.450277777)"
+    },
+    "type": {
+     "type": "uri",
+     "value": "http://www.wikidata.org/entity/Q1286517"
+    }
+   },
+   {
+    "item": {
+     "type": "uri",
+     "value": "http://www.wikidata.org/entity/Q501638"
+    },
+    "admin": {
+     "type": "uri",
+     "value": "http://www.wikidata.org/entity/Q71699"
+    },
+    "adminLabel": {
+     "xml:lang": "ko",
+     "type": "literal",
+     "value": "아오모리현"
+    },
+    "heritage": {
+     "datatype": "http://www.w3.org/2001/XMLSchema#boolean",
+     "type": "literal",
+     "value": "true"
+    },
+    "enLabel": {
+     "xml:lang": "en",
+     "type": "literal",
+     "value": "Shirakami-Sanchi"
+    },
+    "koLabel": {
+     "xml:lang": "ko",
+     "type": "literal",
+     "value": "시라카미 산지"
+    },
+    "article": {
+     "type": "uri",
+     "value": "https://ko.wikipedia.org/wiki/%EC%8B%9C%EB%9D%BC%EC%B9%B4%EB%AF%B8_%EC%82%B0%EC%A7%80"
+    },
+    "coord": {
+     "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+     "type": "literal",
+     "value": "Point(140.13 40.47)"
+    },
+    "type": {
+     "type": "uri",
+     "value": "http://www.wikidata.org/entity/Q1286517"
+    }
+   },
+   {
+    "item": {
+     "type": "uri",
+     "value": "http://www.wikidata.org/entity/Q501638"
+    },
+    "admin": {
+     "type": "uri",
+     "value": "http://www.wikidata.org/entity/Q81863"
+    },
+    "adminLabel": {
+     "xml:lang": "ko",
+     "type": "literal",
+     "value": "아키타현"
+    },
+    "heritage": {
+     "datatype": "http://www.w3.org/2001/XMLSchema#boolean",
+     "type": "literal",
+     "value": "true"
+    },
+    "enLabel": {
+     "xml:lang": "en",
+     "type": "literal",
+     "value": "Shirakami-Sanchi"
+    },
+    "koLabel": {
+     "xml:lang": "ko",
+     "type": "literal",
+     "value": "시라카미 산지"
+    },
+    "article": {
+     "type": "uri",
+     "value": "https://ko.wikipedia.org/wiki/%EC%8B%9C%EB%9D%BC%EC%B9%B4%EB%AF%B8_%EC%82%B0%EC%A7%80"
+    },
+    "coord": {
+     "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+     "type": "literal",
+     "value": "Point(140.198611111 40.450277777)"
+    },
+    "type": {
+     "type": "uri",
+     "value": "http://www.wikidata.org/entity/Q46831"
+    }
+   },
+   {
+    "item": {
+     "type": "uri",
+     "value": "http://www.wikidata.org/entity/Q501638"
+    },
+    "admin": {
+     "type": "uri",
+     "value": "http://www.wikidata.org/entity/Q81863"
+    },
+    "adminLabel": {
+     "xml:lang": "ko",
+     "type": "literal",
+     "value": "아키타현"
+    },
+    "heritage": {
+     "datatype": "http://www.w3.org/2001/XMLSchema#boolean",
+     "type": "literal",
+     "value": "true"
+    },
+    "enLabel": {
+     "xml:lang": "en",
+     "type": "literal",
+     "value": "Shirakami-Sanchi"
+    },
+    "koLabel": {
+     "xml:lang": "ko",
+     "type": "literal",
+     "value": "시라카미 산지"
+    },
+    "article": {
+     "type": "uri",
+     "value": "https://ko.wikipedia.org/wiki/%EC%8B%9C%EB%9D%BC%EC%B9%B4%EB%AF%B8_%EC%82%B0%EC%A7%80"
+    },
+    "coord": {
+     "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+     "type": "literal",
+     "value": "Point(140.13 40.47)"
+    },
+    "type": {
+     "type": "uri",
+     "value": "http://www.wikidata.org/entity/Q46831"
+    }
+   },
+   {
+    "item": {
+     "type": "uri",
+     "value": "http://www.wikidata.org/entity/Q501638"
+    },
+    "admin": {
+     "type": "uri",
+     "value": "http://www.wikidata.org/entity/Q81863"
+    },
+    "adminLabel": {
+     "xml:lang": "ko",
+     "type": "literal",
+     "value": "아키타현"
+    },
+    "heritage": {
+     "datatype": "http://www.w3.org/2001/XMLSchema#boolean",
+     "type": "literal",
+     "value": "true"
+    },
+    "enLabel": {
+     "xml:lang": "en",
+     "type": "literal",
+     "value": "Shirakami-Sanchi"
+    },
+    "koLabel": {
+     "xml:lang": "ko",
+     "type": "literal",
+     "value": "시라카미 산지"
+    },
+    "article": {
+     "type": "uri",
+     "value": "https://ko.wikipedia.org/wiki/%EC%8B%9C%EB%9D%BC%EC%B9%B4%EB%AF%B8_%EC%82%B0%EC%A7%80"
+    },
+    "coord": {
+     "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+     "type": "literal",
+     "value": "Point(140.198611111 40.450277777)"
+    },
+    "type": {
+     "type": "uri",
+     "value": "http://www.wikidata.org/entity/Q1141462"
+    }
+   },
+   {
+    "item": {
+     "type": "uri",
+     "value": "http://www.wikidata.org/entity/Q501638"
+    },
+    "admin": {
+     "type": "uri",
+     "value": "http://www.wikidata.org/entity/Q81863"
+    },
+    "adminLabel": {
+     "xml:lang": "ko",
+     "type": "literal",
+     "value": "아키타현"
+    },
+    "heritage": {
+     "datatype": "http://www.w3.org/2001/XMLSchema#boolean",
+     "type": "literal",
+     "value": "true"
+    },
+    "enLabel": {
+     "xml:lang": "en",
+     "type": "literal",
+     "value": "Shirakami-Sanchi"
+    },
+    "koLabel": {
+     "xml:lang": "ko",
+     "type": "literal",
+     "value": "시라카미 산지"
+    },
+    "article": {
+     "type": "uri",
+     "value": "https://ko.wikipedia.org/wiki/%EC%8B%9C%EB%9D%BC%EC%B9%B4%EB%AF%B8_%EC%82%B0%EC%A7%80"
+    },
+    "coord": {
+     "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+     "type": "literal",
+     "value": "Point(140.13 40.47)"
+    },
+    "type": {
+     "type": "uri",
+     "value": "http://www.wikidata.org/entity/Q1141462"
+    }
+   },
+   {
+    "item": {
+     "type": "uri",
+     "value": "http://www.wikidata.org/entity/Q501638"
+    },
+    "admin": {
+     "type": "uri",
+     "value": "http://www.wikidata.org/entity/Q81863"
+    },
+    "adminLabel": {
+     "xml:lang": "ko",
+     "type": "literal",
+     "value": "아키타현"
+    },
+    "heritage": {
+     "datatype": "http://www.w3.org/2001/XMLSchema#boolean",
+     "type": "literal",
+     "value": "true"
+    },
+    "enLabel": {
+     "xml:lang": "en",
+     "type": "literal",
+     "value": "Shirakami-Sanchi"
+    },
+    "koLabel": {
+     "xml:lang": "ko",
+     "type": "literal",
+     "value": "시라카미 산지"
+    },
+    "article": {
+     "type": "uri",
+     "value": "https://ko.wikipedia.org/wiki/%EC%8B%9C%EB%9D%BC%EC%B9%B4%EB%AF%B8_%EC%82%B0%EC%A7%80"
+    },
+    "coord": {
+     "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+     "type": "literal",
+     "value": "Point(140.198611111 40.450277777)"
+    },
+    "type": {
+     "type": "uri",
+     "value": "http://www.wikidata.org/entity/Q1286517"
+    }
+   },
+   {
+    "item": {
+     "type": "uri",
+     "value": "http://www.wikidata.org/entity/Q501638"
+    },
+    "admin": {
+     "type": "uri",
+     "value": "http://www.wikidata.org/entity/Q81863"
+    },
+    "adminLabel": {
+     "xml:lang": "ko",
+     "type": "literal",
+     "value": "아키타현"
+    },
+    "heritage": {
+     "datatype": "http://www.w3.org/2001/XMLSchema#boolean",
+     "type": "literal",
+     "value": "true"
+    },
+    "enLabel": {
+     "xml:lang": "en",
+     "type": "literal",
+     "value": "Shirakami-Sanchi"
+    },
+    "koLabel": {
+     "xml:lang": "ko",
+     "type": "literal",
+     "value": "시라카미 산지"
+    },
+    "article": {
+     "type": "uri",
+     "value": "https://ko.wikipedia.org/wiki/%EC%8B%9C%EB%9D%BC%EC%B9%B4%EB%AF%B8_%EC%82%B0%EC%A7%80"
+    },
+    "coord": {
+     "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+     "type": "literal",
+     "value": "Point(140.13 40.47)"
+    },
+    "type": {
+     "type": "uri",
+     "value": "http://www.wikidata.org/entity/Q1286517"
+    }
+   },
+   {
+    "item": {
+     "type": "uri",
+     "value": "http://www.wikidata.org/entity/Q1073585"
+    },
+    "admin": {
+     "type": "uri",
+     "value": "http://www.wikidata.org/entity/Q738275"
+    },
+    "adminLabel": {
+     "xml:lang": "ko",
+     "type": "literal",
+     "value": "가라쓰시"
+    },
+    "enLabel": {
+     "xml:lang": "en",
+     "type": "literal",
+     "value": "Karatsu Castle"
+    },
+    "koLabel": {
+     "xml:lang": "ko",
+     "type": "literal",
+     "value": "가라쓰성"
+    },
+    "article": {
+     "type": "uri",
+     "value": "https://ko.wikipedia.org/wiki/%EA%B0%80%EB%9D%BC%EC%93%B0%EC%84%B1"
+    },
+    "coord": {
+     "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+     "type": "literal",
+     "value": "Point(129.978194 33.453539)"
+    },
+    "type": {
+     "type": "uri",
+     "value": "http://www.wikidata.org/entity/Q23413"
+    }
+   },
+   {
+    "item": {
+     "type": "uri",
+     "value": "http://www.wikidata.org/entity/Q1073585"
+    },
+    "admin": {
+     "type": "uri",
+     "value": "http://www.wikidata.org/entity/Q738275"
+    },
+    "adminLabel": {
+     "xml:lang": "ko",
+     "type": "literal",
+     "value": "가라쓰시"
+    },
+    "enLabel": {
+     "xml:lang": "en",
+     "type": "literal",
+     "value": "Karatsu Castle"
+    },
+    "koLabel": {
+     "xml:lang": "ko",
+     "type": "literal",
+     "value": "가라쓰성"
+    },
+    "article": {
+     "type": "uri",
+     "value": "https://ko.wikipedia.org/wiki/%EA%B0%80%EB%9D%BC%EC%93%B0%EC%84%B1"
+    },
+    "coord": {
+     "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+     "type": "literal",
+     "value": "Point(129.978194 33.453539)"
+    },
+    "type": {
+     "type": "uri",
+     "value": "http://www.wikidata.org/entity/Q92026"
+    }
+   },
+   {
+    "item": {
+     "type": "uri",
+     "value": "http://www.wikidata.org/entity/Q1333799"
+    },
+    "admin": {
+     "type": "uri",
+     "value": "http://www.wikidata.org/entity/Q379233"
+    },
+    "adminLabel": {
+     "xml:lang": "ko",
+     "type": "literal",
+     "value": "이카루가정"
+    },
+    "heritage": {
+     "datatype": "http://www.w3.org/2001/XMLSchema#boolean",
+     "type": "literal",
+     "value": "true"
+    },
+    "enLabel": {
+     "xml:lang": "en",
+     "type": "literal",
+     "value": "Buddhist Monuments in the Hōryū-ji Area"
+    },
+    "koLabel": {
+     "xml:lang": "ko",
+     "type": "literal",
+     "value": "호류지 지역의 불교 건조물"
+    },
+    "article": {
+     "type": "uri",
+     "value": "https://ko.wikipedia.org/wiki/%ED%98%B8%EB%A5%98%EC%82%AC_%EC%A7%80%EC%97%AD%EC%9D%98_%EB%B6%88%EA%B5%90%EA%B8%B0%EB%85%90%EB%AC%BC"
+    },
+    "coord": {
+     "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+     "type": "literal",
+     "value": "Point(135.734236 34.614275)"
+    },
+    "type": {
+     "type": "uri",
+     "value": "http://www.wikidata.org/entity/Q5393308"
+    }
+   },
+   {
+    "item": {
+     "type": "uri",
+     "value": "http://www.wikidata.org/entity/Q1333799"
+    },
+    "admin": {
+     "type": "uri",
+     "value": "http://www.wikidata.org/entity/Q379233"
+    },
+    "adminLabel": {
+     "xml:lang": "ko",
+     "type": "literal",
+     "value": "이카루가정"
+    },
+    "heritage": {
+     "datatype": "http://www.w3.org/2001/XMLSchema#boolean",
+     "type": "literal",
+     "value": "true"
+    },
+    "enLabel": {
+     "xml:lang": "en",
+     "type": "literal",
+     "value": "Buddhist Monuments in the Hōryū-ji Area"
+    },
+    "koLabel": {
+     "xml:lang": "ko",
+     "type": "literal",
+     "value": "호류지 지역의 불교 건조물"
+    },
+    "article": {
+     "type": "uri",
+     "value": "https://ko.wikipedia.org/wiki/%ED%98%B8%EB%A5%98%EC%82%AC_%EC%A7%80%EC%97%AD%EC%9D%98_%EB%B6%88%EA%B5%90%EA%B8%B0%EB%85%90%EB%AC%BC"
+    },
+    "coord": {
+     "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+     "type": "literal",
+     "value": "Point(135.734236 34.614275)"
+    },
+    "type": {
+     "type": "uri",
+     "value": "http://www.wikidata.org/entity/Q18247357"
+    }
+   },
+   {
+    "item": {
+     "type": "uri",
+     "value": "http://www.wikidata.org/entity/Q1193480"
+    },
+    "enLabel": {
+     "xml:lang": "en",
+     "type": "literal",
+     "value": "St. Mary's Cathedral"
+    },
+    "koLabel": {
+     "xml:lang": "ko",
+     "type": "literal",
+     "value": "도쿄 주교좌 성 마리아 대성당"
+    },
+    "article": {
+     "type": "uri",
+     "value": "https://ko.wikipedia.org/wiki/%EA%B0%80%ED%86%A8%EB%A6%AD_%EC%84%B8%ED%82%A4%EA%B5%AC%EC%B9%98_%EA%B5%90%ED%9A%8C"
+    },
+    "coord": {
+     "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+     "type": "literal",
+     "value": "Point(139.726667 35.714167)"
+    },
+    "type": {
+     "type": "uri",
+     "value": "http://www.wikidata.org/entity/Q2977"
+    }
+   },
+   {
+    "item": {
+     "type": "uri",
+     "value": "http://www.wikidata.org/entity/Q1193480"
+    },
+    "enLabel": {
+     "xml:lang": "en",
+     "type": "literal",
+     "value": "St. Mary's Cathedral"
+    },
+    "koLabel": {
+     "xml:lang": "ko",
+     "type": "literal",
+     "value": "도쿄 주교좌 성 마리아 대성당"
+    },
+    "article": {
+     "type": "uri",
+     "value": "https://ko.wikipedia.org/wiki/%EA%B0%80%ED%86%A8%EB%A6%AD_%EC%84%B8%ED%82%A4%EA%B5%AC%EC%B9%98_%EA%B5%90%ED%9A%8C"
+    },
+    "coord": {
+     "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+     "type": "literal",
+     "value": "Point(139.726667 35.714167)"
+    },
+    "type": {
+     "type": "uri",
+     "value": "http://www.wikidata.org/entity/Q16970"
+    }
+   }
+  ]
+ }
+}

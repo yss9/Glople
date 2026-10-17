@@ -32,6 +32,11 @@ public class KeywordRecommendService {
         dto.setCountry(entity.getCountry());
         dto.setLocation(entity.getLocation());
         dto.setInfo(entity.getInfo());
+        dto.setSource(entity.getSource());
+        dto.setCopyrightType(entity.getCopyrightType());
+        dto.setSourceUrl(entity.getSourceUrl());
+        dto.setLicense(entity.getLicense());
+        dto.setInfoKind(entity.getInfoKind());
         return dto;
     }
 

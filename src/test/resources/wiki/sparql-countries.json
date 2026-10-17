@@ -1,0 +1,114 @@
+{
+ "head": {
+  "vars": [
+   "country",
+   "iso",
+   "koLabel",
+   "enLabel"
+  ]
+ },
+ "results": {
+  "bindings": [
+   {
+    "country": {
+     "type": "uri",
+     "value": "http://www.wikidata.org/entity/Q35"
+    },
+    "iso": {
+     "type": "literal",
+     "value": "DK"
+    },
+    "koLabel": {
+     "xml:lang": "ko",
+     "type": "literal",
+     "value": "덴마크"
+    },
+    "enLabel": {
+     "xml:lang": "en",
+     "type": "literal",
+     "value": "Denmark"
+    }
+   },
+   {
+    "country": {
+     "type": "uri",
+     "value": "http://www.wikidata.org/entity/Q142"
+    },
+    "iso": {
+     "type": "literal",
+     "value": "FR"
+    },
+    "koLabel": {
+     "xml:lang": "ko",
+     "type": "literal",
+     "value": "프랑스"
+    },
+    "enLabel": {
+     "xml:lang": "en",
+     "type": "literal",
+     "value": "France"
+    }
+   },
+   {
+    "country": {
+     "type": "uri",
+     "value": "http://www.wikidata.org/entity/Q17"
+    },
+    "iso": {
+     "type": "literal",
+     "value": "JP"
+    },
+    "koLabel": {
+     "xml:lang": "ko",
+     "type": "literal",
+     "value": "일본"
+    },
+    "enLabel": {
+     "xml:lang": "en",
+     "type": "literal",
+     "value": "Japan"
+    }
+   },
+   {
+    "country": {
+     "type": "uri",
+     "value": "http://www.wikidata.org/entity/Q29999"
+    },
+    "iso": {
+     "type": "literal",
+     "value": "NL"
+    },
+    "koLabel": {
+     "xml:lang": "ko",
+     "type": "literal",
+     "value": "네덜란드 왕국"
+    },
+    "enLabel": {
+     "xml:lang": "en",
+     "type": "literal",
+     "value": "Kingdom of the Netherlands"
+    }
+   },
+   {
+    "country": {
+     "type": "uri",
+     "value": "http://www.wikidata.org/entity/Q30"
+    },
+    "iso": {
+     "type": "literal",
+     "value": "US"
+    },
+    "koLabel": {
+     "xml:lang": "ko",
+     "type": "literal",
+     "value": "미국"
+    },
+    "enLabel": {
+     "xml:lang": "en",
+     "type": "literal",
+     "value": "United States"
+    }
+   }
+  ]
+ }
+}

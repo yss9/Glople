@@ -1,0 +1,594 @@
+# 해외 여행지(위키데이터) 유형 코드표: 수집할 P31(instance of) 유형과 유형별 추천 키워드. 설명은 docs/overseas-wiki-sync.md
+# 형식: qid,ko_label,en_label,keywords. 키워드는 KeywordMask에 있는 값만 '|'로 이어 적고, 없으면 빈 칸
+# ko_label이 빈 행은 위키데이터에 쓸 만한 한국어 레이블이 없는 유형이다. 수집·키워드에는 쓰고 요약문 대표 유형으로는 쓰지 않는다.
+# 행 순서 = 요약문 대표 유형 우선순위. 2026-10-17 집계에서 수집 조건(한국어 위키백과 문서·좌표·해외 국가)에 맞는 항목이 많은 유형부터 적었다. (589개 유형, 클래스 1296개 검토)
+qid,ko_label,en_label,keywords
+Q23442,섬,island,섬
+Q4022,강,river,강|자연
+Q8502,산,mountain,산|자연|경치
+Q483110,스타디움,stadium,스포츠
+Q839954,유적지,archaeological site,역사|역사적인 장소|유적
+Q33506,박물관,museum,박물관|문화
+Q207694,미술관,art museum,미술관|예술|문화
+Q1154710,축구 전용 경기장,association football venue,스포츠
+Q11303,마천루,skyscraper,건축|도시
+Q641226,아레나,arena,스포츠
+Q23397,호수,lake,호수|자연|경치
+Q46831,산맥,mountain range,산|자연|경치
+Q174782,광장,square,도시
+Q16970,교회당,church building,
+Q1076486,경기장,sports venue,스포츠
+Q1402592,,island group,섬
+Q17431399,국립박물관,national museum,박물관|문화
+Q16560,궁전,palace,역사|역사적인 장소|건축|역사적 건축
+Q46169,국립공원,national park,국립공원|자연|경치|야외 활동
+Q537127,도로교,road bridge,
+Q92026,일본의 성,Japanese castle,성|역사|역사적인 장소
+Q2319498,랜드마크,architectural landmark,건축|랜드마크
+Q22698,공원,park,
+Q23413,성,castle,성|역사|역사적인 장소
+Q8072,화산,volcano,화산|자연|경치
+Q5393308,사찰,Buddhist temple,사원|사찰|불교
+Q33837,군도,archipelago,섬|바다
+Q22746,도시 공원,urban park,도시
+Q11315,쇼핑센터,shopping center,도시
+Q79007,거리,street,도시
+Q1049757,다목적 경기장,Multi-purpose stadium,스포츠
+Q169358,성층 화산,stratovolcano,화산|산|자연|경치
+Q4989906,기념물,monument,기념물
+Q24354,극장,theatre building,공연|예술|문화
+Q845945,신사,Shinto shrine,전통
+Q811165,,architectural heritage monument,역사|건축|역사적 건축
+Q1161185,화산섬,volcanic island,섬|화산
+Q139595919,,reef island,섬|바다|산호
+Q120560,,minor basilica,성당|건축|역사
+Q43501,동물원,zoo,동물
+Q32815,모스크,mosque,모스크|사원
+Q56242215,,Catholic cathedral,성당|대성당|건축|역사
+Q210272,문화유산,cultural heritage,
+Q6838244,,Chinese AAAAA-rated tourist attraction,
+Q2772772,군사박물관,military museum,박물관|문화|역사
+Q39816,골짜기,valley,자연
+Q473972,보호 지역,protected area,자연
+Q860861,조각품,sculpture,조각|예술
+Q42523,환초,atoll,섬|바다|산호
+Q16735822,역사 박물관,history museum,박물관|문화|역사
+Q2065736,문화재,cultural property,
+Q1763828,,multi-purpose hall,
+Q24699794,박물관 건물,museum building,문화
+Q133056,고개,mountain pass,산
+Q194195,놀이공원,amusement park,레크리에이션
+Q595452,야구장,baseball venue,스포츠
+Q1497375,,architectural ensemble,건축
+Q2977,주교좌 성당,cathedral,성당|대성당|건축|역사
+Q751876,샤토,château,역사|역사적인 장소|건축|역사적 건축
+Q12280,다리,bridge,
+Q44613,수도원,monastery,
+Q54050,언덕,hill,
+Q39614,묘지,cemetery,
+Q8719053,,music venue,공연
+Q2087181,,historic house museum,박물관|문화|역사|역사적 건축
+Q1060829,연주회장,concert hall,공연|예술|문화
+Q34918903,,National Park of the United States,국립공원|자연|경치|야외 활동
+Q1254933,천문대,astronomical observatory,하늘
+Q185113,곶,cape,바다|해안
+Q1081138,사적,historic site,역사|역사적인 장소
+Q2416723,테마파크,theme park,레크리에이션
+Q34038,폭포,waterfall,폭포|자연|경치
+Q8514,사막,desert,사막|자연
+Q131681,저수지,reservoir,호수|자연
+Q153562,오페라 극장,opera house,공연|예술|문화
+Q158438,아치교,arch bridge,
+Q158555,사장교,cable-stayed bridge,
+Q5003624,기념물,memorial,기념물
+Q12284,운하,canal,운하
+Q167346,식물원,botanical garden,식물원|정원|자연
+Q12570,현수교,suspension bridge,
+Q44539,사원,temple,사원
+Q1068842,보도육교,footbridge,
+Q15303456,,rugby union venue,스포츠
+Q3329412,고고학 박물관,archaeological museum,박물관|문화|역사
+Q10300916,,cultural heritage of China,역사
+Q109607,폐허,ruins,역사|역사적인 장소|유적
+Q12042110,강교,steel bridge,
+Q12518,탑,tower,탑
+Q1785071,보루,fort,역사|역사적인 장소
+Q1440300,관측탑,observation tower,전망대|경치|탑
+Q2281788,수족관,public aquarium,동물
+Q2338524,,motorsport racing track,스포츠
+Q381885,무덤,tomb,역사|역사적인 장소
+Q57831,요새,fortress,성벽|역사|역사적인 장소
+Q133215,카지노,casino,
+Q755017,텔,tell,역사|역사적인 장소|유적|고대 유적
+Q158454,유네스코 생물권보전지역,biosphere reserve,자연|유네스코
+Q39715,등대,lighthouse,바다|해안
+Q53536964,왕궁,royal palace,역사|역사적인 장소|건축|역사적 건축
+Q1210334,철도교,railway bridge,
+Q162875,마우솔레움,mausoleum,역사|역사적인 장소
+Q4409567,,prefectural museum,문화
+Q9259,유네스코 세계유산,World Heritage Site,유네스코
+Q35509,동굴,cave,동굴|자연
+Q1071482,국립공원,national park,국립공원|자연|경치|야외 활동
+Q134917286,,Shikinaisha,전통|역사
+Q40080,해변,beach,해변|바다|해안
+Q14752696,,ancient Roman structure,역사|역사적인 장소|유적|고대 유적
+Q162602,하중도,river island,섬|강
+Q328468,나치 강제 수용소,Nazi concentration camp,역사|역사적인 장소
+Q35666,빙하,glacier,빙하|자연|경치
+Q83620,거리,thoroughfare,도시
+Q875157,리조트,resort,휴양지
+Q191992,헤드랜드,headland,바다|해안
+Q3196771,,art museum,미술관|예술|문화
+Q573344,본류,main stem,강|자연
+Q575759,전쟁 기념비,war memorial,기념물|역사
+Q655311,일본의 온천,onsen,온천|온천욕
+Q124830411,,Museum of the Italian Ministry of Culture,문화
+Q2651004,팔라초,Palazzo,역사|건축|역사적 건축
+Q3397526,돌다리,stone bridge,
+Q358,국립 사적지,heritage site,
+Q3867560,이탈리아의 국립박물관,Italian national museum,문화
+Q3947,집,house,
+Q12323,댐,dam,호수
+Q13691,인공섬,artificial island,섬
+Q15243209,,historic district,역사|역사적인 장소
+Q35112127,역사적 건축물,historic building,역사|건축|역사적 건축
+Q6636777,도로 철도 병용교,road-rail bridge,
+Q152081,강제 수용소,concentration camp,역사|역사적인 장소
+Q2031836,,Eastern Orthodox church building,성당
+Q3469910,,performing arts center,공연|예술|문화
+Q1088552,가톨릭 교회 건물,Catholic church building,성당
+Q115154402,,independent museum,문화
+Q14276458,,deck arch bridge,
+Q15710038,산성,hill castle,성|역사|역사적인 장소
+Q179700,조각상,statue,조각
+Q56242225,,Eastern Orthodox cathedral,성당|대성당|건축|역사
+Q82117,성문,city gate,역사|역사적인 장소|건축|역사적 건축
+Q10624527,,biographical museum,박물관|문화
+Q1779653,,colossal statue,조각
+Q45776,피오르,fjord,바다|자연|경치
+Q483453,분수,fountain,
+Q498002,,aerial tramway,
+Q92755865,,religious museum,문화
+Q124830213,,museum of a public entity,문화
+Q130326199,,preserved watercraft,역사
+Q1595289,,sacred mountain,산
+Q18247357,,group of structures or buildings,
+Q1959314,,protected area of Russia,
+Q4421,숲,forest,자연
+Q588140,과학관,science museum,박물관
+Q614316,,private museum,문화
+Q7138926,,parliament building,건축
+Q93352,연안,coast,해안|바다
+Q1107656,정원,garden,정원
+Q1330974,활화산,active volcano,화산|자연
+Q15069452,,Natura 2000 site,자연
+Q159954,칼데라,caldera,화산|자연|경치
+Q1970365,,natural history museum,박물관|문화
+Q27951514,,indoor arena,스포츠
+Q4366834,월경 하천,transboundary river,강|자연
+Q57821,요새화,fortification,역사|역사적인 장소
+Q676050,구시가,old town,역사|역사적인 장소|도시
+Q97662266,근대미술관,museum of modern art,미술관|예술|문화
+Q1065592,무인도,uninhabited island,섬
+Q11482300,평성,hirajiro,성|역사|역사적인 장소
+Q130003,스키장,ski resort,스포츠|레크리에이션|야외 활동
+Q1437459,,non-geologically related mountain range,산|자연
+Q204324,화산호,volcanic crater lake,호수|화산|자연|경치
+Q212057,순상 화산,shield volcano,화산|산|자연
+Q317557,사목구 성당,parish church,
+Q56242250,성공회 대성당,Anglican or Episcopal cathedral,성당|대성당|건축|역사
+Q589481,올림픽 스타디움,Olympic stadium,스포츠
+Q757549,,atoll of the Maldives,섬|바다|산호
+Q95977092,,Tokyo metropolitan park,도시
+Q11166728,,television tower,탑
+Q11784935,,eastern orthodox monastery,
+Q143912,개선문,triumphal arch,아치|기념물|건축
+Q18704634,철도박물관,railway museum,박물관|기차
+Q15848826,도시궁전,city palace,역사|역사적인 장소|건축|역사적 건축
+Q184358,암초,reef,바다
+Q188025,염호,salt lake,호수|자연
+Q207524,소도서,islet,섬
+Q9019918,내륙호,endorheic lake,호수|자연
+Q93342462,,Ancient Greek archaeological site,역사|역사적인 장소|유적|고대 유적
+Q1007870,갤러리,art gallery,미술관|예술
+Q11482498,평산성,hirayamajiro,성|역사|역사적인 장소
+Q179049,자연 보호 구역,nature reserve,자연
+Q1863818,해양박물관,maritime museum,박물관|해양
+Q207326,산꼭대기,summit,산|자연
+Q211302,빙하호,glacial lake,호수|자연|경치
+Q665247,히포게움,hypogeum,역사|역사적인 장소|유적
+Q682943,,cricket field,스포츠
+Q811534,저명한 나무,remarkable tree,자연
+Q108325,경당,chapel,
+Q135419779,,Shikinai Supershrine,전통|역사
+Q142031,강삭철도,funicular,
+Q2232001,,show cave,동굴|자연
+Q3867745,,corporate museum,박물관
+Q756102,,open-air museum,박물관|문화
+Q787934,,automobile museum,박물관
+Q842402,만디르,Hindu temple,사원
+Q853854,시계탑,clock tower,탑
+Q1046088,명예의 전당,hall of fame,
+Q1061151,육괴,massif,산|자연|경치
+Q120680118,신궁,jingū,전통
+Q139595932,,limestone island,섬
+Q1896949,캐나다의 국립공원,national park of Canada,국립공원|자연|경치|야외 활동
+Q2398990,,technology museum,박물관
+Q631305,바위 지형,rock formation,바위|자연|경치
+Q115154345,,local authority museum,문화
+Q135160342,,Kokuhei-sha,전통
+Q150784,협곡,canyon,협곡|자연|경치
+Q1759852,조각공원,sculpture garden,조각|예술|정원
+Q177380,온천,hot spring,온천|자연|지열
+Q1802963,저택,mansion,건축
+Q202570,대관람차,Ferris wheel,경치
+Q47692,중국 정원,Chinese garden,정원|전통
+Q88291,성채,citadel,성벽|역사|역사적인 장소
+Q10901138,,chokugan-ji,사원|사찰|불교
+Q1129474,,cultural landscape,
+Q13218676,로마의 수도교,Roman aqueduct,역사|역사적인 장소|유적|고대 유적
+Q18618819,,national park of Australia,국립공원|자연|경치|야외 활동
+Q378445,랙 철도,rack railway,기차
+Q427287,,wat,사원|사찰|불교
+Q54114,불바르,boulevard,도시
+Q7543083,대로,avenue,도시
+Q7579839,스포츠 시설 단지,sports complex,스포츠
+Q107679,절벽,cliff,바위|자연|경치
+Q11822917,경마장,horse racing venue,스포츠|레크리에이션
+Q12292478,,estate,
+Q1343246,컨트리 하우스,English country house,역사|건축|역사적 건축
+Q135022904,,Shikinai Ronsha,전통|역사
+Q175288,칙제사,chokusaisha,전통
+Q17715832,,castle ruin,성|역사|역사적인 장소|유적
+Q178743,비석,stele,역사|기념물
+Q1865249,문학관,literary museum,박물관|문화
+Q187223,석호,lagoon,해안|자연
+Q1967454,,National Memorial of the United States,기념물|역사
+Q37985280,미식축구 경기장,American football venue,스포츠
+Q3950,빌라,villa,
+Q575727,박물관 배,museum ship,박물관|역사
+Q866133,대학 박물관,university museum,문화
+Q111177881,,main peak,산|자연|경치
+Q11433351,,daimyō garden,정원|전통|역사
+Q12104174,,ethnographic museum,박물관|문화
+Q121076356,,Istituto museale ad autonomia speciale,문화
+Q1569871,,industrial heritage site,역사|역사적인 장소
+Q160742,대수도원,abbey,
+Q170980,오벨리스크,obelisk,기념물
+Q1851368,,waterfront,도시
+Q199451,탑파,pagoda,탑|불교
+Q2080521,,market hall,시장
+Q271669,지형,landform,자연
+Q386426,자연유산,natural heritage,자연
+Q54074585,,Tibetan Buddhist monastery,사원|사찰|불교
+Q674541,중간산악,low mountain range,산|자연
+Q863454,부두,pier,
+Q112132542,,palazzo museum,역사|건축|역사적 건축
+Q11428612,,Chloride springs,온천
+Q118896406,쌍둥이 빌딩,twin towers,건축|도시
+Q132510,시장,market,시장
+Q135009132,,Shrines receiving Tsukinami-sai and Niiname-sai offerings,전통
+Q1595639,,local museum,박물관|문화
+Q1930585,,victory column,기념물
+Q21752084,고대 로마의 유적지,Roman archaeological site,역사|역사적인 장소|유적|고대 유적
+Q2190251,예술 회관,arts center,예술|문화
+Q3363945,유적공원,archaeological park,역사|역사적인 장소|유적
+Q4588528,성지,sacred place,
+Q53060,대문,gate,건축
+Q66364404,번화가,prosperous area,도시
+Q867143,로마 신전,Roman temple,사원|역사|역사적인 장소|고대 유적
+Q11390939,,Hachiman shrine,전통
+Q1223230,,Roman bridge,역사|역사적인 장소|고대 유적
+Q16748868,,city walls,성벽|역사|역사적인 장소
+Q175582,이집트의 피라미드,Egyptian pyramids,역사|역사적인 장소|유적|고대 유적
+Q19979289,생가,birth house,역사|역사적인 장소
+Q267596,그리스 신전,ancient Greek temple,사원|역사|역사적인 장소|유적|고대 유적
+Q29553,성소,sanctuary,
+Q534282,종상 화산,lava dome,화산|자연
+Q56242235,,Lutheran cathedral,성당|대성당|건축|역사
+Q57346,방어 성벽,defensive wall,성벽|역사|역사적인 장소
+Q65045238,,cross-sea bridge,바다
+Q7558985,석회암 동굴,solutional cave,동굴|자연
+Q797765,사탑,inclined tower,탑
+Q893775,미국 국립기념물,National Monument of the United States,
+Q974968,미니어처 공원,miniature park,레크리에이션
+Q110848334,,double-decker bridge,
+Q112132522,,historical civil building museum,역사|역사적인 장소
+Q11331980,패션 빌딩,fashion building,도시
+Q11420231,,Japanese strolling garden,정원|전통
+Q1226252,,tied island,바다|해안
+Q1243306,,multi-level bridge,
+Q1282870,아이스링크,ice rink,스포츠
+Q1324355,지질공원,geopark,자연
+Q1341387,스파,spa,온천욕
+Q1454820,,congregational mosque,모스크|사원
+Q1576693,곤돌라 리프트,gondola lift,
+Q15835,일본 정원,Japanese garden,정원|전통
+Q17455058,음악 박물관,music museum,박물관|문화
+Q200141,네크로폴리스,necropolis,역사|역사적인 장소|유적
+Q202509,차이나타운,Chinatown,도시|다문화
+Q21000333,상점가,shopping street,도시
+Q2114972,대통령궁,presidential palace,건축
+Q219760,바자르,bazaar,시장
+Q2327632,,city museum,박물관|문화
+Q317995,폐색호,landslide-dammed lake,호수|자연
+Q3497167,중력댐,gravity dam,호수
+Q38048753,,natural cultural heritage site,자연
+Q474,용수로,aqueduct,
+Q4828724,항공박물관,aviation museum,박물관
+Q5592057,,through arch bridge,
+Q6634155,국립경기장,national stadium,스포츠
+Q893745,국정 기념물,national monument,
+Q949819,선박 운하,ship canal,운하
+Q1004887,,thermal bath,온천|온천욕
+Q101401,종,bell,
+Q112132527,,historical park museum,역사
+Q1128397,수도원,convent,
+Q11408869,,tanjun onsen,온천|온천욕
+Q11559043,,seaside park,바다|해안
+Q123314524,,yamajiro,성|역사|역사적인 장소
+Q1244922,,embankment dam,호수
+Q12511,계단,stairs,
+Q12516,피라미드,pyramid,
+Q1548406,,national theatre,공연|예술|문화
+Q1640361,,climbing area,자연|스포츠|야외 활동
+Q1662089,,industry museum,박물관
+Q17000324,,sports museum,박물관|스포츠
+Q19757,로마 극장,Roman theatre,역사|역사적인 장소|유적|고대 유적
+Q2293362,조각군,group of sculptures,조각|예술
+Q2577114,,co-cathedral,성당|대성당|건축|역사
+Q3284499,의사당,capitol building,건축
+Q34627,시나고그,synagogue,
+Q369730,보행자 공간,pedestrian zone,도시
+Q38048707,,historical cultural heritage site,역사
+Q3965305,알프스 소산군,alpine subsection,산|자연
+Q428759,목교,wooden bridge,
+Q4363262,,smooth-sided pyramid,역사|역사적인 장소|유적|고대 유적
+Q6341928,,rift lake,호수|자연
+Q66108498,,Wonder of the Ancient World,역사|역사적인 장소|고대 유적
+Q744099,힐포트,hillfort,역사|역사적인 장소
+Q83471,간헐천,geyser,지열|자연
+Q1051606,대불,daibutsu,불상|불교|조각
+Q10748583,,Buddhist temple in Vietnam,사원|사찰|불교
+Q11349558,,soda lake,호수|자연
+Q1141225,고훈,kofun,역사|역사적인 장소|유적|고대 유적
+Q11643523,도성,capital city wall,역사|역사적인 장소
+Q11832860,국정공원,quasi-national park of Japan,자연|경치|야외 활동
+Q1258086,,National Historic Site,역사|역사적인 장소
+Q1307560,,Jewish museum,박물관|문화
+Q1316973,국립공원,national park,국립공원|자연|경치|야외 활동
+Q134530854,맨해튼의 애비뉴,north-south avenue in Manhattan,도시
+Q148319,천문관,planetarium,하늘
+Q156362,와이너리,winery,와인
+Q1580122,쌍곡면 구조물,hyperboloid structure,탑
+Q15894910,,cultural heritage monument in Taipei,역사
+Q16884952,,country house,건축
+Q173387,묘소,grave,
+Q217101,사취,spit,바다|해안|자연
+Q2434238,문화유산,heritage,
+Q2713379,,papal basilica,성당|건축|역사
+Q28737012,,museum of culture,박물관|문화
+Q28777651,,group of protected areas,자연
+Q30304302,,National Park System unit,
+Q3116906,,ultra-prominent peak,산|자연|경치
+Q31374404,,shopping mall,도시
+Q31615,,cove,바다|해안
+Q3215290,인공호,artificial lake,호수
+Q334383,,abbey church,
+Q3511952,,tectonic lake,호수|자연
+Q3844310,국립미술관,national gallery,미술관|예술|문화
+Q42245028,스포츠 명예의 전당,sports hall of fame,스포츠
+Q48356,미나레트,minaret,탑
+Q55876909,,Catholic parish church,성당
+Q5926864,,group of lakes,호수|자연
+Q6581615,테르메,thermae,역사|역사적인 장소|유적|고대 유적
+Q697295,성소,shrine,
+Q740326,워터파크,water park,수영|레크리에이션
+Q787113,프롬나드,promenade,도시
+Q81917,요새 탑,fortified tower,탑|역사|역사적인 장소
+Q840482,,shrine of Our Lady,
+Q863974,,lake island,섬|호수
+Q88205,카스트라,castrum,역사|역사적인 장소|유적|고대 유적
+Q907116,스페인 국가문화재,Monument (Spain),역사|건축|역사적 건축
+Q954501,천연교,natural arch,아치|바위|자연|경치
+Q10296456,,imperial garden,정원|역사
+Q1044204,구스쿠,gusuku,성|역사|역사적인 장소
+Q108860927,,contemporary art museum,미술관|예술|문화
+Q112132548,,archaeological artifact museum,역사|역사적인 장소
+Q11269813,,cave with prehistoric art,동굴|역사|역사적인 장소|유적|고대 유적
+Q11341528,,comics museum,박물관|문화
+Q11546861,,historical park,역사|역사적인 장소
+Q1172599,후미,inlet,해안
+Q118304363,,kokushi genzaisha,전통|역사
+Q1193438,투우 경기장,bullring,
+Q1197120,사화산,extinct volcano,화산|자연
+Q12019965,실내 아이스링크,indoor ice rink,스포츠
+Q12137573,,Paleolithic site,역사|역사적인 장소|유적|고대 유적
+Q125316983,,Kasuga shrine (worship),전통
+Q12783,잉글랜드 조경 공원,English garden,정원
+Q12797,성형요새,star fort,성벽|역사|역사적인 장소
+Q13033698,,market square,도시
+Q1324426,,coral island,섬|바다|산호
+Q1325302,휴화산,dormant volcano,화산|자연
+Q14946335,,Historic Garden (Spain),정원|역사
+Q15135589,,pilgrimage site,
+Q1541043,무명 용사의 무덤,tomb of the unknown soldier,기념물|역사
+Q16363669,체육공원,sports park,스포츠
+Q17218816,천황릉,imperial mausoleum,역사|역사적인 장소
+Q177305,전망대,observation deck,전망대|경치
+Q1784293,,cordon,역사|역사적인 장소
+Q1825472,,covered bridge,
+Q200334,종탑,bell tower,탑
+Q29025902,화산성 지형,volcanic landform,화산|자연
+Q330284,시장,marketplace,시장
+Q3363974,,animal theme park,동물|레크리에이션
+Q4156067,,palace complex,역사|역사적인 장소|건축|역사적 건축
+Q420962,보존철도,heritage railway,기차|철도 여행
+Q5465500,음식 박물관,food museum,박물관|음식
+Q570116,관광지,tourist attraction,
+Q5773747,,historic house,역사|역사적 건축
+Q60985295,,umijiro,성|역사|역사적인 장소
+Q625797,돔 경기장,domed stadium,스포츠
+Q66361052,,castle ruin in Japan,성|역사|역사적인 장소|유적
+Q71974,,külliye,모스크|사원|역사
+Q721207,마리나,marina,보트
+Q7362268,로마 원형극장,Roman amphitheatre,역사|역사적인 장소|유적|고대 유적
+Q842478,어린이 박물관,children's museum,박물관
+Q855747,이집트 신전,Egyptian temple,사원|역사|역사적인 장소|유적|고대 유적
+Q878077,빙모,ice cap,빙하|자연
+Q904319,코리아타운,Koreatown,도시|다문화
+Q911663,도개교,bascule bridge,
+Q92275707,,crusader castle,성|역사|역사적인 장소
+Q96288605,,shopping arcade in Japan,도시
+Q10416961,노동생활 박물관,working life museum,역사|문화
+Q1048525,골프장,golf course,스포츠|레크리에이션|야외 활동
+Q1052919,해식동,sea cave,동굴|바다|해안|자연
+Q10631691,,Catholic pilgrimage church,성당
+Q10926872,국민공원,National Garden,정원
+Q109391,화구,volcanic crater,화산|자연
+Q111889841,대학 미술관,university art museum,미술관|예술|문화
+Q112132534,,military museum building,역사
+Q11374182,교토의 가가이,Kagai of Kyoto,전통
+Q11394747,원분,circular kofun,역사|역사적인 장소|유적|고대 유적
+Q1139493,잔구,inselberg,바위|자연
+Q11486287,옛 절터,former Buddhist temple,불교|역사|역사적인 장소
+Q1165822,부분순환호,meromictic lake,호수|자연
+Q1188480,어시장,fish market,시장|음식
+Q1200524,복합 화산,complex volcano,화산|산|자연
+Q1200701,,design museum,박물관|예술
+Q12327290,기념공원,memorial park,기념물
+Q1241568,,war cemetery,역사|역사적인 장소
+Q124936,4대 대성전,major basilica,성당|건축|역사
+Q13409250,삭도,aerial lift,
+Q15487029,,patriarchal basilica,성당|건축|역사
+Q15836337,,National Historical Park,역사|역사적인 장소
+Q166735,늪,swamp,자연
+Q16817,카르스트 지형,karst,자연
+Q194029,로마 가도,Roman road,역사|역사적인 장소|고대 유적
+Q1975546,왕실림,royal forest,자연
+Q200023,수영장,swimming center,수영|스포츠
+Q200614,,national shrine,성당
+Q20097897,바다 요새,sea fort,바다|역사|역사적인 장소
+Q2026833,가든 스퀘어,garden square,정원|도시
+Q23790,천연기념물,natural monument,자연
+Q253302,레고랜드,Legoland,레크리에이션
+Q26944969,,photography museum,박물관|예술
+Q26945165,,architectural museum,박물관|건축
+Q28142754,식료품 시장,food market,시장|음식
+Q282587,,night markets in Taiwan,시장|음식
+Q2860319,,Greek theatre,역사|역사적인 장소|유적|고대 유적
+Q332614,초화산,supervolcano,화산|자연
+Q3330834,,egyptological museum,박물관|문화|역사
+Q3476533,,monumental sculpture,조각|기념물
+Q3505788,,freshwater lake,호수|자연
+Q3958626,알프스 산군,alpine section,산|자연
+Q42948,벽,wall,
+Q514480,이나리 신사,Inari shrine,전통
+Q555937,조수섬,tidal island,섬|바다
+Q56242063,개신교 교회,Protestant church building,
+Q6017969,,scenic viewpoint,전망대|경치
+Q6043159,카지노 호텔,casino hotel,
+Q62098611,장식미술관,museum of decorative arts,미술관|예술|문화
+Q642682,사파리 공원,safari park,사파리|동물
+Q678552,,imperial cathedral,성당|대성당|건축|역사
+Q693842,,votive church,성당
+Q6972919,국영공원,National Government Park,
+Q7157526,평화박물관,peace museum,박물관|역사
+Q7285116,,raised coral atoll,섬|바다|산호
+Q815448,종루,belfry,탑
+Q817056,,benedictine abbey,
+Q867703,양관,Western-style building,역사|건축|역사적 건축
+Q890545,아치댐,arch dam,호수
+Q91315817,,Cistercian monastery,
+Q9325291,야외 조각,outdoor sculpture,조각|예술
+Q955236,국경 보호구역,transboundary protected area,자연
+Q1006835,중심가,main street,도시
+Q104829543,초고층 빌딩,supertall building,건축|도시
+Q10500763,감옥 박물관,prison museum,박물관|역사
+Q107637871,국경 세계유산,transboundary site,유네스코
+Q108060954,,national park,국립공원|자연|경치|야외 활동
+Q11292,산호초,coral reef,바다|산호|자연
+Q1139892,중요 조류 서식지,Important Bird Area,자연
+Q1151612,도관,Taoist temple,사원
+Q11573504,구기장,ball game venue,스포츠
+Q11659483,,detached palace,역사
+Q11665557,풍치공원,scenic park,도시
+Q11762356,,valley glacier,빙하|자연|경치
+Q1190456,도쇼구,Tōshō-gū,전통
+Q1195705,로카,rocca,성|역사|역사적인 장소
+Q1251403,골목,alley,도시
+Q125866682,,Ancient Egyptian necropolis,역사|역사적인 장소|유적|고대 유적
+Q126195053,,sculpture museum,미술관|조각|예술
+Q1286517,자연 경관,natural landscape,자연
+Q1296040,국립자연공원,national nature park,국립공원|자연|경치|야외 활동
+Q131542697,대성당 광장,Cathedral Square,도시
+Q1317754,폴란드의 국립공원,National Parks of Poland,국립공원|자연|경치|야외 활동
+Q133444874,,roman ruins,역사|역사적인 장소|유적|고대 유적
+Q136351774,고대 로마 황궁,Ancient Roman imperial palace,역사|역사적인 장소|유적|고대 유적
+Q136468788,중산 공원,Zhongshan memorial park,도시
+Q1365179,오텔 파르티퀼리에,private mansion,역사|건축|역사적 건축
+Q1370598,예배 장소,structure of worship,
+Q1377575,야생동물 보호구역,wildlife refuge,자연
+Q138313683,왕립 수도원,Royal abbey,
+Q14092,체육관,gym,스포츠
+Q1534477,호국신사,gokoku shrine,전통
+Q1664473,,chain of islands,섬
+Q170321,습지,wetland,자연
+Q17438516,,musical instrument museum,박물관
+Q180987,스투파,stupa,탑|불교
+Q186347,캐러밴서라이,caravanserai,역사|역사적인 장소
+Q2073106,올림픽 공원,Olympic Park,스포츠
+Q2106220,우편박물관,postal museum,박물관
+Q2151479,처형지,execution site,역사|역사적인 장소
+Q2310465,장난감 박물관,toy museum,박물관
+Q24398318,종교 건축물,religious building,
+Q25964553,,ceramics museum,예술|문화
+Q2680845,중국 사원,Chinese temple,사원
+Q27556845,초고층 복합단지,skyscraper complex,건축|도시
+Q276173,파빌리온,pavilion,건축
+Q29168169,거대 예수상,colossal statue of Jesus,조각
+Q2967706,해안 폭포,coastal waterfall,폭포|바다|자연|경치
+Q2994840,,flower garden,정원
+Q30198,소택,marsh,자연
+Q30326995,고가 공원,elevated park,도시
+Q3083079,라이브하우스,live house,공연
+Q31157863,스키 경기장,skiing stadium,스포츠
+Q3124902,푸라,Balinese temple,사원
+Q3238324,제1차 세계 대전 기념물,World War I memorial,기념물|역사
+Q34023,봉분,tumulus,역사|역사적인 장소
+Q3498109,아이스하키 경기장,ice hockey arena,스포츠
+Q3543043,안벽,quay,
+Q3558938,,villa veneta,역사|건축|역사적 건축
+Q37654,시장,market,시장
+Q3777462,알프스 산괴,alpine group,산|자연
+Q44667495,도시 삭도,urban aerial tramway route,
+Q47502370,명예의 거리,walk of fame,도시
+Q4862338,,monomictic lake,호수|자연
+Q4862348,,polymictic lake,호수|자연
+Q5364576,이인관,ijinkan,역사|건축|역사적 건축
+Q5465533,푸드 테마파크,food theme park,음식|레크리에이션
+Q554394,리아스식 해안,ria,바다|해안|자연
+Q57660343,,performing arts building,공연|예술|문화
+Q613611,알카사르,alcázar,성|역사|역사적인 장소
+Q61729985,리틀이털리,Little Italy,도시|다문화
+Q641406,테라스,terrace,건축
+Q65096167,영연방 전쟁 기념물,Commonwealth War Graves Commission maintained memorial,기념물|역사
+Q659396,기마상,equestrian statue,조각|기념물
+Q667018,밀랍인형 박물관,wax museum,박물관
+Q667783,참도,sandō,도시
+Q6974775,아르헨티나의 국립공원,national park of Argentina,국립공원|자연|경치|야외 활동
+Q7321974,돌무지,cairn,역사|역사적인 장소|유적|고대 유적
+Q740445,능선,mountain ridge,산|자연
+Q746310,목조 교회,stave church,역사|건축|역사적 건축
+Q7777019,초지,meadow,
+Q7900097,,urban beach,해변|도시
+Q89335587,총대주교 직속 수도원,Stauropegic monastery,
+Q957433,글립토테크,glyptotheque,미술관|조각|예술
+Q96288394,쇼텐가이,shōtengai,도시
+Q199403,열대 우림,tropical forest,자연
+Q337986,구루드와라,gurdwara,사원
+Q5702145,,desert in Iran,사막|자연
+Q1364273,,national park of South Africa,국립공원|자연|경치|야외 활동
+Q20626607,,protected area of Kenya,자연
+Q6083496,필리핀의 군도,island group of the Philippines,섬
+Q9381142,,hill chain,자연

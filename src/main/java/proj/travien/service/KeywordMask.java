@@ -4,6 +4,7 @@ import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public final class KeywordMask {
 
@@ -25,6 +26,12 @@ public final class KeywordMask {
     );
 
     private static final Map<String, Integer> INDEX_BY_KEYWORD = createIndex();
+
+    // 한 글자 키워드(산, 섬, 성, 탑, 강) 뒤에 붙어도 같은 단어로 보는 조사. 모두 받침으로 끝나는 키워드라 받침 뒤 조사만 둔다.
+    private static final Set<String> PARTICLES = Set.of(
+            "은", "이", "을", "과", "의", "에", "에서", "에는", "에도", "으로", "으로는", "까지", "부터", "처럼",
+            "이다", "이며", "이고", "이자", "이나", "이라는", "이었다"
+    );
 
     private KeywordMask() {
     }
@@ -57,6 +64,11 @@ public final class KeywordMask {
         return new Mask(low, high);
     }
 
+    // 지원하는 키워드인지 확인한다. fromKeywords는 모르는 키워드를 조용히 건너뛰므로, 키워드를 미리 정해 두는 곳(분류 코드표 등)에서 검사할 때 쓴다.
+    public static boolean isSupported(String keyword) {
+        return keyword != null && INDEX_BY_KEYWORD.containsKey(keyword);
+    }
+
     public static Mask fromDescription(String description) {
         if (description == null || description.isBlank()) {
             return Mask.EMPTY;
@@ -65,6 +77,49 @@ public final class KeywordMask {
         return fromKeywords(KEYWORDS.stream()
                 .filter(description::contains)
                 .toList());
+    }
+
+    /**
+     * 국내(TourAPI) 설명문용 마스크. 두 글자 이상 키워드는 {@link #fromDescription}과 같이 부분 문자열로 찾고,
+     * 한 글자 키워드는 독립된 단어(조사만 붙은 형태)일 때만 인정한다.
+     *
+     * <p>한국어 설명문에는 '부산·울산'(산), '강원·강릉'(강), '구성·조성'(성), '문화유산'(산)처럼 한 글자 키워드를 품은
+     * 지명·일반 단어가 많아, 부분 문자열로 찾으면 관련 없는 비트가 켜진다. 대신 '한라산', '한강'처럼 이름에 붙은 경우는
+     * 이 규칙으로 잡지 못한다.
+     */
+    public static Mask fromKoreanDescription(String description) {
+        if (description == null || description.isBlank()) {
+            return Mask.EMPTY;
+        }
+
+        return fromKeywords(KEYWORDS.stream()
+                .filter(keyword -> keyword.length() == 1
+                        ? containsStandaloneWord(description, keyword)
+                        : description.contains(keyword))
+                .toList());
+    }
+
+    private static boolean containsStandaloneWord(String text, String keyword) {
+        int index = text.indexOf(keyword);
+        while (index >= 0) {
+            int end = index + keyword.length();
+            int wordEnd = end;
+            while (wordEnd < text.length() && isHangulSyllable(text.charAt(wordEnd))) {
+                wordEnd++;
+            }
+
+            boolean startsWord = index == 0 || !isHangulSyllable(text.charAt(index - 1));
+            String suffix = text.substring(end, wordEnd);
+            if (startsWord && (suffix.isEmpty() || PARTICLES.contains(suffix))) {
+                return true;
+            }
+            index = text.indexOf(keyword, index + 1);
+        }
+        return false;
+    }
+
+    private static boolean isHangulSyllable(char c) {
+        return c >= '\uAC00' && c <= '\uD7A3';
     }
 
     private static Map<String, Integer> createIndex() {
@@ -81,6 +136,14 @@ public final class KeywordMask {
 
         public boolean isEmpty() {
             return low == 0L && high == 0L;
+        }
+
+        // 두 마스크 중 하나라도 켜진 키워드를 모두 켠 마스크
+        public Mask union(Mask other) {
+            if (other == null) {
+                return this;
+            }
+            return new Mask(low | other.low, high | other.high);
         }
     }
 }
