@@ -57,8 +57,9 @@ export default function PersonalRecPage() {
 
     useEffect(() => {
         if (!isResultsLoaded && results) {
-            const updatedPersonalRecData = results.slice(0, 9).map(item => ({ placename: item.destName }));
-            const updatedCourseData = results.slice(9, 21).map(item => ({ placename: item.destName }));
+            // place: 상세 화면에서 설명문과 출처를 보여줄 수 있도록 추천 결과 전체를 함께 둔다.
+            const updatedPersonalRecData = results.slice(0, 9).map(item => ({ placename: item.destName, place: item }));
+            const updatedCourseData = results.slice(9, 21).map(item => ({ placename: item.destName, place: item }));
 
             setDisplayedPlaces(updatedPersonalRecData.slice(0, 3));
             PersonalRecData.push(...updatedPersonalRecData);
@@ -139,8 +140,8 @@ export default function PersonalRecPage() {
         setActiveIndex(newIndex);
     };
 
-    const handleGoInformation = (placename) => {
-        navigate(`/recomendation/information/${placename}`);
+    const handleGoInformation = (place) => {
+        navigate(`/recomendation/information/${place.placename}`, { state: { place: place.place } });
     };
 
     const handleGoKeywordSelection = () => {
@@ -183,7 +184,7 @@ export default function PersonalRecPage() {
                     </SubTitleWrapper>
                     <PlaceContainer>
                         {displayedPlaces.map(place => (
-                            <PlaceWrapper key={place.placename} onClick={() => handleGoInformation(place.placename)}>
+                            <PlaceWrapper key={place.placename} onClick={() => handleGoInformation(place)}>
                                 {placeImages[place.placename] ? (
                                     <Place src={placeImages[place.placename]} alt={place.placename}/>
                                 ) : (

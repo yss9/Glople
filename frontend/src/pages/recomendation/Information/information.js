@@ -10,22 +10,40 @@ import {
     PlaceReivewContainer, GaugeBar, GaugeBarWrapper
 } from "./informationstyle";
 import PlaceReview from "../../../components/PlaceReview/placeReview";
-import { useNavigate, useParams } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import MyProfile2 from "../../../public/Img/forprofile/img_1.png";
 import axios from "axios";
 import styled from "styled-components";
+import SourceAttribution, {
+    SOURCE_TOUR_API, SOURCE_WIKIDATA, SOURCE_WIKIPEDIA
+} from "../../../components/SourceAttribution/SourceAttribution";
 
 
 const LimitedTextDiv = styled.div`
     display: -webkit-box;
     -webkit-box-orient: vertical;
     overflow: hidden;
-    height: 90%;
     text-overflow: ellipsis;
     -webkit-line-clamp: 4; /* 표시할 줄 수 */
     line-height: 1.5em; /* 줄 높이 설정 */
     word-break: break-word; /* 긴 단어 줄바꿈 */
 `;
+
+// DB에 저장된 설명문(소개). 공공누리 제3유형(변경금지) 글도 있어서 자르지 않고 스크롤로 전부 보여준다.
+const StoredTextDiv = styled.div`
+    max-height: 4.5em; /* 3줄, 출처 표시 자리를 남긴다 */
+    overflow-y: auto;
+    line-height: 1.5em;
+    word-break: break-word;
+`;
+
+// 키워드 추천 결과에서 넘어온 여행지 중 출처를 표시할 수 있는(외부 데이터로 수집한) 설명문이 있는 여행지
+function storedPlaceOf(place, placename) {
+    if (!place || place.destName !== placename || !place.info) {
+        return null;
+    }
+    return place.source === SOURCE_TOUR_API || place.source === SOURCE_WIKIDATA ? place : null;
+}
 
 
 export default function Information() {
@@ -36,7 +54,11 @@ export default function Information() {
     const [reviews, setReviews] = useState([]);
     const [isGoogleMapsScriptLoaded, setIsGoogleMapsScriptLoaded] = useState(false);
     const [extractHtml, setExtractHtml] = useState('');
+    const [wikiTitle, setWikiTitle] = useState('');
     const navigate = useNavigate();
+    const location = useLocation();
+    // 키워드 추천 화면에서 넘겨준 여행지 (MBTI 추천이나 주소로 바로 들어오면 없다)
+    const storedPlace = storedPlaceOf(location.state && location.state.place, placename);
 
     const GOOGLE_MAPS_API_KEY = 'AIzaSyCCkm0KlwV72tLvvEG9c4YuPHgo_j2_qz0';
 
@@ -140,6 +162,10 @@ export default function Information() {
     };
 
     useEffect(() => {
+        // DB 설명문을 보여줄 때는 위키백과를 따로 불러오지 않는다.
+        if (storedPlace) {
+            return;
+        }
         const fetchData = async () => {
             try {
                 console.log(placename);
@@ -162,6 +188,7 @@ export default function Information() {
                 const page = pages[Object.keys(pages)[0]];
                 if (page.extract) {
                     setExtractHtml(page.extract);
+                    setWikiTitle(page.title || firstPart);
                 } else {
                     console.error('No content found for this page');
                 }
@@ -170,7 +197,7 @@ export default function Information() {
             }
         };
         fetchData();
-    }, []);
+    }, [storedPlace]);
 
     return (
         <>
@@ -189,8 +216,28 @@ export default function Information() {
                         <RightWrapper>
                             <DetailInfoWrapper>
                                 <DetailInfoTitle>{currentPlace.name}</DetailInfoTitle>
-                                <DetailInfo><LimitedTextDiv
-                                    dangerouslySetInnerHTML={{__html: extractHtml}}/></DetailInfo>
+                                <DetailInfo>
+                                    {storedPlace ? (
+                                        <>
+                                            <StoredTextDiv>{storedPlace.info}</StoredTextDiv>
+                                            <SourceAttribution
+                                                source={storedPlace.source}
+                                                copyrightType={storedPlace.copyrightType}
+                                                sourceUrl={storedPlace.sourceUrl}
+                                                title={storedPlace.destName}
+                                                infoKind={storedPlace.infoKind}
+                                            />
+                                        </>
+                                    ) : (
+                                        <>
+                                            <LimitedTextDiv
+                                                dangerouslySetInnerHTML={{__html: extractHtml}}/>
+                                            {extractHtml && (
+                                                <SourceAttribution source={SOURCE_WIKIPEDIA} title={wikiTitle}/>
+                                            )}
+                                        </>
+                                    )}
+                                </DetailInfo>
                             </DetailInfoWrapper>
                             <ReviewContainer>
                                 <ReviewTitle>리뷰</ReviewTitle>

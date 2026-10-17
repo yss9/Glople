@@ -30,7 +30,8 @@ const BestCourse = ({ review, image }) => {
     const navigate = useNavigate();
 
     const handleGoInformation = (placename) => {
-        navigate(`/recomendation/information/${placename}`); // URL에 선택된 장소 이름을 추가하여 전달
+        // URL에 선택된 장소 이름을 추가하여 전달. 키워드 추천 결과(review.place)가 있으면 상세 화면에서 설명문과 출처를 보여준다.
+        navigate(`/recomendation/information/${placename}`, { state: { place: review.place } });
     };
 
     return (

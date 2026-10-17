@@ -4,12 +4,16 @@ import {
 } from './modalstyle';
 import {useNavigate} from "react-router-dom";
 import axios from "axios";
+import SourceAttribution, { SOURCE_WIKIPEDIA } from "../../components/SourceAttribution/SourceAttribution";
 
 const Modal = ({ country, countryEng, code, isOpen, onClose }) => {
 
     const navigate = useNavigate();
 
     const [extractHtml, setExtractHtml] = useState(''); // extractHtml만 상태로 유지
+    // 위키백과 요약을 보여줄 때 함께 표시할 문서 제목과 주소 (CC BY-SA 4.0 출처 표시)
+    const [wikiTitle, setWikiTitle] = useState('');
+    const [wikiUrl, setWikiUrl] = useState('');
 
     const onClickMakeRouteButton = () => {
         localStorage.setItem("country", country);
@@ -50,6 +54,9 @@ const Modal = ({ country, countryEng, code, isOpen, onClose }) => {
                 // 데이터 제한: 600자까지만 저장
                 const truncatedExtractHtml = response.data.extract_html.substring(0, 600);
                 setExtractHtml(truncatedExtractHtml);
+                const contentUrls = response.data.content_urls;
+                setWikiTitle(response.data.title || country);
+                setWikiUrl(contentUrls && contentUrls.desktop ? contentUrls.desktop.page : '');
             } catch (error) {
                 console.error('Error fetching country data:', error);
             }
@@ -80,6 +87,11 @@ const Modal = ({ country, countryEng, code, isOpen, onClose }) => {
                     <ModalText>
                         <div dangerouslySetInnerHTML={{__html: extractHtml}}/>
                     </ModalText>
+                    {extractHtml && (
+                        <div style={{clear: 'both'}}>
+                            <SourceAttribution source={SOURCE_WIKIPEDIA} title={wikiTitle} sourceUrl={wikiUrl}/>
+                        </div>
+                    )}
                 </div>
                 <ModalImage src={images.webformatURL} alt={images.tags}/>
                 <MakeRouteButton onClick={onClickMakeRouteButton}>일정 만들기 &nbsp;&nbsp;&gt;</MakeRouteButton>
