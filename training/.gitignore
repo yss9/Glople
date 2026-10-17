@@ -1,0 +1,7 @@
+.venv/
+models/
+adapters/
+logs/
+# 시드 고정으로 다시 만들 수 있고 도구 정의가 줄마다 반복돼 커서 올리지 않는다.
+data/
+results/*.predictions.jsonl

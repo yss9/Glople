@@ -1,0 +1,131 @@
+[
+  {
+    "type": "function",
+    "function": {
+      "name": "recommend_by_keywords",
+      "description": "여행 취향 키워드로 여행지를 추천한다. 지역을 정하지 않고 취향만 말했을 때 쓴다.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "keywords": {
+            "type": "array",
+            "items": {"type": "string"},
+            "description": "사용자가 말한 여행 취향 키워드 (예: 바다, 야경, 사찰)"
+          }
+        },
+        "required": ["keywords"]
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "search_destinations",
+      "description": "특정 지역(국내 시도·도시 또는 해외 국가·도시)의 관광지, 문화시설, 축제, 레포츠, 맛집, 숙소를 검색한다.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "region": {"type": "string", "description": "사용자가 말한 지역명 그대로"},
+          "category": {
+            "type": "string",
+            "enum": ["관광지", "문화시설", "축제", "레포츠", "음식점", "숙박"],
+            "description": "찾는 장소 유형"
+          },
+          "query": {"type": "string", "description": "사용자가 덧붙인 조건 그대로 (예: 야경 예쁜, 아이와 가기 좋은). 없으면 생략"},
+          "limit": {"type": "integer", "description": "사용자가 개수를 말했을 때만 지정"}
+        },
+        "required": ["region"]
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "recommend_similar_traveler_routes",
+      "description": "나이·성별·MBTI가 비슷한 여행자들이 다녀온 여행 루트를 추천한다.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "age": {"type": "integer", "description": "나이 (만 나이 아님, 사용자가 말한 숫자)"},
+          "gender": {"type": "string", "enum": ["남성", "여성"]},
+          "mbti": {"type": "string", "description": "MBTI 4글자 대문자 (예: ENFP)"}
+        },
+        "required": ["age", "gender", "mbti"]
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "get_destination_detail",
+      "description": "여행지 한 곳의 소개, 사진, 위치 정보를 조회한다.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "name": {"type": "string", "description": "여행지 이름"}
+        },
+        "required": ["name"]
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "search_reviews",
+      "description": "Glople 여행자들이 쓴 여행 후기 게시글을 검색한다.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "query": {"type": "string", "description": "후기를 찾을 장소명이나 지역명"}
+        },
+        "required": ["query"]
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "search_gloplers",
+      "description": "현지 여행 전문가(글로플러)를 지역명이나 관심사 해시태그로 찾는다.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "hashtag": {"type": "string", "description": "지역명이나 해시태그, # 없이 (예: 도쿄, 맛집투어)"}
+        },
+        "required": ["hashtag"]
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "get_weather",
+      "description": "지역의 날씨 예보를 조회한다.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "region": {"type": "string", "description": "사용자가 말한 지역명 그대로"},
+          "when": {"type": "string", "enum": ["오늘", "내일", "이번 주말", "다음 주"], "description": "말하지 않았으면 생략 (오늘로 처리)"}
+        },
+        "required": ["region"]
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "create_travel_plan",
+      "description": "여행 일정을 사용자 계정에 저장한다. 실제 저장 전에 사용자 확인 카드가 표시된다.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "region": {"type": "string", "description": "여행 지역"},
+          "days": {"type": "integer", "description": "여행 일수 (2박 3일이면 3, 당일치기는 1)"},
+          "places": {"type": "array", "items": {"type": "string"}, "description": "일정에 넣을 장소 이름"},
+          "title": {"type": "string", "description": "사용자가 일정 이름을 정했을 때만 지정"}
+        },
+        "required": ["region", "days", "places"]
+      }
+    }
+  }
+]

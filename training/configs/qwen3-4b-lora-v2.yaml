@@ -1,0 +1,35 @@
+# mlx_lm.lora 설정: Qwen3-4B-Instruct-2507 (4bit) QLoRA, Glople 도구 호출 SFT, v2 데이터
+# configs/qwen3-4b-lora.yaml(v1)과 data, adapter_path만 다르다. 데이터 v1/v2 차이는 README.md '데이터 버전' 참고.
+# 실행: .venv/bin/mlx_lm.lora --config configs/qwen3-4b-lora-v2.yaml  (training/ 폴더에서)
+model: models/qwen3-4b-instruct-2507-4bit
+train: true
+fine_tune_type: lora
+data: data/tool_calling_v2
+seed: 0
+
+# 프롬프트(시스템·도구 설명·사용자 발화)는 손실에서 빼고 assistant 응답만 학습한다.
+mask_prompt: true
+
+num_layers: 16
+lora_parameters:
+  rank: 16
+  dropout: 0.05
+  scale: 20.0
+
+batch_size: 4
+iters: 800             # train 3000건 기준 약 1 epoch (M4 Pro에서 반복당 약 19초)
+learning_rate: 2.0e-5
+lr_schedule:
+  name: cosine_decay
+  warmup: 50
+  warmup_init: 1.0e-7
+  arguments: [2.0e-5, 800, 1.0e-6]
+
+max_seq_length: 2048
+grad_checkpoint: true
+
+steps_per_report: 10
+steps_per_eval: 200
+val_batches: 10
+save_every: 100
+adapter_path: adapters/qwen3-4b-tool-calling-v2
