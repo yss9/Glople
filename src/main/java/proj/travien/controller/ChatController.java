@@ -20,11 +20,9 @@ import proj.travien.repository.ChatRoomRepository;
 import proj.travien.repository.UserChatRoomRepository;
 import proj.travien.repository.UserRepository;
 import proj.travien.service.SpeechToTextService;
+import proj.travien.service.UploadPaths;
 
-import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Optional;
@@ -147,13 +145,14 @@ public class ChatController {
         }
 
         try {
-            String fileName = System.currentTimeMillis() + "_" + file.getOriginalFilename();
-            Path path = Paths.get(uploadDir + File.separator + fileName);
-            Files.copy(file.getInputStream(), path);
+            // 클라이언트 파일명 대신 서버에서 만든 이름(UUID.확장자)으로 저장
+            String fileName = UploadPaths.store(file, Paths.get(uploadDir), UploadPaths.DOCUMENT_EXTENSIONS);
 
             String fileUrl = "/image/" + fileName; // 업로드된 파일 경로 생성
 
             return new ResponseEntity<>(fileUrl, HttpStatus.OK); // 파일 경로 반환
+        } catch (UploadPaths.InvalidUploadException e) {
+            return new ResponseEntity<>("허용되지 않는 파일입니다.", HttpStatus.BAD_REQUEST);
         } catch (IOException e) {
             return new ResponseEntity<>("파일 업로드 실패", HttpStatus.INTERNAL_SERVER_ERROR);
         }

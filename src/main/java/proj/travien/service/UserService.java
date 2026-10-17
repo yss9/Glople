@@ -17,16 +17,16 @@ import proj.travien.dto.AgentDTO;
 import proj.travien.repository.PointsHistoryRepository;
 import proj.travien.repository.UserRepository;
 
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -35,6 +35,12 @@ public class UserService {
     private final UserRepository userRepository;
 
     private final PointsHistoryRepository pointsHistoryRepository;
+
+    // 업로드 파일 기준 경로 (static/profile-pictures, static/verification-files 가 이 아래에 있다)
+    private Path uploadRoot = Paths.get("src/main/resources");
+
+    private static final Path PROFILE_PICTURE_DIR = Paths.get("static/profile-pictures");
+    private static final Path VERIFICATION_FILE_DIR = Paths.get("static/verification-files");
 
     @Autowired
     public UserService(UserRepository userRepository, PointsHistoryRepository pointsHistoryRepository) {
@@ -92,6 +98,12 @@ public class UserService {
             return false;
         }
 
+        // 검증 파일을 먼저 저장 (허용되지 않는 파일이면 사용자 정보를 바꾸기 전에 거절)
+        String verificationFilePath = null;
+        if (verificationFile != null && !verificationFile.isEmpty()) {
+            verificationFilePath = saveVerificationFile(verificationFile);
+        }
+
         user.setAgent(true); // 예약대행자로 설정
         user.setAgentCountry(agentDTO.getAgentCountry());
         user.setIntroduction(agentDTO.getIntroduction());
@@ -100,9 +112,7 @@ public class UserService {
         user.setAverageReviewRating(agentDTO.getAverageReviewRating());
         user.setRole(Role.ROLE_AGENT);
 
-        // 검증 파일 저장
-        if (verificationFile != null && !verificationFile.isEmpty()) {
-            String verificationFilePath = saveVerificationFile(verificationFile);
+        if (verificationFilePath != null) {
             user.setVerificationFile(verificationFilePath);
         }
 
@@ -179,21 +189,24 @@ public class UserService {
         if (user == null || user.getVerificationFile() == null) {
             throw new FileNotFoundException("Verification file not found for user: " + userId);
         }
-        return new FileSystemResource(Paths.get("src/main/resources").resolve(user.getVerificationFile()).toAbsolutePath().toString());
+        // 저장된 경로가 검증 파일 디렉터리를 벗어나면 읽지 않는다
+        Path file;
+        try {
+            file = uploadRoot.resolve(user.getVerificationFile());
+        } catch (InvalidPathException e) {
+            throw new FileNotFoundException("Verification file not found for user: " + userId);
+        }
+        if (!UploadPaths.isInside(uploadRoot.resolve(VERIFICATION_FILE_DIR), file)) {
+            throw new FileNotFoundException("Verification file not found for user: " + userId);
+        }
+        return new FileSystemResource(file.toAbsolutePath().normalize().toString());
     }
 
-    // 파일 저장
-    private String saveFile(MultipartFile file, Path directory) {
+    // 파일 저장 (클라이언트 파일명은 확장자 확인에만 쓰고, 저장 이름은 서버에서 만든다)
+    private String saveFile(MultipartFile file, Path directory, Set<String> allowedExtensions) {
         try {
-            Path absoluteDirectory = Paths.get("src/main/resources").resolve(directory).toAbsolutePath();
-            File dir = absoluteDirectory.toFile();
-            if (!dir.exists() && !dir.mkdirs()) {
-                throw new RuntimeException("Failed to create directory " + absoluteDirectory);
-            }
-
-            String filename = file.getOriginalFilename();
-            Path filePath = absoluteDirectory.resolve(Objects.requireNonNull(filename));
-            file.transferTo(filePath.toFile());
+            Path absoluteDirectory = uploadRoot.resolve(directory).toAbsolutePath();
+            String filename = UploadPaths.store(file, absoluteDirectory, allowedExtensions);
             return directory.resolve(filename).toString(); // 상대 경로 저장
         } catch (IOException e) {
             throw new RuntimeException("Failed to save file", e);
@@ -202,12 +215,17 @@ public class UserService {
 
     // 프로필 사진 저장
     private String saveProfilePicture(MultipartFile profilePictureFile) {
-        return saveFile(profilePictureFile, Paths.get("static/profile-pictures"));
+        return saveFile(profilePictureFile, PROFILE_PICTURE_DIR, UploadPaths.IMAGE_EXTENSIONS);
     }
 
     // 검증 파일 저장
     private String saveVerificationFile(MultipartFile verificationFile) {
-        return saveFile(verificationFile, Paths.get("static/verification-files"));
+        return saveFile(verificationFile, VERIFICATION_FILE_DIR, UploadPaths.DOCUMENT_EXTENSIONS);
+    }
+
+    // 테스트에서 업로드 기준 경로를 임시 디렉터리로 바꿀 때 사용
+    void setUploadRoot(Path uploadRoot) {
+        this.uploadRoot = uploadRoot;
     }
 
     // 유저 ID 사용 여부 확인

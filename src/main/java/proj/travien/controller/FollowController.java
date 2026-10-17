@@ -7,11 +7,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import proj.travien.domain.User;
 import proj.travien.dto.AgentDTO;
-import proj.travien.dto.UserDTO;
 import proj.travien.service.FollowService;
 import proj.travien.service.UserService;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @RestController
@@ -38,11 +38,12 @@ public class FollowController {
 
     @Operation(summary = "팔로우한 예약대행자")
     @GetMapping("/followed-agents")
-    public ResponseEntity<List<UserDTO>> getFollowedAgents(@RequestParam String userId) {
-        // FollowService에서 가져온 User 목록을 UserService에서 DTO로 변환
+    public ResponseEntity<List<Map<String, AgentDTO>>> getFollowedAgents(@RequestParam String userId) {
+        // 다른 사용자(대행자)의 정보이므로 공개 대행자 프로필(agentDetails)만 내보낸다.
+        // 이름·생년월일·성별·포인트·검증 서류 경로 같은 개인정보는 싣지 않는다. 화면은 agentDetails.* 만 읽는다.
         List<User> agents = followService.getFollowedAgents(userId);
-        List<UserDTO> agentDTOs = agents.stream()
-                .map(userService::createUserDTO)  // 중복된 DTO 생성 로직을 UserService로 위임
+        List<Map<String, AgentDTO>> agentDTOs = agents.stream()
+                .map(agent -> Map.of("agentDetails", userService.createAgentDTO(agent)))
                 .collect(Collectors.toList());
 
         return ResponseEntity.ok(agentDTOs);

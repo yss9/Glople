@@ -1,6 +1,7 @@
 package proj.travien.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -11,6 +12,7 @@ import proj.travien.domain.Post;
 import proj.travien.domain.User;
 import proj.travien.dto.AddressResponseDto;
 import proj.travien.service.PostService;
+import proj.travien.service.UploadPaths;
 import proj.travien.service.UserService;
 
 import java.io.IOException;
@@ -31,7 +33,9 @@ public class PostController {
     private UserService userService;  // 새로 추가된 UserService
 
 
-    private static final String UPLOAD_DIR = "src/main/resources/static/image/";
+    // 업로드 저장 위치 (/image/** 로 서빙되는 디렉터리)
+    @Value("${upload.location:src/main/resources/static/image/}")
+    private String uploadDir;
 
 
     @PostMapping("/upload")
@@ -41,12 +45,13 @@ public class PostController {
         }
 
         try {
-            byte[] bytes = file.getBytes();
-            Path path = Paths.get(UPLOAD_DIR + file.getOriginalFilename());
-            Files.write(path, bytes);
+            // 클라이언트 파일명 대신 서버에서 만든 이름(UUID.확장자)으로 저장
+            String fileName = UploadPaths.store(file, Paths.get(uploadDir), UploadPaths.IMAGE_EXTENSIONS);
 
             // 서버에 저장된 파일의 접근 경로를 반환
-            return "/image/" + file.getOriginalFilename();
+            return "/image/" + fileName;
+        } catch (UploadPaths.InvalidUploadException e) {
+            return "허용되지 않는 파일입니다.";
         } catch (IOException e) {
             e.printStackTrace();
             return "파일 업로드 실패";
