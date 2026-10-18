@@ -74,7 +74,7 @@ export const SettingWrapper=styled.div`
   align-items: center;
 `
 export const SettingContainer=styled.div`
-  width: 500px;
+  width: 680px;
   display: flex;
   justify-content: space-between;
 `
@@ -118,6 +118,26 @@ export const GloplerSettingBtn=styled.button`
 `
 export const PointSettingBtn=styled.button`
   width: 11em;
+  height: 2.1em;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: white;
+  cursor: pointer;
+  border: none;
+  svg{
+    margin-left: 5px;
+  }
+  p{
+    margin-right: 15px;
+    font-family: "Regular";
+    font-weight: bold;
+    font-size: 1rem;
+  }
+`
+// 내 여행 일정(/my/plans)으로 가는 버튼. 다른 설정 버튼과 같은 모양
+export const PlanSettingBtn=styled.button`
+  width: 12em;
   height: 2.1em;
   display: flex;
   align-items: center;

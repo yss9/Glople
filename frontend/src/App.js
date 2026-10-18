@@ -32,6 +32,10 @@ import Similarity from './pages/recomendation/Similarity/similarity'
 import MBTItest from "./pages/MBTItest/MBTItestPage";
 import SearchResult from "./pages/review/search-results"
 import SearchResultforGlopler from "./pages/reservation/search-results"
+import AssistantPage from "./pages/assistant/assistantPage";
+import MyPlans from "./pages/plans/myPlans";
+import PlanDetail from "./pages/plans/planDetail";
+import SemanticSearchPage from "./pages/semanticSearch/semanticSearchPage";
 
 function App() {
     return (
@@ -60,6 +64,10 @@ function App() {
                 <Route path="/my" element={<MyPage/>}/>
                 <Route path="/myprofile" element={<MyProfileModify/>}/>
                 <Route path="/chatbot" element={<Chatbotset/>}/>
+                <Route path="/assistant" element={<AssistantPage/>}/>
+                <Route path="/my/plans" element={<MyPlans/>}/>
+                <Route path="/my/plans/:planId" element={<PlanDetail/>}/>
+                <Route path="/search/semantic" element={<SemanticSearchPage/>}/>
                 <Route path="/keyword" element={<KeywordSelection/>}/>
                 <Route path="/exboard" element={<BoardEx/>}/>
                 <Route path="/agentperspective" element={<AgentPerspective/>}/>
