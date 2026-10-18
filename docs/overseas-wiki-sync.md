@@ -114,7 +114,7 @@ KeywordMask.fromKoreanDescription(info)          설명문 키워드 (한 글자
 - 이 파일은 유형 조건(후보 목록을 만들 때), `category`·키워드 마스크·요약문에 씁니다. 동기화 쿼리에 유형 목록을 넣지는 않습니다([쿼리 설계](#쿼리-설계-60초-제한)).
 - `#`으로 시작하는 줄은 주석입니다. 쉼표가 들어간 이름은 큰따옴표로 감쌉니다.
 - 키워드는 `KeywordMask`의 키워드 목록에 있는 값만 쓸 수 있습니다. 헤더가 다르거나, 열 수·QID 형식이 틀렸거나, `en_label`이 비었거나, QID·키워드가 중복되었거나, 목록에 없는 키워드가 있으면 조용히 건너뛰지 않고 `WikiTypeKeywordsTest`가 실패하며, 서버도 시작 단계(`WikiDestinationSyncService` 생성 시 코드표를 읽음)에서 몇 번째 줄이 틀렸는지 알리는 예외로 멈춥니다.
-- 파일을 고친 뒤에는 서버를 다시 띄우고 `POST /api/admin/wiki-sync/summaries`(소개·마스크 재계산, 위키미디어 호출 없음)를 실행합니다. 새로 추가한 유형의 여행지는 [후보 목록](#후보-목록)을 다시 만든 뒤 목록 동기화를 실행해야 들어옵니다.
+- 파일을 고친 뒤에는 서버를 다시 띄우고 `POST /api/admin/wiki-sync/summaries`(소개·마스크 재계산, 위키미디어 호출 없음)를 실행합니다. 키워드 칸만 고쳤다면 규칙 판(`keyword_mask_version`)이 바뀌어 서버를 다시 띄울 때 시작 시 마스크 보정이 마스크를 다시 계산하므로, `summaries`는 소개 글을 바꿀 때만 필요합니다([keyword-tagger-serving.md](keyword-tagger-serving.md#규칙-판과-시작-시-다시-계산)). 새로 추가한 유형의 여행지는 [후보 목록](#후보-목록)을 다시 만든 뒤 목록 동기화를 실행해야 들어옵니다.
 
 ### 후보 목록
 
@@ -181,7 +181,7 @@ wiki.sync.description-refresh-days=30
 
 ### 기존 DB를 쓰는 경우
 
-`ddl-auto=update`가 서버를 띄울 때 새 컬럼 `country_code`(`VARCHAR(2)`), `world_heritage`(`BIT`), `source_url`(`VARCHAR(1000)`), `license`(`VARCHAR(255)`), `source_revision`(`BIGINT`)을 추가합니다(모두 NULL 허용, 기존 행은 `NULL`). 기존 국내·해외 행의 값과 마스크는 바뀌지 않습니다.
+`ddl-auto=update`가 서버를 띄울 때 새 컬럼 `country_code`(`VARCHAR(2)`), `world_heritage`(`BIT`), `source_url`(`VARCHAR(1000)`), `license`(`VARCHAR(255)`), `source_revision`(`BIGINT`)을 추가합니다(모두 NULL 허용, 기존 행은 `NULL`). 기존 국내·해외 행의 값과 마스크는 바뀌지 않습니다. 키워드 태거용 열(`keyword_mask_version`, `tagger_*`)은 [keyword-tagger-serving.md](keyword-tagger-serving.md#새-열-ddl-autoupdate가-추가)에 있습니다.
 
 ## 실행
 
@@ -231,7 +231,7 @@ FROM destination_info WHERE source = 'WIKIDATA' GROUP BY country_code ORDER BY t
 | :-- | :-- | :-- | :-- |
 | 2026-10-17 | 7,522곳 추가 (16분). KE·ML·MM 3개국은 WDQS 502로 실패해 다시 실행해 61곳 추가 | 7,583곳 (실패 0, 19분, 평균 281자) | 193개국 7,583곳, 키워드 있음 7,435곳, 전부 출처 URL·라이선스 저장. 대한민국 관련 항목(독도·백두산·경성신사 등) 0건 확인 |
 
-수집 후 확인한 점: 키워드 일치 수가 같으면 id 순서로 정렬되기 때문에, 국내 여행지(먼저 들어간 행)가 있는 키워드는 국내만 나오고 해외끼리는 국가 코드가 A로 시작하는 나라가 먼저 나옵니다. 추천 정렬 개선이 필요합니다. 한국어 위키백과 설명문의 부분 문자열 매칭 때문에 부르즈 할리파가 '모스크'로 잡히는 식의 오검출도 있습니다(키워드 태깅 모델로 개선할 대상).
+수집 후 확인한 점: 키워드 일치 수가 같으면 id 순서로 정렬되기 때문에, 국내 여행지(먼저 들어간 행)가 있는 키워드는 국내만 나오고 해외끼리는 국가 코드가 A로 시작하는 나라가 먼저 나옵니다. 추천 정렬 개선이 필요합니다. 한국어 위키백과 설명문의 부분 문자열 매칭 때문에 부르즈 할리파가 '모스크'로 잡히는 식의 오검출도 있습니다(키워드 태깅 모델로 개선할 대상). (2026-10-18: 동점 정렬은 S0에서 고쳤습니다. 태거 예측은 [keyword-tagger-serving.md](keyword-tagger-serving.md)로 가져옵니다. 기본 `union` 모드는 규칙 키워드를 남기므로 이 '모스크'는 `tagger` 모드에서만 빠집니다.)
 
 ## 알아 둘 점
 

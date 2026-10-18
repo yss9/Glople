@@ -23,6 +23,7 @@ import proj.travien.domain.ChatMessage;
 import proj.travien.domain.Post;
 import proj.travien.domain.Role;
 import proj.travien.domain.User;
+import proj.travien.dto.DestinationDetailDTO;
 import proj.travien.dto.UserDTO;
 import proj.travien.jwt.CurrentUser;
 import proj.travien.jwt.JwtTokenProvider;
@@ -38,14 +39,17 @@ import proj.travien.service.BookReviewService;
 import proj.travien.service.BookingService;
 import proj.travien.service.ChatAccessService;
 import proj.travien.service.CommentService;
+import proj.travien.service.DestinationSearchService;
 import proj.travien.service.FollowService;
 import proj.travien.service.KeywordRecommendService;
+import proj.travien.service.KeywordTaggerImportService;
 import proj.travien.service.LikeService;
 import proj.travien.service.MyRouteService;
 import proj.travien.service.PlaceService;
 import proj.travien.service.PostService;
 import proj.travien.service.SpeechToTextService;
 import proj.travien.service.TourSyncRunner;
+import proj.travien.service.TravelPlanService;
 import proj.travien.service.UserInfoRecommendationService;
 import proj.travien.service.UserService;
 
@@ -86,7 +90,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         UserController.class, AdminController.class, PostController.class, BookingController.class,
         ChatController.class, CommentController.class, LikeController.class, BookReviewController.class,
         RecommendController.class, FollowController.class, PlaceController.class, WikipediaController.class,
-        PostApiController.class, TourSyncController.class
+        PostApiController.class, TourSyncController.class, DestinationController.class, TravelPlanController.class,
+        KeywordMaskController.class
 })
 @Import({SecurityConfig.class, JwtTokenProvider.class, JwtUtil.class, CurrentUser.class})
 @TestPropertySource(properties = {
@@ -121,6 +126,9 @@ class AuthorizationMatrixTest {
     @MockBean private FollowService followService;
     @MockBean private PlaceService placeService;
     @MockBean private TourSyncRunner tourSyncRunner;
+    @MockBean private DestinationSearchService destinationSearchService;
+    @MockBean private TravelPlanService travelPlanService;
+    @MockBean private KeywordTaggerImportService keywordTaggerImportService;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -165,7 +173,12 @@ class AuthorizationMatrixTest {
                 get("/api/get-routes"),
                 get("/api/follow/followed-agents"),
                 get("/api/wikipedia").param("query", "seoul"),
+                post("/api/travel-plans").contentType(MediaType.APPLICATION_JSON).content("{}"),
+                get("/api/travel-plans"),
+                get("/api/travel-plans/5"),
+                delete("/api/travel-plans/5"),
                 get("/api/admin/all-users"),
+                post("/api/admin/keyword-masks/import").contentType(MediaType.APPLICATION_NDJSON).content("{}"),
                 post("/api/users/bob/points/add").param("points", "10"),
                 post("/ppap/board").contentType(MediaType.APPLICATION_JSON).content("{}"),
                 get("/verification-files/proof.pdf"),
@@ -182,6 +195,8 @@ class AuthorizationMatrixTest {
         }
         verify(userService, never()).getUserInfo(anyString());
         verify(userService, never()).transferPointsToAgent(any(), anyString(), anyInt());
+        verify(travelPlanService, never()).create(any(), any());
+        verify(travelPlanService, never()).listMine(any());
     }
 
     @Test
@@ -217,7 +232,7 @@ class AuthorizationMatrixTest {
         given(userService.isUserIdInUse("someone")).willReturn(false);
         given(postService.getAllPosts()).willReturn(List.of());
         given(userService.getAllAgents()).willReturn(List.of());
-        given(keywordRecommendService.searchByKeywords(any())).willReturn(List.of());
+        given(keywordRecommendService.search(any())).willReturn(List.of());
         given(bookReviewService.getAllReviews()).willReturn(List.of());
         given(commentService.getCommentsByBoardID(10L)).willReturn(List.of());
         Post post = new Post();
@@ -232,6 +247,11 @@ class AuthorizationMatrixTest {
         mockMvc.perform(get("/api/bookReviews/")).andExpect(status().isOk());
         mockMvc.perform(post("/api/search").contentType(MediaType.APPLICATION_JSON).content("{\"keywords\":[\"바다\"]}"))
                 .andExpect(status().isOk());
+        // 여행지 읽기(목록·이름 찾기·상세)는 공개
+        given(destinationSearchService.detail(10L)).willReturn(Optional.of(new DestinationDetailDTO()));
+        mockMvc.perform(get("/api/destinations").param("region", "부산")).andExpect(status().isOk());
+        mockMvc.perform(get("/api/destinations/lookup").param("name", "해운대")).andExpect(status().isOk());
+        mockMvc.perform(get("/api/destinations/10")).andExpect(status().isOk());
         // 비로그인 좋아요 여부는 id 값과 관계없이 false
         mockMvc.perform(get("/api/likes/10/is-liked").param("id", "2"))
                 .andExpect(status().isOk())
@@ -350,6 +370,13 @@ class AuthorizationMatrixTest {
         verify(likeService, never()).toggleLikePost(anyLong(), anyLong());
         verify(myRouteService, never()).getMyRoutes(anyLong());
         verify(myRouteService, never()).saveMyRoute(any());
+
+        // 여행 일정: 남의 일정·없는 일정은 서비스가 403 (자세한 경우는 TravelPlanControllerTest)
+        given(travelPlanService.get(any(), eq(false), eq(5L))).willThrow(new AccessDeniedException("본인 일정만 볼 수 있습니다."));
+        org.mockito.BDDMockito.willThrow(new AccessDeniedException("본인 일정만 볼 수 있습니다."))
+                .given(travelPlanService).delete(any(), eq(5L));
+        expectForbidden(get("/api/travel-plans/5"));
+        expectForbidden(delete("/api/travel-plans/5"));
     }
 
     @Test
@@ -481,6 +508,7 @@ class AuthorizationMatrixTest {
         expectForbidden(post("/api/admin/adjust-points").param("userId", "bob").param("points", "100"));
         expectForbidden(post("/api/admin/promote-user").param("userId", "alice"));
         expectForbidden(post("/api/admin/tour-sync/summaries"));
+        expectForbidden(post("/api/admin/keyword-masks/import").contentType(MediaType.APPLICATION_NDJSON).content("{}"));
         expectForbidden(post("/api/users/approve-agent/bob"));
         expectForbidden(post("/api/users/alice/points/add").param("points", "1000000"));
         expectForbidden(post("/api/users/bob/points/deduct").param("points", "10"));
@@ -495,6 +523,8 @@ class AuthorizationMatrixTest {
         verify(userService, never()).deductPointsByNickname(anyString(), anyInt());
         verify(bookReviewService, never()).deleteReview(anyLong());
         verify(tourSyncRunner, never()).startSummaryRebuild();
+        verify(keywordTaggerImportService, never()).parse(any(), any());
+        verify(keywordTaggerImportService, never()).importPredictions(any(), org.mockito.ArgumentMatchers.anyBoolean());
     }
 
     @Test

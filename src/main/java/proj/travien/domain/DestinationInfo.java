@@ -11,11 +11,15 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import proj.travien.service.KeywordMask;
+import proj.travien.service.KeywordMaskVersion;
 import proj.travien.service.TourCategories;
 import proj.travien.service.WikiTypeKeywords;
 
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
+import java.util.zip.CRC32;
 
 @NoArgsConstructor
 @Getter
@@ -53,6 +57,29 @@ public class DestinationInfo {
 
     @jakarta.persistence.Column(name = "keyword_mask_high", nullable = false, columnDefinition = "BIGINT DEFAULT 0")
     private long keywordMaskHigh;
+
+    // 위 규칙 마스크를 계산한 규칙의 판(KeywordMaskVersion). 국내·위키데이터 행은 서버를 시작할 때 판이 다르면 다시 계산한다. null = 판 기록 전
+    @Column(name = "keyword_mask_version", length = 40)
+    private String keywordMaskVersion;
+
+    // 키워드 태거(training/keyword_tagger) 예측 마스크. 규칙 마스크와 따로 두어 저장할 때 규칙 계산이 덮어쓰지 않는다.
+    // 추천 쿼리가 설정(keyword.recommend.mask-mode)에 따라 규칙 마스크와 합친다. (docs/keyword-tagger-serving.md)
+    @Column(name = "tagger_mask_low", nullable = false, columnDefinition = "BIGINT DEFAULT 0")
+    private long taggerMaskLow;
+
+    @Column(name = "tagger_mask_high", nullable = false, columnDefinition = "BIGINT DEFAULT 0")
+    private long taggerMaskHigh;
+
+    // 예측을 만든 모델(outputs/<run_name>의 run_name, 예: roberta-base-v3). null이면 예측 없음(위 두 값은 0)
+    @Column(name = "tagger_model", length = 100)
+    private String taggerModel;
+
+    // 예측에 쓴 설명문(info)의 CRC32(UTF-8). 설명문이 바뀌거나 지워지면 저장할 때 예측을 지운다.
+    @Column(name = "tagger_info_crc32")
+    private Long taggerInfoCrc32;
+
+    // 예측을 가져온 시각 (POST /api/admin/keyword-masks/import)
+    private LocalDateTime taggerUpdatedAt;
 
     // 아래는 외부 데이터로 수집한 여행지에만 채워지는 값 (기존 해외 여행지는 null)
     private String source;
@@ -108,12 +135,51 @@ public class DestinationInfo {
     // 설명문 수집에 마지막으로 실패한 시각. 실패한 행은 다음 수집 때 대기열 뒤로 보낸다.
     private LocalDateTime overviewFailedAt;
 
+    // 저장할 때마다 규칙 마스크와 그 판을 다시 계산하고, 설명문이 바뀐 행의 태거 예측을 지운다. (태거 마스크 자체는 다시 계산하지 않는다)
     @jakarta.persistence.PrePersist
     @jakarta.persistence.PreUpdate
     public void refreshKeywordMask() {
         KeywordMask.Mask mask = computeKeywordMask();
         keywordMaskLow = mask.low();
         keywordMaskHigh = mask.high();
+        keywordMaskVersion = KeywordMaskVersion.forSource(source);
+        if (taggerModel != null && !Objects.equals(taggerInfoCrc32, infoCrc32(info))) {
+            clearTaggerPrediction();
+        }
+    }
+
+    // 태거 예측을 기록한다. infoCrc32는 예측에 쓴 설명문의 CRC32(지금 설명문과 같아야 한다. 확인은 가져오는 쪽에서 한다)
+    public void applyTaggerPrediction(KeywordMask.Mask mask, String model, long infoCrc32, LocalDateTime at) {
+        taggerMaskLow = mask.low();
+        taggerMaskHigh = mask.high();
+        taggerModel = model;
+        taggerInfoCrc32 = infoCrc32;
+        taggerUpdatedAt = at;
+    }
+
+    public void clearTaggerPrediction() {
+        taggerMaskLow = 0L;
+        taggerMaskHigh = 0L;
+        taggerModel = null;
+        taggerInfoCrc32 = null;
+        taggerUpdatedAt = null;
+    }
+
+    public KeywordMask.Mask taggerMask() {
+        return new KeywordMask.Mask(taggerMaskLow, taggerMaskHigh);
+    }
+
+    /**
+     * 설명문의 CRC32 (UTF-8 바이트). training/keyword_tagger/scripts/predict_all.py의 info_crc32
+     * (zlib.crc32(overview.encode("utf-8")))와 같은 값이다. 설명문이 없으면 null.
+     */
+    public static Long infoCrc32(String info) {
+        if (info == null) {
+            return null;
+        }
+        CRC32 crc = new CRC32();
+        crc.update(info.getBytes(StandardCharsets.UTF_8));
+        return crc.getValue();
     }
 
     // 지금 값으로 계산한 키워드 마스크. 저장된 마스크는 바꾸지 않는다. (동기화에서 마스크만 낡은 행을 찾을 때 쓴다)
@@ -128,17 +194,27 @@ public class DestinationInfo {
         if (SOURCE_WIKIDATA.equals(source)) {
             // 위키백과 한국어 설명문 ∪ 유형 코드표(wiki/type-keywords.csv)의 유형별 키워드 ∪ 세계유산이면 '유네스코'.
             // summary는 유형명·지명을 이어 붙인 글이라 국내와 같은 이유로 훑지 않는다.
-            KeywordMask.Mask mask = KeywordMask.fromKoreanDescription(withoutMunhwaeoLabel(info))
+            KeywordMask.Mask mask = KeywordMask.fromKoreanDescription(withoutMisleadingWords(info))
                     .union(WikiTypeKeywords.keywordMask(category));
             return Boolean.TRUE.equals(worldHeritage) ? mask.union(WORLD_HERITAGE_MASK) : mask;
         }
         return KeywordMask.fromDescription(info);
     }
 
-    // 한국어 위키백과는 외국 지명 뒤에 북한 표기를 '(프랑스어: la Seine, 문화어: 쌘느강)'처럼 적는다.
-    // '문화어'(북한 표준어)의 '문화'가 키워드로 켜지지 않도록 이 낱말만 빼고 훑는다. 저장된 설명문은 바꾸지 않는다.
-    private static String withoutMunhwaeoLabel(String info) {
-        return info == null ? null : info.replace("문화어", " ");
+    // 키워드가 다른 낱말 속에 들어 있어 잘못 켜지는 낱말을 빼고 훑는다. 저장된 설명문은 바꾸지 않는다.
+    // - '문화어': 한국어 위키백과가 외국 지명 뒤에 북한 표기를 '(프랑스어: la Seine, 문화어: 쌘느강)'처럼 적는다. '문화'가 켜짐.
+    // - '모스크바': 도시 이름 속 '모스크'가 켜져 크렘린의 종·대포가 모스크로 추천됐다(2026-10-18 실제 서버에서 확인).
+    static final java.util.List<String> MISLEADING_WORDS = java.util.List.of("문화어", "모스크바");
+
+    private static String withoutMisleadingWords(String info) {
+        if (info == null) {
+            return null;
+        }
+        String out = info;
+        for (String word : MISLEADING_WORDS) {
+            out = out.replace(word, " ");
+        }
+        return out;
     }
 
 }

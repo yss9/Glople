@@ -34,9 +34,10 @@ public class RecommendController {
     @Autowired
     private CurrentUser currentUser;
 
+    // keywords만 보내면 예전과 같은 21곳. 선택 값 scope·limit·seed는 KeywordRecommendService 참고 (틀린 값은 400 JSON)
     @PostMapping("/search")
     public List<KeywordResultDTO> search(@RequestBody KeywordRequest keywordRequest) {
-        return keywordRecommendService.searchByKeywords(keywordRequest.getKeywords());
+        return keywordRecommendService.search(keywordRequest);
     }
 
     @PostMapping("/info-recommend")

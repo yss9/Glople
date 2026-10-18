@@ -35,8 +35,8 @@ import java.util.Map;
  * <ol>
  *   <li>차단: 검증 서류 정적 경로, 레거시 /ppap/**</li>
  *   <li>관리자(ROLE_ADMIN): /api/admin/**, 대행자 승인, 포인트 지급·차감, 리뷰 삭제, 장소 일괄 저장</li>
- *   <li>공개: 회원가입·로그인·중복 확인, 공개 대행자 프로필, 추천, 읽기 전용 둘러보기, 정적 파일, 문서, /ws 핸드셰이크</li>
- *   <li>그 밖에는 로그인 필요. 소유자·참가자 검사는 컨트롤러·서비스에서 CurrentUser로 한다.</li>
+ *   <li>공개: 회원가입·로그인·중복 확인, 공개 대행자 프로필, 추천, 여행지 읽기, 읽기 전용 둘러보기, 정적 파일, 문서, /ws 핸드셰이크</li>
+ *   <li>그 밖에는 로그인 필요(예: 여행 일정 /api/travel-plans). 소유자·참가자 검사는 컨트롤러·서비스에서 CurrentUser로 한다.</li>
  * </ol>
  * 비로그인은 401, 권한 없음은 403이며 둘 다 같은 모양의 JSON으로 응답한다.
  */
@@ -92,6 +92,8 @@ public class SecurityConfig {
                                 "/api/users/profile-picture/*").permitAll()
                         // 3. 공개 — 추천
                         .requestMatchers(HttpMethod.POST, "/api/search", "/api/info-recommend").permitAll()
+                        // 3. 공개 — 여행지 읽기 (목록·이름 찾기·상세. 저장된 여행지를 읽기만 한다)
+                        .requestMatchers(HttpMethod.GET, "/api/destinations", "/api/destinations/**").permitAll()
                         // 3. 공개 — 읽기 전용 둘러보기 (/api/likes/**를 통째로 열면 /api/likes/user/{id}까지 열리므로 하나씩)
                         .requestMatchers(HttpMethod.GET,
                                 "/api/posts/**",

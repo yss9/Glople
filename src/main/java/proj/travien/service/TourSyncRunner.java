@@ -10,6 +10,8 @@ import proj.travien.dto.TourSyncResult;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -105,6 +107,22 @@ public class TourSyncRunner {
 
     public Status status() {
         return status;
+    }
+
+    /**
+     * 동기화와 같은 행을 고치는 짧은 작업(태거 예측 가져오기)을 부른 스레드에서 바로 실행한다. 다른 동기화가 돌고 있으면 실행하지 않고 빈 값.
+     * 실행하는 동안에는 동기화를 시작할 수 없다(ALREADY_RUNNING). 동기화 상태(status)는 바꾸지 않는다.
+     * 동기화는 행을 읽어 두었다가 통째로 다시 저장하므로, 동시에 돌면 한쪽이 쓴 열을 다른 쪽이 예전 값으로 덮어쓸 수 있어서 막는다.
+     */
+    public <T> Optional<T> runExclusively(Supplier<T> job) {
+        if (!running.compareAndSet(false, true)) {
+            return Optional.empty();
+        }
+        try {
+            return Optional.of(Objects.requireNonNull(job.get(), "작업 결과가 null입니다."));
+        } finally {
+            running.set(false);
+        }
     }
 
     // tour.sync.overview-cron을 설정하면 매일 일일 한도 안에서 설명문을 이어 받는다. 기본값 "-"는 꺼짐.

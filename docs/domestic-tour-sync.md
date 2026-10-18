@@ -38,7 +38,9 @@
 
 ### 키워드 마스크
 
-국내 여행지(`source = TOUR_API`)의 키워드 마스크는 **설명문 키워드(`fromKoreanDescription(info)`) ∪ 분류 코드표의 키워드**입니다. 해외 여행지는 기존 규칙(`fromDescription(info)`) 그대로입니다.
+국내 여행지(`source = TOUR_API`)의 키워드 마스크는 **설명문 키워드(`fromKoreanDescription(info)`) ∪ 분류 코드표의 키워드**입니다. 위키데이터 행의 규칙은 [해외 수집 문서](overseas-wiki-sync.md#키워드-마스크)에 있고, 출처가 없는 기존 해외 행은 기존 규칙(`fromDescription(info)`) 그대로입니다.
+
+이 규칙 마스크와 따로, 키워드 태거 예측을 담는 태거 마스크(`tagger_mask_low/high`)가 있습니다. 추천(`/api/search`)은 기본으로 둘을 합쳐 씁니다. 가져오는 방법과 설정은 [keyword-tagger-serving.md](keyword-tagger-serving.md)에 있습니다. 마스크를 계산할 때 규칙의 판(`keyword_mask_version`)도 같이 저장합니다.
 
 소개 문장 자체는 다시 훑지 않습니다. 소개에는 분류명과 지명이 그대로 들어가서, 훑으면 코드표에서 일부러 뺀 키워드가 켜집니다. 예를 들어 '문화관광'의 `문화`는 시민공원·다리·공항 같은 문화관광 분류 전체에, '역사관광'의 `역사`는 기독교 성지에, '자연경관(산)'의 `산`은 계곡·폭포에, '축제/공연/행사'의 `축제`·`공연`은 박람회·스포츠경기에, '부산광역시 수영구'의 `수영`은 수영구의 모든 여행지에 켜집니다. 그래서 분류에서 나오는 키워드는 코드표 한 곳에서만 정합니다.
 
@@ -55,9 +57,9 @@
 | `keywords` | 이 분류에 붙는 추천 키워드를 `\|`로 이어 적음. 없으면 빈 칸 |
 
 - 원본은 TourAPI `lclsSystmCode2`(분류체계 코드 조회) 2026-10-17 응답의 246개 코드 전체입니다. 181개 코드에 키워드가 있고, 65개는 맞는 키워드가 없어 비워 두었습니다(호텔·카페·박람회·시민공원 등).
-- 키워드는 `KeywordMask`의 키워드 목록에 있는 값만 쓸 수 있습니다. 목록에 없는 키워드, 열 수가 틀린 행, 중복 코드가 있으면 조용히 건너뛰지 않고 `TourCategoriesTest`가 실패하며, 서버도 시작 단계(시작 시 마스크 보정이 이 파일을 읽음)에서 몇 번째 줄이 틀렸는지 알리는 예외로 멈춥니다.
+- 키워드는 `KeywordMask`의 키워드 목록에 있는 값만 쓸 수 있습니다. 목록에 없는 키워드, 열 수가 틀린 행, 중복 코드가 있으면 조용히 건너뛰지 않고 `TourCategoriesTest`가 실패하며, 서버도 시작 단계(시작 시 마스크 보정이 규칙 판을 계산하려고 이 파일을 읽음)에서 몇 번째 줄이 틀렸는지 알리는 예외로 멈춥니다.
 - **만든 방법**: 분류명을 보고 AI가 대분류 묶음별로 키워드 초안을 만들고, 다른 AI 검토자가 묶음마다 교차 확인해 고친 결과입니다. 사람이 하나씩 검토하지는 않았으므로, 추천 결과가 이상하면 이 파일부터 확인하고 사람이 한 번 훑어보는 것을 권장합니다.
-- 파일을 고친 뒤에는 서버를 다시 띄우고 [소개 재계산](#실행)을 실행해야 저장된 마스크에 반영됩니다.
+- 파일의 키워드 칸을 고치면 규칙 판이 바뀌므로, 서버를 다시 띄우기만 해도 시작 시 마스크 보정이 국내 행의 마스크를 다시 계산합니다. 소개(`summary`) 글까지 바꾸려면 [소개 재계산](#실행)도 실행합니다.
 
 ### TourAPI 분류 코드가 바뀌었을 때
 
@@ -93,7 +95,7 @@ tour.sync.overview-cron=-
 ALTER TABLE destination_info MODIFY info TEXT;
 ```
 
-`summary` 컬럼은 서버를 띄울 때 `ddl-auto=update`가 추가합니다(기존 행은 `NULL`). 이어서 시작 시 마스크 보정(`DestinationKeywordMaskBackfill`)이 마스크가 0인 행 중 설명문이 있거나 키워드가 있는 분류 코드를 가진 행의 마스크를 채웁니다. 설명문도 없고 키워드도 없는 분류인 행은 계산해도 0이므로 매번 다시 읽지 않습니다. 소개는 시작할 때 만들지 않으니, 컬럼이 생긴 뒤 아래 `summaries`를 한 번 실행합니다. 실행 전까지는 분류 키워드로 새로 추천되는 국내 여행지의 추천 결과 `info`가 비어(`null`) 나옵니다.
+`summary` 컬럼은 서버를 띄울 때 `ddl-auto=update`가 추가합니다(기존 행은 `NULL`). 이어서 시작 시 마스크 보정(`DestinationKeywordMaskBackfill`)이 규칙 판(`keyword_mask_version`)이 없거나 지금 판과 다른 국내·위키데이터 행만 다시 계산하고 판을 기록합니다(처음 판 열이 생길 때는 모든 행을 한 번 읽음, [keyword-tagger-serving.md](keyword-tagger-serving.md#규칙-판과-시작-시-다시-계산)). 출처가 없는 기존 해외 행은 예전처럼 마스크가 0이고 설명문이 있는 행만 채웁니다. 소개는 시작할 때 만들지 않으니, 컬럼이 생긴 뒤 아래 `summaries`를 한 번 실행합니다. 실행 전까지는 분류 키워드로 새로 추천되는 국내 여행지의 추천 결과 `info`가 비어(`null`) 나옵니다.
 
 ## 실행
 
@@ -186,7 +188,7 @@ FROM destination_info WHERE source = 'TOUR_API';
 - [`TourApiClient.java`](../src/main/java/proj/travien/service/TourApiClient.java): TourAPI 호출, 인증키 인코딩, 응답·오류 해석. 게이트웨이 오류는 XML 또는 `OpenAPI_ServiceResponse` JSON으로 오고, 미등록 키는 HTTP 403 + JSON(코드 30)으로 오는 것을 2026-10-17 실제 호출로 확인
 - [`TourDestinationSyncService.java`](../src/main/java/proj/travien/service/TourDestinationSyncService.java): 목록 추가·갱신, 설명문 수집, 분류 소개 생성(`summaryOf`)과 재계산(`rebuildSummaries`)
 - [`TourCategories.java`](../src/main/java/proj/travien/service/TourCategories.java): 분류 코드표([`category-keywords.csv`](../src/main/resources/tour/category-keywords.csv)) 읽기, 코드별 분류명·키워드 마스크
-- [`DestinationKeywordMaskBackfill.java`](../src/main/java/proj/travien/service/DestinationKeywordMaskBackfill.java): 서버 시작 시 비어 있는 키워드 마스크 보정
+- [`DestinationKeywordMaskBackfill.java`](../src/main/java/proj/travien/service/DestinationKeywordMaskBackfill.java), [`KeywordMaskVersion.java`](../src/main/java/proj/travien/service/KeywordMaskVersion.java): 서버 시작 시 규칙 판이 낡은 행의 키워드 마스크 다시 계산, 기존 해외 행의 빈 마스크 보정
 - [`TourSyncRunner.java`](../src/main/java/proj/travien/service/TourSyncRunner.java): 백그라운드 단일 실행, 상태 보관, 예약 실행
 - [`TourSyncController.java`](../src/main/java/proj/travien/controller/TourSyncController.java): 관리자 API
 - [`KeywordMask.java`](../src/main/java/proj/travien/service/KeywordMask.java): 국내 설명문용 키워드 마스크(`fromKoreanDescription`), 마스크 합치기(`Mask.union`)

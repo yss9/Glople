@@ -5,6 +5,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 
 public final class KeywordMask {
 
@@ -62,6 +63,17 @@ public final class KeywordMask {
         }
 
         return new Mask(low, high);
+    }
+
+    // 지원하는 키워드 전체 (비트 순서). training/keyword_tagger/keywords.json과 같은 순서다.
+    public static List<String> keywords() {
+        return KEYWORDS;
+    }
+
+    // 규칙 판(KeywordMaskVersion)의 지문에 넣는 값: 키워드 목록(비트 순서 포함)과 한 글자 키워드 뒤에 붙는 조사 목록.
+    // Set.of는 실행마다 순서가 달라서 조사는 정렬해 잇는다.
+    static String ruleFingerprintSource() {
+        return String.join("|", KEYWORDS) + "#" + String.join("|", new TreeSet<>(PARTICLES));
     }
 
     // 지원하는 키워드인지 확인한다. fromKeywords는 모르는 키워드를 조용히 건너뛰므로, 키워드를 미리 정해 두는 곳(분류 코드표 등)에서 검사할 때 쓴다.

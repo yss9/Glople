@@ -37,6 +37,32 @@ class TourSyncRunnerTest {
         verifyNoInteractions(syncService);
     }
 
+    // 태거 예측 가져오기처럼 같은 행을 고치는 짧은 작업은 동기화와 동시에 돌지 않는다 (서로 상대의 열을 예전 값으로 덮어쓰지 않게)
+    @Test
+    void exclusiveJobsDoNotOverlapWithSyncs() {
+        when(client.isConfigured()).thenReturn(false);
+
+        // 다른 동기화가 없으면 바로 실행하고, 실행 중에는 동기화를 시작할 수 없다
+        assertThat(runner.runExclusively(() -> {
+            assertThat(runner.startSummaryRebuild()).isEqualTo(TourSyncRunner.StartResult.ALREADY_RUNNING);
+            return "done";
+        })).contains("done");
+        assertThat(runner.status().running()).isFalse(); // 동기화 상태는 바꾸지 않는다
+        assertThat(executor.pending()).isZero();
+
+        // 끝나면 다시 동기화를 시작할 수 있고, 동기화가 도는 동안에는 작업을 실행하지 않는다
+        assertThat(runner.startWikiSummaryRebuild()).isEqualTo(TourSyncRunner.StartResult.STARTED);
+        assertThat(runner.runExclusively(() -> "never")).isEmpty();
+        executor.runPending();
+        assertThat(runner.runExclusively(() -> "again")).contains("again");
+
+        // 작업이 실패해도 잠금은 풀린다
+        assertThatThrownBy(() -> runner.runExclusively(() -> {
+            throw new IllegalStateException("boom");
+        })).isInstanceOf(IllegalStateException.class);
+        assertThat(runner.startWikiSummaryRebuild()).isEqualTo(TourSyncRunner.StartResult.STARTED);
+    }
+
     @Test
     void rebuildsSummariesWithoutServiceKey() {
         // 소개 재계산은 TourAPI를 부르지 않으므로 인증키가 없어도 실행한다.
