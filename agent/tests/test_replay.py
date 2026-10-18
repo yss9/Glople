@@ -18,7 +18,9 @@ def _check(report, expected_total: int) -> None:
     assert report.reached_end == expected_total          # 모두 END(확인 카드는 approve로 재개)
     assert report.unexpected == [], [(r.case.utterance, r.category) for r in report.unexpected[:5]]
     for r in report.results:
-        if r.case.is_call:
+        if r.case.is_call and r.category == "clarify(지역)":   # M6: 모호한 지역(광주)은 정답 호출이어도 후보를 되물음
+            assert r.region_clarify and "광주광역시와 경기 광주시 중 어느 곳을 말씀하시는 건가요?" in r.final_text
+        elif r.case.is_call:
             assert r.verdicts_ok and r.calls == len(r.case.expected_calls)   # validate가 하나도 막지 않음
         else:
             assert r.category == "direct" and r.reply_kind == "direct"
@@ -42,6 +44,8 @@ def test_v2_test_and_human_style_replay():
     report = replay(["v2-test", "human"])
     _check(report, 390)
     assert report.reply_counts()["direct"] == sum(not r.case.is_call for r in report.results)
+    # M6 뒤에도 경로 분포는 M0~M4와 같다(test·human에는 '광주' 정답·동명 장소 정답이 없음)
+    assert dict(report.path_counts()) == {"tool": 283, "tool(병렬)": 29, "plan": 34, "direct": 44}
 
 
 @pytest.mark.needs_training_data("tool_calling_v2/train.jsonl")
@@ -50,6 +54,9 @@ def test_v2_train_replay_with_grounding_blocks_nothing():
     report = replay(["v2-train"])
     _check(report, 3000)
     assert sum(r.calls for r in report.results) == 2913
+    # M6: '광주' 정답 16호출(14발화)만 의도한 지역 되묻기로 바뀜(정답과 다른 경로 0은 그대로). 음식점·숙박 단독 3발화는
+    # 어느 광주든 '수집 안 함'이라 묻지 않고 도구 경로 그대로
+    assert report.path_counts()["clarify(지역)"] == 11
 
 
 def test_replay_matches_oracle_answers_exactly():

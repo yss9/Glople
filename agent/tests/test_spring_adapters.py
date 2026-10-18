@@ -1,4 +1,4 @@
-"""SpringClient(경로 허용 목록·토큰·재시도·상한)와 어댑터 4개 + 준비 중 3개. HTTP는 respx로만 가로챈다(8080 접속 없음).
+"""SpringClient(경로 허용 목록·토큰·재시도·상한)와 어댑터 4개(+ M6 S1·날씨는 test_m6_*.py). HTTP는 respx로만 가로챈다(8080 접속 없음).
 
 요청·응답 모양은 Spring 코드에 맞췄다: RecommendController(/api/search, /api/info-recommend), PostController(/api/posts/search,
 204), UserController(/api/users/search-agents-by-hashtag 204, /api/users/agents?country= 200 []), SecurityConfig 공개 목록.
@@ -279,14 +279,16 @@ def test_gloplers_domestic_is_not_called_and_none_found(mock):
     assert paris.status == "empty" and paris.notes == ["지금은 미국·이탈리아·일본 글로플러만 있어요."]
 
 
-# --- 준비 중·미지원 ------------------------------------------------------------------------------
+# --- 부르지 않는 경우(M6: 수집 안 한 분류, 날씨 끔) ------------------------------------------------------
 
-def test_not_ready_tools_make_no_requests(mock):
-    b = _backend()
-    assert b.search_destinations(SearchDestinationsArgs(region="광주", category="음식점"), CTX).status == "pending_feature"
+def test_not_collected_categories_and_weather_off_make_no_requests(mock):
+    b = _backend()   # weather=None = 날씨 끔(GLOPLE_WEATHER=off)
+    assert b.search_destinations(SearchDestinationsArgs(region="광주", category="음식점"), CTX).status == "unsupported"
     assert b.get_weather(GetWeatherArgs(region="부산", when="내일"), CTX).status == "unsupported"
     res = b.search_destinations(SearchDestinationsArgs(region="강릉", category="숙박"), CTX)
+    assert res.status == "unsupported"
     assert res.extra["region"]["label"] == "강원특별자치도 강릉시" and res.extra["categoryCollected"] is False
+    assert b.search_destinations(SearchDestinationsArgs(region="도쿄", category="숙박"), CTX).status == "unsupported"
     assert not mock.calls
 
 

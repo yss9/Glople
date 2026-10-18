@@ -9,7 +9,8 @@ check_call()이 돌려주는 issues는 시범판과 같은 코드다(측정 표�
 | 코드 | 뜻 | 그래프에서 |
 |---|---|---|
 | clarify:<칸> | 필수 인자에 근거가 없음(region·name·query·hashtag·age·gender·mbti·days·places, no_keyword·keyword_vague) | 되묻기 |
-| clarify:region_ambiguous | 지역 해석이 모호(광주) — region_clarify_tools에 든 도구만(M1 기본은 없음) | 후보 되묻기 |
+| clarify:region_ambiguous | 지역 해석이 모호(광주) — region_clarify_tools에 든 도구만(M6부터 그래프 기본은 검색·날씨) | 후보 되묻기 |
+| fix:region_choice | (M6) 모호한 지역인데 발화의 다른 낱말이 후보 하나를 가리킴('… 경기도요') | 그 후보 이름으로 고쳐 실행 |
 | drop:query·limit·title | 근거 없는 선택 인자 | 빼고 실행 |
 | drop:unknown_keyword | 목록 밖 키워드(바꿀 수 없음) | 어댑터가 서버에 안 보내고 notes로 알림 |
 | drop:some_places | 일정 장소 일부만 근거 있음 | 근거 없는 장소는 MODEL_SUGGESTED(카드에서 기본 해제) |
@@ -28,7 +29,7 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from glople_agent.tools.keywords import keyword_in_text, resolve_keywords
-from glople_agent.tools.regions import RegionResolution
+from glople_agent.tools.regions import RegionResolution, narrow_by_text, region_query_label
 from glople_agent.tools.regions import resolve as default_resolve
 
 # 시범판 JOSA 그대로(값 바로 뒤에 붙어도 되는 말). '쪽'은 따로 떼고 본다
@@ -203,6 +204,7 @@ class _Check:
 
 
 REGION_TOOLS = frozenset({"search_destinations", "get_weather"})   # region을 해석해 쓰는 도구(S1·M6)
+NOT_COLLECTED_CATEGORIES = ("음식점", "숙박")   # 국내는 수집 안 함(tools/adapters/destinations.NOT_COLLECTED와 같음)
 
 
 def check_call(name: str, args: Mapping[str, Any], text: str, *, recent_places: Iterable[str] = (),
@@ -235,9 +237,18 @@ def check_call(name: str, args: Mapping[str, Any], text: str, *, recent_places: 
         elif name in region_clarify_tools:
             res = resolve_region(region)
             c.region = {"status": res.status, "label": res.label, "candidates": res.candidate_labels()}
-            if res.status == "ambiguous":
-                c.clarify("region_ambiguous", "region")
-                c.candidates = res.candidate_labels()
+            not_collected = (name == "search_destinations" and a.get("category") in NOT_COLLECTED_CATEGORIES
+                             and res.kind == "DOMESTIC")   # 어느 광주든 '숙소 정보는 아직' 답이라 묻지 않음
+            if res.status == "ambiguous" and not not_collected:
+                # M6: 발화의 다른 낱말이 후보 하나를 가리키면 그 후보로('광주 축제 … 경기도요' → 경기도 광주시)
+                picked = narrow_by_text(res, text)
+                if picked is not None:
+                    c.issues.append("fix:region_choice")
+                    a["region"] = region_query_label(picked)
+                    c.region = {**c.region, "label": picked.label}
+                else:
+                    c.clarify("region_ambiguous", "region")
+                    c.candidates = res.candidate_labels()
     if name == "search_destinations":
         if "query" in a and a["query"] not in text:
             c.issues.append("drop:query")

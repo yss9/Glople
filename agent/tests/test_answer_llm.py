@@ -158,31 +158,63 @@ def test_no_model_in_llm_mode_keeps_m0_trace(make_graph, agent_context):
 
 # --- 템플릿이 답할 결과는 짝째로 뺌 ------------------------------------------------------------
 
-def test_pending_feature_result_is_removed_pairwise_and_its_sentence_prepended(make_graph, agent_context):
+def test_empty_detail_result_is_removed_pairwise_and_its_sentence_prepended(make_graph, agent_context):
+    # M6 전에는 상세가 준비 중(pending_feature)이었고, 이제 S1 lookup이 [](바나힐은 fixture에 없음) → 빈 결과도 같은 규칙
     text = "바나힐 정보랑 사람들 리뷰 같이 알려줘"
     llm_text = "바나힐 관련 후기로 '바나힐 골든브릿지 다녀왔어요' 등이 있어요."
     kit, model = llm_kit(make_graph, says(llm_text))
     r = kit.turn(text, agent_context)
     assert r.path == PASS_PATH
-    prefix = tpl.status_message("get_destination_detail", "pending_feature")
+    prefix = tpl.status_message("get_destination_detail", "empty")
     assert r.final_text == f"{prefix} {llm_text}" and r.preview == r.final_text
     [(messages, _)] = model.calls
     ai = messages[2]
     tools = [m for m in messages if isinstance(m, ToolMessage)]
-    assert [tc["name"] for tc in ai.tool_calls] == ["search_reviews"]           # 상세(준비 중) 호출은 빠짐
+    assert [tc["name"] for tc in ai.tool_calls] == ["search_reviews"]           # 상세(빈 결과) 호출은 빠짐
     assert [m.tool_call_id for m in tools] == [ai.tool_calls[0]["id"]]          # 결과도 짝째로
-    assert "pending_feature" not in json.dumps([m.content for m in messages], ensure_ascii=False)
+    assert "get_destination_detail" not in json.dumps([m.content for m in messages], ensure_ascii=False)
     assert r.answer_trace["visible"] == ["search_reviews"] and r.answer_trace["removed"] == ["get_destination_detail"]
 
 
 def test_weather_and_review_in_parallel(make_graph, agent_context):
+    # M6: 날씨는 ok(가짜 Open-Meteo)여도 수치는 코드 템플릿 → 짝째로 빼고 날씨 문장을 앞에(LLM은 날씨 숫자를 못 봄)
     raw = tool_call_message([("search_reviews", {"query": "바나힐"}), ("get_weather", {"region": "부산"})])
     llm_text = "'바나힐 골든브릿지 다녀왔어요' 같은 후기가 있어요."
     kit, model = llm_kit(make_graph, says(llm_text), QuirkScript([raw]))
     r = kit.turn("바나힐 후기랑 부산 날씨 알려줘", agent_context)
-    assert r.final_text == f"{tpl.status_message('get_weather', 'unsupported')} {llm_text}"
+    weather = next(c for c in r.cards if c["tool"] == "get_weather")
+    assert weather["status"] == "ok" and weather["data"]["attribution"] == "Weather data by Open-Meteo.com (CC BY 4.0)"
+    assert r.final_text == f"{tpl.answer_for_card(weather)} {llm_text}"
     [(messages, _)] = model.calls
     assert [tc["name"] for tc in messages[2].tool_calls] == ["search_reviews"] and len(messages) == 4
+    assert "최저" not in json.dumps([m.content for m in messages], ensure_ascii=False)
+    assert "temperature" not in json.dumps([m.content for m in messages], ensure_ascii=False)
+
+
+def test_s1_detail_reaches_answer_model_without_type3_text(make_graph, agent_context):
+    # M6: 상세 ok는 LLM이 답함. 보이는 것은 이름·지역·분류·코드가 만든 소개(60자)·주소뿐, Type3 설명문(sentinel)은 카드에만
+    raw = tool_call_message([("get_destination_detail", {"name": "해동용궁사"})])
+    llm_text = "해동용궁사는 부산광역시 기장군에 있는 관광지예요."
+    kit, model = llm_kit(make_graph, says(llm_text), QuirkScript([raw]))
+    r = kit.turn("해동용궁사 어떤 곳이야?", agent_context)
+    assert r.reply_kind == "llm" and r.final_text == llm_text
+    [(messages, _)] = model.calls
+    [tool_msg] = [m for m in messages if isinstance(m, ToolMessage)]
+    item = json.loads(tool_msg.content)["items"][0]
+    assert set(item) == {"name", "where", "type", "note", "summary", "address"} and item["note"] == "설명은 원문 카드"
+    assert "TYPE3-SENTINEL" not in json.dumps([m.content for m in messages], ensure_ascii=False)
+    assert r.cards[0]["data"]["items"][0]["text"].startswith("TYPE3-SENTINEL-b3f0a5d2")   # 원문은 카드에 그대로
+
+
+def test_same_name_place_is_a_clarify_sentence_not_an_llm_input(make_graph, agent_context):
+    # M6: 동명 장소 후보는 템플릿 되묻기 문장으로 빼고(짝째로), 같이 부른 후기는 LLM이 답함
+    raw = tool_call_message([("get_destination_detail", {"name": "보문사"}), ("search_reviews", {"query": "바나힐"})])
+    llm_text = "'바나힐 골든브릿지 다녀왔어요' 같은 후기가 있어요."
+    kit, model = llm_kit(make_graph, says(llm_text), QuirkScript([raw]))
+    r = kit.turn("보문사 정보랑 바나힐 후기", agent_context)
+    question = "보문사는 인천 강화군과 서울특별시 성북구에 있어요. 어느 지역의 보문사인가요?"
+    assert r.reply_kind == "llm" and r.final_text == f"{question} {llm_text}"
+    assert r.answer_trace["removed"] == ["get_destination_detail"]
 
 
 @pytest.mark.parametrize("text", ["부산 이번 주말 날씨 어때?", "제주 후기 좀 찾아줘"])

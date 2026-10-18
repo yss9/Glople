@@ -1,7 +1,10 @@
 """사람 확인(design.md 9절, 14.2 test_hitl): plan_prepare → review(interrupt) → save_plan.
 
-M3에서 서브그래프 판도 이 테스트를 그대로 통과해야 한다(리팩터 확인).
+M3: 모든 테스트가 평평한 판(flat)과 서브그래프 판(subgraph, graph/plan_subgraph.py) 두 번 돈다(리팩터 확인, 9.3).
+두 판에서 다를 수밖에 없는 것만 판을 보고 갈랐다(테스트 안 주석): 부모 단계 수(remaining_steps), 시간 여행의 갈래점.
+일정 키는 kit.plan_values()로 본다(서브그래프 판에서는 서브그래프 자기 키라 부모 state에 없음).
 """
+import functools
 import json
 
 import pytest
@@ -31,6 +34,12 @@ def router_call_id(values) -> str:
     return tc["id"]
 
 
+@pytest.fixture(params=["flat", "subgraph"])
+def make_graph(request, make_graph):
+    """conftest의 make_graph를 두 판으로 감싼다: 이 파일의 테스트는 모두 판마다 한 번씩."""
+    return functools.partial(make_graph, plan_graph=request.param)
+
+
 @pytest.fixture
 def kit(make_graph):
     return make_graph(RuleScript())
@@ -50,7 +59,9 @@ def test_interrupt_returns_confirm_card(kit, agent_context):
         ("성산일출봉", "USER", 1, True), ("우도", "USER", 2, True)]
     assert intr.response_schema["required"] == ["decision"]   # 클라이언트용 JSON Schema
     snap = kit.graph.get_state(kit.config)
-    assert snap.next == ("review",) and [i.id for i in snap.interrupts] == [intr.id]   # get_state도 대기 카드만
+    assert kit.waiting_at() == ("review",) and [i.id for i in snap.interrupts] == [intr.id]   # get_state도 대기 카드만
+    # 서브그래프 판: 부모는 plan 노드에서 멈춘 것으로 보이고, interrupt는 최상위까지 올라온다(9.3)
+    assert snap.next == (("plan",) if kit.plan_graph == "subgraph" else ("review",))
     assert [c["kind"] for c in r.cards] == ["plan_confirm"] and kit.store.save_count == 0
     # 확인 전에는 일정 ToolMessage가 없음(짝은 review/save_plan이 닫음)
     assert plan_tool_message(kit.values()) == []
@@ -60,7 +71,8 @@ def test_invoke_v2_graph_output_has_interrupts(kit, agent_context):
     from langchain_core.messages import HumanMessage
     out = kit.graph.invoke({"messages": [HumanMessage(PLAN_TEXT)]}, kit.config, context=agent_context, version="v2")
     [intr] = out.interrupts   # GraphOutput.interrupts
-    assert intr.value["type"] == "plan_confirm" and out.value["plan_draft"]["title"] == "제주 2박 3일"
+    assert intr.value["type"] == "plan_confirm" and kit.plan_values()["plan_draft"]["title"] == "제주 2박 3일"
+    assert ("plan_draft" in out.value) == (kit.plan_graph == "flat")   # 서브그래프 판은 서브그래프 자기 키
 
 
 def test_approve_saves_once_with_tool_call_id_as_key(kit, agent_context):
@@ -132,7 +144,7 @@ def test_double_submit_of_edit_applies_once(kit, agent_context):
     edited = kit.resume(edit, agent_context, interrupt_id=first.pending.id)
     with pytest.raises(InterruptNotPending):
         kit.resume(edit, agent_context, interrupt_id=first.pending.id)
-    assert kit.values()["plan_edits"] == 1 and edited.pending.value["edits_left"] == 2
+    assert kit.plan_values()["plan_edits"] == 1 and edited.pending.value["edits_left"] == 2
 
 
 def test_reject_saves_nothing_and_closes_call(kit, agent_context):
@@ -232,7 +244,7 @@ def test_401_shows_card_again_with_notice_then_reapprove_saves_once(make_graph, 
     done = kit.resume({"decision": "approve"}, fresh)
     assert done.done and done.final_text == "'제주 2박 3일' 일정을 저장했어요."
     assert kit.store.save_count == 1 and kit.store.call_count == 2
-    assert kit.values()["plan_notice"] is None
+    assert kit.plan_values().get("plan_notice") is None
 
 
 def test_resume_without_context_asks_login_again(kit, agent_context):
@@ -339,8 +351,9 @@ def test_resume_uses_fresh_step_budget(kit, agent_context):
         kit.resume({"decision": "edit", "draft": {"region": "제주", "days": 2, "places": ["우도"]}}, agent_context)
     done = kit.resume({"decision": "approve"}, agent_context)
     assert done.done and kit.store.save_count == 1
-    # 재개 invoke마다 새 예산: 다시 도는 review가 26, save_plan 25, finish 24(edit 3회를 나눠 쓰지 않음)
-    assert kit.sink[-1]["remaining_steps"] == 24
+    # 재개 invoke마다 새 예산: 다시 도는 review가 26, save_plan 25, finish 24(edit 3회를 나눠 쓰지 않음).
+    # 서브그래프 판은 부모에서 plan이 한 단계(26)라 finish가 25(서브그래프 안은 자기 예산, test_pins_m3)
+    assert kit.sink[-1]["remaining_steps"] == (25 if kit.plan_graph == "subgraph" else 24)
 
 
 def test_save_plan_reruns_only_by_time_travel_and_store_key_dedupes(kit, agent_context):
@@ -354,10 +367,39 @@ def test_save_plan_reruns_only_by_time_travel_and_store_key_dedupes(kit, agent_c
     assert kit.store.call_count == 1 and kit.graph.get_state(kit.config).next == ()
     # ② save_plan이 다시 도는 길은 저장 전 체크포인트에서 다시 실행(시간 여행)뿐인데, 그 갈래점 state에는
     #    저장 기록이 없어 state 검사로는 막을 수 없음 → 저장소 멱등키(3겹)가 같은 일정 1건으로 막음
-    fork = next(snap for snap in kit.graph.get_state_history(kit.config) if snap.next == ("save_plan",))
+    #    서브그래프 판의 시간 여행은 부모 체크포인트 단위다: 갈래점은 plan 앞이고, 다시 돌면 plan_prepare부터라
+    #    확인 카드가 새로 뜬다(서브그래프 안 save_plan 앞 체크포인트로는 바로 못 감, api-notes M3)
+    before = ("plan",) if kit.plan_graph == "subgraph" else ("save_plan",)
+    fork = next(snap for snap in kit.graph.get_state_history(kit.config) if snap.next == before)
     assert fork.values["results"] == []
-    kit.graph.invoke(None, {**fork.config, "recursion_limit": 25}, context=agent_context)
+    out = kit.graph.invoke(None, {**fork.config, "recursion_limit": 25}, context=agent_context, version="v2")
+    if kit.plan_graph == "subgraph":
+        [again] = out.interrupts
+        assert again.id != first.pending.id and kit.store.call_count == 1
+        kit.resume({"decision": "approve"}, agent_context, interrupt_id=again.id)
     assert kit.store.call_count == 2 and kit.store.save_count == 1
     [saved] = kit.store.list_plans(agent_context.user_id)
     assert saved["clientRequestId"] == first.pending.value["tool_call_id"]
     assert kit.values()["final_text"] == "'제주 2박 3일' 일정을 저장했어요."
+
+
+def test_fork_back_edit_and_approve_does_not_claim_a_new_save(kit, agent_context):
+    # M3 시간 여행: 저장한 뒤 /fork로 확인 카드에 돌아가 고쳐서 승인하면 멱등키(tool_call_id)가 같아 저장소는 처음 일정을
+    # 돌려준다(Spring 200). 바꾼 내용이 저장된 것처럼 말하지 않고, 저장소에는 처음 일정 1건만 남는다
+    from glople_agent.graph import fork
+
+    first = kit.turn(PLAN_TEXT, agent_context)
+    kit.resume({"decision": "approve"}, agent_context)
+    waiting = ("plan",) if kit.plan_graph == "subgraph" else ("review",)
+    snap = next(s for s in kit.graph.get_state_history(kit.config) if s.next == waiting and s.interrupts)
+    kit.last = fork(kit.graph, snap.config, agent_context)
+    assert kit.last.pending is not None and kit.last.pending.id != first.pending.id
+    edited = kit.resume({"decision": "edit", "draft": {"region": "제주", "days": 2, "places": ["우도"],
+                                                       "title": "우도만"}}, agent_context)
+    done = kit.resume({"decision": "approve"}, agent_context, interrupt_id=edited.pending.id)
+    assert done.final_text == tpl.PLAN_ALREADY_SAVED and done.reply_kind == "plan"
+    assert kit.store.save_count == 1 and kit.store.call_count == 2
+    [saved] = kit.store.list_plans(agent_context.user_id)
+    assert saved["title"] == "제주 2박 3일"
+    [card] = [c for c in done.cards if c["kind"] == "plan_saved"]
+    assert card["data"]["already_saved"] is True and card["data"]["saved"]["title"] == "제주 2박 3일"

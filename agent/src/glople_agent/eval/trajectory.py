@@ -2,7 +2,8 @@
 
 finish 노드가 nodes.trajectory_record(state)를 sink로 넘기고, 여기서 시각을 붙여 날짜별 파일에 덧붙인다.
 기록에 넣지 않는 것: 토큰, 사용자 id, 발화·인자 값·결과 글·LLM 답 글(개인정보·Type3 원문). 넣는 것: 라우터 종류·시도 수,
-호출 이름·판정·근거 검사 코드, 결과 도구·상태, 답 종류, 후속 발화 처리 여부, (M2) 답변 가드 판정·이유 코드·교체 여부.
+호출 이름·판정·근거 검사 코드, 결과 도구·상태, 답 종류, 후속 발화 처리 여부, (M2) 답변 가드 판정·이유 코드·교체 여부,
+(M7 loop) 호출의 라운드 번호와 도구 결과 뒤 라운드마다의 판단 코드(answer·call·guard_fail·round_limit …).
 막힌 호출로 근거 검사 오탐을, 가드 이유로 LLM 답의 실패 빈도를 본다(7절, 15.2).
 저장 전에 금지 키가 없는지 한 번 더 확인하고, 있으면 그 줄을 쓰지 않고 ValueError를 낸다.
 """
@@ -56,6 +57,7 @@ def format_line(record: Mapping[str, Any]) -> str:
     """CLI용 한 줄 요약: 라우터 → 판정 → 결과 → 답 종류."""
     verdicts = " ".join(f"{v['name']}:{'ok' if v['ok'] else v['reason']}"
                         + (f"[{','.join(v['issues'])}]" if v.get("issues") else "")
+                        + (f"@{v['round']}" if v.get("round") else "")   # M7 loop: 두 번째 라운드 호출
                         for v in record.get("verdicts") or [])
     results = " ".join(f"{r['tool']}={r['status']}" for r in record.get("results") or [])
     follow = record.get("followup") or {}
@@ -65,8 +67,10 @@ def format_line(record: Mapping[str, Any]) -> str:
     if answer:   # M2: answer_llm 가드 판정(통과 / 실패 이유 코드, 미리보기 교체)
         guard = f" guard={answer.get('guard')}" + (f"[{','.join(answer['reasons'])}]" if answer.get("reasons") else "") \
             + (" 교체" if answer.get("replaced") else "")
+    loop = record.get("after_tools") or []
+    loop_text = (" | loop=" + "→".join(str(e.get("decision")) for e in loop)) if loop else ""   # M7: 라운드마다 판단
     return (f"router={record.get('router_kind')}×{record.get('router_attempts')}{extra} | {verdicts or '-'} | "
-            f"{results or '-'} | reply={record.get('reply_kind')}{guard}")
+            f"{results or '-'} | reply={record.get('reply_kind')}{guard}{loop_text}")
 
 
 __all__ = ["DEFAULT_DIR", "FORBIDDEN_KEYS", "JsonlTrajectorySink", "format_line"]

@@ -3,6 +3,12 @@
 - 라우터는 정답 assistant를 그대로 내는 '완벽한 라우터'(OracleScript, check_request=True로 요청 모양도 검사).
 - 발화마다 새 thread. 확인 카드가 뜨면 approve로 재개해 END까지 간다.
 - M0 검사는 스키마 수준이라 정답 호출은 하나도 막히지 않아야 한다(텍스트 정답 → direct_reply).
+- (M6) 정답 호출이어도 에이전트 정책으로 되묻는 두 경우는 따로 센다(정답과 다른 경로가 아님):
+  `clarify(지역)` = 모호한 지역(광주)이라 validate가 후보를 되물음(train에 '광주' 정답 16호출 = 14발화 중 음식점·숙박
+  단독 3발화는 어느 광주든 '수집 안 함' 답이라 묻지 않아 11발화, test·human 0건),
+  `tool(되묻기)` = 도구는 정답대로 돌았고 결과가 동명 장소 후보뿐이라 collect → clarify(fixture에는 정답 장소 중 동명이 없어 0건).
+- (M7) after_tools="loop"이면 도구 결과 뒤 요청을 LoopAnswerScript(결과 이름·제한 이유만 말하는 가짜, 다시 부르지 않음)가 받고,
+  요청 모양은 check_after_tools_request로 본다. 실행 호출은 첫 라운드 호출로 정답과 비교하고, 라운드마다의 판단을 따로 센다.
 """
 import time
 from collections import Counter
@@ -17,8 +23,9 @@ from langgraph.checkpoint.memory import InMemorySaver
 from glople_agent import contract
 from glople_agent.context import AgentContext, BearerToken
 from glople_agent.graph.build import build_graph, fake_deps, new_thread_id, resume, run_turn
+from glople_agent.graph.after_tools import tool_rounds
 from glople_agent.graph.nodes import router_message
-from glople_agent.llm.fake import OracleCase, OracleScript, load_oracle_cases
+from glople_agent.llm.fake import AfterToolsScript, LoopAnswerScript, OracleCase, OracleScript, load_oracle_cases
 from glople_agent.plan import InMemoryPlanStore
 from glople_agent.sanitize import clean_text
 from glople_agent.tools.fake_backend import FakeBackend
@@ -29,7 +36,8 @@ DATASETS: dict[str, Path] = {
     "v2-valid": contract.V2_DATA_DIR / "valid.jsonl",
     "human": contract.HUMAN_STYLE_PATH,
 }
-CATEGORIES = ("tool", "tool(병렬)", "plan", "clarify", "direct", "fallback", "unfinished")
+CATEGORIES = ("tool", "tool(병렬)", "plan", "clarify", "clarify(지역)", "tool(되묻기)", "direct", "fallback", "unfinished")
+INTENDED_CLARIFY = ("clarify(지역)", "tool(되묻기)")   # 정답 호출이지만 정책상 되묻기(M6)
 REPLAY_NOW = datetime(2026, 10, 17, 12, 0, tzinfo=ZoneInfo("Asia/Seoul"))
 REPLAY_TOKEN = "replay-fake-token-not-a-jwt"   # 고정 테스트 값(실제 JWT 아님)
 
@@ -40,12 +48,15 @@ class CaseResult:
     path: list[str] = field(default_factory=list)     # 첫 invoke + 재개 invoke의 노드
     max_invoke_steps: int = 0                         # 한 번의 invoke에서 돈 노드 수 최대
     reply_kind: str | None = None
+    final_text: str | None = None
     router_kind: str | None = None
     verdicts_ok: bool = False                         # validate가 모든 호출을 통과시킴
     calls: int = 0
     executed: list[tuple[str, dict]] = field(default_factory=list)   # validate 뒤 라우터 메시지에 남은 호출
     reached_end: bool = False
     error: str | None = None
+    region_clarify: bool = False      # (M6) 막힌 호출이 모두 clarify:region_ambiguous(모호한 지역)뿐
+    after_tools: tuple[str, ...] = ()  # (M7 loop) 도구 결과 뒤 라운드마다의 판단(answer·call·guard_fail …)
 
     @property
     def category(self) -> str:
@@ -54,6 +65,10 @@ class CaseResult:
             return "unfinished"
         if "plan_prepare" in p:
             return "plan"
+        if self.region_clarify:   # 병렬 중 날씨만 '어느 광주?'로 막히고 검색은 돈 경우도(답 끝에 되묻기 문장)
+            return "clarify(지역)"
+        if "clarify" in p and "tools" in p:
+            return "tool(되묻기)"
         if "clarify" in p:
             return "clarify"
         if "direct_reply" in p:
@@ -70,7 +85,9 @@ class CaseResult:
         if self.error or not self.reached_end:
             return False
         if self.case.is_call:
-            return (self.verdicts_ok and self.category in ("tool", "tool(병렬)", "plan")
+            if self.category == "clarify(지역)":
+                return True
+            return (self.verdicts_ok and self.category in ("tool", "tool(병렬)", "plan", "tool(되묻기)")
                     and self.executed == self.case.expected_calls)
         return self.category == "direct"
 
@@ -82,6 +99,7 @@ class ReplayReport:
     missing: list[str] = field(default_factory=list)
     seconds: float = 0.0
     saved_plans: int = 0
+    after_tools: str = "answer"   # M7: answer | loop
 
     @property
     def total(self) -> int:
@@ -130,11 +148,16 @@ def dataset_paths(names: Iterable[str]) -> tuple[list[Path], list[str]]:
     return paths, missing
 
 
-def replay_cases(cases: Sequence[OracleCase], *, check_request: bool = True) -> tuple[list[CaseResult], int]:
-    """정답 케이스를 그래프에 흘린다. (케이스 결과, 저장된 일정 수)."""
+def replay_cases(cases: Sequence[OracleCase], *, check_request: bool = True,
+                 plan_graph: str = "flat", after_tools: str = "answer") -> tuple[list[CaseResult], int]:
+    """정답 케이스를 그래프에 흘린다. (케이스 결과, 저장된 일정 수). plan_graph(M3): "flat" | "subgraph".
+    after_tools(M7): "answer"(기본) | "loop"(결과 뒤 요청은 LoopAnswerScript)."""
     store = InMemoryPlanStore()
     oracle = OracleScript(cases=cases, check_request=check_request)
-    deps = fake_deps(oracle, backend=FakeBackend(today=REPLAY_NOW.date()), store=store)
+    loop = after_tools == "loop"
+    script = AfterToolsScript(oracle, LoopAnswerScript(), check_request=check_request) if loop else oracle
+    deps = fake_deps(script, backend=FakeBackend(today=REPLAY_NOW.date()), store=store, plan_graph=plan_graph,
+                     after_tools=after_tools)
     graph = build_graph(deps, InMemorySaver())
     ctx = AgentContext(user_id="replay-user", bearer=BearerToken(REPLAY_TOKEN), request_id="replay",
                        now=REPLAY_NOW, seed=0)
@@ -152,11 +175,21 @@ def replay_cases(cases: Sequence[OracleCase], *, check_request: bool = True) -> 
                 turn = after
             values = turn.values
             res.reply_kind = turn.reply_kind
+            res.final_text = turn.final_text
             res.router_kind = values.get("router_kind")
             verdicts = values.get("verdicts") or []
             res.calls = len(verdicts)
             res.verdicts_ok = bool(verdicts) and all(v["ok"] for v in verdicts)
-            if (ai := router_message(values)) is not None:
+            blocked = [v for v in verdicts if not v["ok"]]
+            res.region_clarify = bool(blocked) and all(
+                "clarify:region_ambiguous" in ((v.get("grounding") or {}).get("issues") or []) for v in blocked)
+            if loop:   # 두 번째 라운드가 있으면 router_message는 그 호출이라, 정답과는 첫 라운드 호출을 비교
+                rounds = tool_rounds(values.get("messages") or [])
+                ai = rounds[0][0] if rounds else router_message(values)
+                res.after_tools = tuple(e.get("decision") or "?" for e in turn.after_tools)
+            else:
+                ai = router_message(values)
+            if ai is not None:
                 res.executed = [(tc["name"], tc["args"]) for tc in ai.tool_calls]
             res.reached_end = turn.done and turn.error is None and res.path[-1:] == ["finish"]
             if turn.error:
@@ -167,13 +200,14 @@ def replay_cases(cases: Sequence[OracleCase], *, check_request: bool = True) -> 
     return out, store.save_count
 
 
-def replay(names: Iterable[str] = ("v2-test", "human"), *, check_request: bool = True) -> ReplayReport:
+def replay(names: Iterable[str] = ("v2-test", "human"), *, check_request: bool = True,
+           plan_graph: str = "flat", after_tools: str = "answer") -> ReplayReport:
     names = list(names)
     paths, missing = dataset_paths(names)
     cases = load_oracle_cases(paths) if paths else []
     start = time.perf_counter()
-    results, saved = replay_cases(cases, check_request=check_request)
-    return ReplayReport(names, results, missing, time.perf_counter() - start, saved)
+    results, saved = replay_cases(cases, check_request=check_request, plan_graph=plan_graph, after_tools=after_tools)
+    return ReplayReport(names, results, missing, time.perf_counter() - start, saved, after_tools)
 
 
 def _pct(n: int, total: int) -> str:
@@ -199,6 +233,10 @@ def format_report(report: ReplayReport) -> str:
     replies = report.reply_counts()
     lines += ["", "| reply_kind | 건수 |", "|---|---|"]
     lines += [f"| {k} | {v} |" for k, v in sorted(replies.items(), key=lambda kv: (-kv[1], kv[0]))]
+    if report.after_tools == "loop":   # M7: 도구 결과 뒤 라운드마다의 판단(가짜 LoopAnswerScript라 늘 1라운드 답이어야 함)
+        loops = Counter(" → ".join(r.after_tools) for r in report.results if r.after_tools)
+        lines += ["", "| 도구 결과 뒤(loop) 판단 | 건수 |", "|---|---|"]
+        lines += [f"| {k} | {v} |" for k, v in sorted(loops.items(), key=lambda kv: (-kv[1], kv[0]))] or ["| - | 0 |"]
     if report.errors or report.unexpected:
         lines += ["", "정답과 다르거나 예외가 난 발화(앞 10개):"]
         for r in (report.errors + [u for u in report.unexpected if not u.error])[:10]:

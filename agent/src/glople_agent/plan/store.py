@@ -1,4 +1,5 @@
-"""일정 저장소(design.md 9.1 save_plan, 9.2 세 번째 겹). M0는 메모리, M3에 Spring(S2)으로 바꾼다.
+"""일정 저장소(design.md 9.1 save_plan, 9.2 세 번째 겹). M0는 메모리, M3에 Spring(S2, plan/spring_store.py)을 더했다
+(기본은 여전히 메모리: graph.build.make_plan_store, real_deps(plan_store="spring")로 켬).
 
 멱등키 (user_id, client_request_id)는 Spring UNIQUE(user_id, client_request_id)와 같은 규칙이다.
 같은 키로 다시 오면 새로 만들지 않고 처음 결과를 돌려준다(Spring 200).
@@ -54,7 +55,8 @@ class PlanRejected(PlanStoreError):
 class SaveResult:
     plan_id: int
     created: bool     # True = 새로 저장(201), False = 같은 키 재요청이라 기존 일정(200)
-    plan: PlanDraft   # 저장된 본문(사본)
+    plan: PlanDraft   # 저장된 본문(사본). Spring 저장소는 서버가 돌려준 일정을 같은 모양으로
+    created_at: str | None = None   # M3 Spring 응답의 createdAt(메모리 저장소는 None)
 
     @property
     def status(self) -> int:

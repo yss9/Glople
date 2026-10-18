@@ -75,7 +75,7 @@ def test_injected_special_token_strings_do_not_become_control_tokens(tmp_path):
 
 # --- M2: 답변(a3) 요청 렌더링 ------------------------------------------------------------------
 
-def _captured_answer_request(tmp_path: Path, utterance: str, agent_context) -> Path:
+def _captured_answer_request(tmp_path: Path, utterance: str, agent_context, answer_prompt: str = "v1") -> Path:
     """그래프(llm 모드, 실제 ChatOpenAI)가 가짜 서버에 보낸 답변 요청 본문을 파일로."""
     from langgraph.checkpoint.memory import InMemorySaver
 
@@ -94,13 +94,13 @@ def _captured_answer_request(tmp_path: Path, utterance: str, agent_context) -> P
     server = fos.serve(port=0, script=script)
     try:
         deps = real_deps(server.base_url, backend=FakeBackend(today=agent_context.now.date()),
-                         retry_initial_interval=0.0)
+                         retry_initial_interval=0.0, answer_prompt=answer_prompt)
         run_turn(build_graph(deps, InMemorySaver()), "t-render", utterance, agent_context)
         body = next(r["body"] for r in server.requests if "tools" not in r["body"])
     finally:
         server.shutdown()
         server.server_close()
-    path = tmp_path / "answer_request.json"
+    path = tmp_path / f"answer_request_{answer_prompt}.json"
     path.write_text(json.dumps(body, ensure_ascii=False), encoding="utf-8")
     return path
 
@@ -124,3 +124,12 @@ def test_answer_request_renders_tool_calls_and_responses_without_tool_list(tmp_p
     assert special["<tool_response>"] == 3 and special["</tool_response>"] == 1  # 결과 1개 + system 문구 2번
     assert special["<think>"] == 0 and special["<|endoftext|>"] == 0
     assert 250 <= result["tokens"] <= 600, result   # 설계: 렌더링 약 263토큰 + 결과(후기 3개 274자)
+
+
+def test_answer_prompt_v2_renders_with_the_same_control_tokens(tmp_path, agent_context):
+    # M4 a3-v2: 문구만 바뀌고 제어 토큰 수(system의 <tool_response> 2번 포함)는 v1과 같다. 길이는 조금 늘어남
+    text = "바나힐 정보랑 사람들 리뷰 같이 알려줘"
+    v1 = _render_only(_captured_answer_request(tmp_path, text, agent_context))
+    v2 = _render_only(_captured_answer_request(tmp_path, text, agent_context, answer_prompt="v2"))
+    assert v2["special_counts"] == v1["special_counts"]
+    assert v1["tokens"] < v2["tokens"] <= v1["tokens"] + 120, (v1["tokens"], v2["tokens"])

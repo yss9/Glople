@@ -12,6 +12,7 @@ dependencies = [
     "langgraph==1.2.12",
     "langgraph-prebuilt==1.1.0",
     "langgraph-checkpoint==4.2.0",
+    "langgraph-checkpoint-sqlite==3.1.1",  # M3: SqliteSaver(aiosqlite·sqlite-vec를 함께 끌어옴, requirements.lock)
     "langchain-core==1.6.6",
     "langchain-openai==1.6.7",
     "openai==3.24.0",
@@ -23,6 +24,13 @@ dependencies = [
 dev = [
     "pytest==9.1.1",
     "respx==0.23.1",
+]
+# M5 서비스(FastAPI /ai-api/v1, SSE). `pip install -e ".[dev,server]"`. 서비스 테스트(tests/test_service_*.py)도 이것이 있어야 돈다
+server = [
+    "fastapi==0.142.2",       # starlette 1.7.0·annotated-doc·opentelemetry-api를 함께 끌어옴(requirements.lock)
+    "uvicorn==0.54.0",        # 표준 h11만(uvloop·httptools 없음)
+    "httpx-sse==0.4.3",       # 테스트·CLI에서 SSE 읽기
+    "pytest-asyncio==1.4.0",  # 서비스의 비동기 테스트(strict 모드, 기존 테스트에는 영향 없음)
 ]
 
 [tool.setuptools.packages.find]

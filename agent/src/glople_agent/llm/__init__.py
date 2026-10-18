@@ -8,7 +8,9 @@ from glople_agent.llm.fake import (
     DEFAULT_QUIRKS,
     QUIRK_KINDS,
     RULE_DEMOS,
+    AfterToolsScript,
     CassetteScript,
+    LoopAnswerScript,
     OracleCase,
     OracleMiss,
     OracleScript,
@@ -19,6 +21,9 @@ from glople_agent.llm.fake import (
     RuleScript,
     ScriptedChatModel,
     ScriptExhausted,
+    V4OracleScript,
+    after_tools_rounds,
+    check_after_tools_request,
     check_router_request,
     fake_answer_model,
     fake_router_model,
@@ -47,6 +52,7 @@ from glople_agent.llm.normalize import (
 
 __all__ = [
     "DEFAULT_QUIRKS", "QUIRK_KINDS", "RETRY_OVERRIDES", "RULE_DEMOS",
+    "AfterToolsScript", "LoopAnswerScript", "V4OracleScript", "after_tools_rounds", "check_after_tools_request",
     "Cassette", "CassetteMiss", "CassetteScript", "OracleCase", "OracleMiss", "OracleScript", "QuirkScript",
     "RecordingChatModel", "RequestShapeError", "ResultEchoScript", "RouterOutcome", "RuleDemo",
     "RuleScript", "ScriptExhausted", "ScriptedChatModel", "message_from_record", "recording_model", "request_key",

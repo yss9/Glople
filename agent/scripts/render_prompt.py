@@ -8,9 +8,12 @@ training/.venv로 실행한다(jinja2·tokenizers만 import. transformers·mlx·
 - --request: 에이전트 쪽에서 가짜 OpenAI 서버가 받은 요청 본문(JSON). tests/test_template_snapshot.py가 만든다.
 - --record: 같은 발화의 학습 레코드가 든 jsonl(system·user·assistant + tools). 발화로 찾는다.
   (M2) 생략할 수 있다: 답변(a3) 요청처럼 대조할 학습 레코드가 없는 요청은 토큰 수·특수 토큰 수만 본다.
+  (M7) 도구 결과 뒤 요청(메시지 n개)은 발화가 같고 앞 n개의 역할이 같으며 그보다 긴 레코드(v4 after_call·after2_answer)를 찾아
+  레코드의 앞 n개를 렌더링해 비교한다. 라우터 요청(n=2)은 지금까지와 같다.
 - 렌더링 환경은 transformers의 apply_chat_template과 같게 맞췄다(utils/chat_template_utils.py를 읽고 옮김):
   ImmutableSandboxedEnvironment(trim_blocks, lstrip_blocks, loopcontrols), tojson = json.dumps(ensure_ascii=False).
-- mlx_lm.server처럼 content None → "", 텍스트 조각 목록 → 이어 붙임, add_generation_prompt=True.
+- 요청 쪽은 mlx_lm.server process_message_content처럼 content None → "", 텍스트 조각 목록 → 이어 붙임, tool_calls의
+  arguments 문자열 → dict(json.loads), add_generation_prompt=True. 레코드 쪽은 학습(mlx-lm ChatDataset) 때처럼 그대로 렌더링한다.
 출력은 JSON 한 줄: same_bytes, prefix_of_record, tokens, special_counts, sha256.
 """
 import argparse
@@ -43,7 +46,7 @@ def environment() -> ImmutableSandboxedEnvironment:
 
 
 def server_messages(messages: list[dict]) -> list[dict]:
-    """mlx_lm.server process_message_content와 같은 정리."""
+    """mlx_lm.server process_message_content와 같은 정리(arguments 문자열은 dict로, server.py 238-243행)."""
     out = []
     for m in messages:
         m = dict(m)
@@ -52,13 +55,39 @@ def server_messages(messages: list[dict]) -> list[dict]:
             m["content"] = "".join(part["text"] for part in content if part.get("type") == "text")
         elif content is None:
             m["content"] = ""
+        if m.get("tool_calls"):
+            calls = []
+            for tc in m["tool_calls"]:
+                tc = dict(tc)
+                func = dict(tc.get("function") or {})
+                if isinstance(func.get("arguments"), str) and func["arguments"]:
+                    func["arguments"] = json.loads(func["arguments"])
+                tc["function"] = func
+                calls.append(tc)
+            m["tool_calls"] = calls
         out.append(m)
     return out
 
 
-def render(template, messages, tools, *, add_generation_prompt: bool) -> str:
-    return template.render(messages=server_messages(messages), tools=tools or None, documents=None,
+def render(template, messages, tools, *, add_generation_prompt: bool, server: bool = True) -> str:
+    """server=True면 서버가 받은 요청처럼 정리한 뒤, False면 학습 레코드 그대로 렌더링한다."""
+    msgs = server_messages(messages) if server else messages
+    return template.render(messages=msgs, tools=tools or None, documents=None,
                            add_generation_prompt=add_generation_prompt)
+
+
+def find_record(path: Path, request_messages: list[dict]) -> dict | None:
+    """발화가 같고 앞 n개(요청 메시지 수)의 역할이 같으며 n개보다 긴 첫 레코드."""
+    user = next(m["content"] for m in request_messages if m["role"] == "user")
+    roles = [m["role"] for m in request_messages]
+    with path.open(encoding="utf-8") as f:
+        for line in f:
+            r = json.loads(line)
+            msgs = r["messages"]
+            same_roles = [m["role"] for m in msgs[:len(roles)]] == roles
+            if len(msgs) > len(roles) and msgs[1]["content"] == user and same_roles:
+                return r
+    return None
 
 
 def main(argv=None) -> int:
@@ -69,15 +98,8 @@ def main(argv=None) -> int:
     args = p.parse_args(argv)
 
     request = json.loads(args.request.read_text(encoding="utf-8"))
-    user = next(m["content"] for m in request["messages"] if m["role"] == "user")
-    record = None
-    if args.record is not None:
-        with args.record.open(encoding="utf-8") as f:
-            for line in f:
-                r = json.loads(line)
-                if r["messages"][1]["content"] == user:
-                    record = r
-                    break
+    record = find_record(args.record, request["messages"]) if args.record is not None else None
+    n = len(request["messages"])
     template = environment().from_string((args.model_dir / "chat_template.jinja").read_text(encoding="utf-8"))
     tokenizer = Tokenizer.from_file(str(args.model_dir / "tokenizer.json"))
     text = render(template, request["messages"], request.get("tools"), add_generation_prompt=True)
@@ -86,8 +108,8 @@ def main(argv=None) -> int:
     out = {"tokens": len(ids), "chars": len(text), "special_counts": special,
            "sha256": hashlib.sha256(text.encode()).hexdigest(), "record_found": record is not None}
     if record is not None:
-        prefix = render(template, record["messages"][:2], record["tools"], add_generation_prompt=True)
-        full = render(template, record["messages"], record["tools"], add_generation_prompt=False)
+        prefix = render(template, record["messages"][:n], record["tools"], add_generation_prompt=True, server=False)
+        full = render(template, record["messages"], record["tools"], add_generation_prompt=False, server=False)
         out["same_bytes"] = prefix.encode() == text.encode()
         out["prefix_of_record"] = full.startswith(text)
         out["record_special_counts"] = {t: tokenizer.encode(prefix, add_special_tokens=False).ids.count(

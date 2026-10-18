@@ -131,6 +131,11 @@ def test_region_tables_are_flat_and_consistent():
     countries = {c["name"] for c in json.loads((R.RESOURCES_DIR / "countries.json").read_text(encoding="utf-8"))["entries"]}
     assert all(c["country"] in countries for c in cities if c["country"])
     assert all(c["radiusKm"] > 0 for c in cities)
+    # M6: 해외 도시는 도심 좌표를 채움(반경 검색·날씨), 국내는 아직 null(지오코딩)
+    assert all(-90 <= c["lat"] <= 90 and -180 <= c["lng"] <= 180 for c in cities)
+    tokyo = R.resolve("도쿄").region
+    assert R.distance_km(tokyo.lat, tokyo.lng, 35.7188, 139.7765) < tokyo.radius_km < R.distance_km(
+        tokyo.lat, tokyo.lng, 34.74, 139.40)   # 도쿄 국립박물관은 안, 이즈오섬은 밖
 
 
 def _gold_region_values(paths):

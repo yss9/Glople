@@ -6,8 +6,8 @@
 - ToolMessage content는 도구가 이미 만든 LLM용 봉투 그대로다({"tool", "status", "items", "notes"}, ensure_ascii=False,
   어댑터가 허용 필드로만 만든 값). 카드(ToolMessage.artifact·state.cards)의 원문·이미지·출처는 여기에 절대 넣지 않는다.
   "tool" 키가 없으면 채운다(Qwen 템플릿이 tool_call_id·이름을 렌더링하지 않아 병렬 결과가 순서로만 짝지어지기 때문).
-- 템플릿이 답해야 하는 결과(날씨·미지원·준비 중·빈 결과·오류)는 호출과 결과를 **짝째로** 빼고, 그 템플릿 문장을
-  prefix로 돌려준다(노드가 LLM 답 앞에 붙임).
+- 템플릿이 답해야 하는 결과(날씨·미지원·준비 중·빈 결과·오류, M6 동명 장소 후보)는 호출과 결과를 **짝째로** 빼고,
+  그 템플릿 문장(동명 장소면 '어느 지역의 ○○인가요?')을 prefix로 돌려준다(노드가 LLM 답 앞에 붙임).
 - 도구 결과 전체는 TOOL_SECTION_MAX_CHARS(한글 약 1,000자 ≈ 800토큰) 이하. 넘으면 긴 결과부터 뒤 항목을 뺀다
   (envelope.refit_content, 빠진 항목은 카드에 남고 note로 알림).
 """
@@ -75,8 +75,10 @@ def section_caps(sizes: Sequence[int], budget: int) -> list[int]:
 
 def build_answer_input(router_input: str, calls: Sequence[Mapping[str, Any]],
                        tool_messages: Mapping[str, ToolMessage], cards_by_call: Mapping[str, Mapping[str, Any]],
-                       *, max_chars: int = TOOL_SECTION_MAX_CHARS) -> AnswerInput:
-    """이번 턴 호출(validate가 남긴 순서)·ToolMessage·카드 → 답변 모델 입력과 템플릿 prefix."""
+                       *, max_chars: int = TOOL_SECTION_MAX_CHARS,
+                       system_prompt: str = ANSWER_SYSTEM_PROMPT) -> AnswerInput:
+    """이번 턴 호출(validate가 남긴 순서)·ToolMessage·카드 → 답변 모델 입력과 템플릿 prefix.
+    system_prompt: 답변 system 문구(M4: llm/prompts.answer_system_prompt("v2")). 기본은 design.md 6.4 그대로."""
     visible: list[dict] = []
     removed: list[dict] = []
     prefix_parts: list[str] = []
@@ -87,17 +89,18 @@ def build_answer_input(router_input: str, calls: Sequence[Mapping[str, Any]],
             continue   # 짝 없는 호출(finish가 닫음)은 LLM에도 템플릿에도 없음
         card = cards_by_call.get(cid)
         status = (card or {}).get("status") or (parse_content(msg.content) or {}).get("status") or "error"
-        if llm_answerable(name, status) and isinstance(msg.content, str):
+        clarify = bool(((card or {}).get("data") or {}).get("needsClarification"))   # M6 동명 장소 후보: 되묻기 문장으로
+        if llm_answerable(name, status) and not clarify and isinstance(msg.content, str):
             visible.append({"tool_call_id": cid, "tool": name, "args": dict(tc.get("args") or {}),
                             "content": _with_tool_key(msg.content, name)})
         else:
             removed.append({"tool_call_id": cid, "tool": name, "status": status})
-            prefix_parts.append(tpl.answer_for_card(card) if card is not None
-                                else tpl.status_message(name, status, tc.get("args")))
+            prefix_parts += (tpl.card_sentences(card) if card is not None
+                             else [tpl.status_message(name, status, tc.get("args"))])
     caps = section_caps([len(v["content"]) for v in visible], max_chars)
     for v, cap in zip(visible, caps):
         v["content"] = refit_content(v["content"], cap)
-    messages: list[BaseMessage] = [SystemMessage(content=ANSWER_SYSTEM_PROMPT), HumanMessage(content=router_input)]
+    messages: list[BaseMessage] = [SystemMessage(content=system_prompt), HumanMessage(content=router_input)]
     if visible:
         messages.append(AIMessage(content="", tool_calls=[make_tool_call(name=v["tool"], args=v["args"],
                                                                          id=v["tool_call_id"]) for v in visible]))

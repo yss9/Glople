@@ -44,6 +44,10 @@ PREDICTION_SETS: dict[str, Path] = {   # 이름: (모델)-(평가 세트)
     "v1-human2": RESULTS_DIR / "finetuned_v1_human2.predictions.jsonl",
     "v2-human2": RESULTS_DIR / "finetuned_v2_human2.predictions.jsonl",
     "v3-human2": RESULTS_DIR / "finetuned_v3_human2.predictions.jsonl",
+    # 2026-10-18 v4(M7 다턴 데이터) 학습 뒤 추가
+    "v4-v2test": RESULTS_DIR / "finetuned_v4_v2test.predictions.jsonl",
+    "v4-human": RESULTS_DIR / "finetuned_v4_human.predictions.jsonl",
+    "v4-human2": RESULTS_DIR / "finetuned_v4_human2.predictions.jsonl",
 }
 KNOWN_TOOLS = frozenset(ARGS_MODELS)
 

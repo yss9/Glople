@@ -324,6 +324,7 @@ flowchart TD
 
 - `route`·`validate`·`collect`·`answer_llm`은 `add_conditional_edges(…, path_map 목록)`, `plan_prepare`·`review`·`save_plan`은 `Command(goto=…)` + `add_node(..., destinations=(...))`로 잇습니다. 두 방식을 모두 써 보게 됩니다.
 - `tools → route` 엣지가 **없습니다**. 도구 결과를 받은 LoRA가 다시 부르는 루프가 구조적으로 생기지 않습니다. v3 뒤 M7에서 `collect → route_after_tools`(최대 2라운드, `call_log` 같은 서명 금지)를 추가해 비교합니다.
+  - (M7 구현, 2026-10-18) `GLOPLE_AFTER_TOOLS=loop`(`Deps.after_tools`)일 때만 `collect → route_after_tools → validate_after_tools → tools`가 붙고 `answer_llm`은 빠집니다(`graph/after_tools.py`). 기본은 `answer`(위 그림 그대로). 일정 호출은 루프 안에서 받지 않고, 가드 실패·막힘은 `answer_template`. 실행·측정·결정 기준은 README 'M7 도구 결과 뒤 루프'.
 - `after_route`는 `remaining_steps ≤ 3`이면 재시도하지 않고 `fallback`으로 보냅니다. `GraphRecursionError`는 호출부(CLI·서비스)가 잡아 정해진 사과 문장을 냅니다.
 - 학습 데이터에 `create_travel_plan`이 다른 도구와 섞인 예는 0건입니다. 섞여 나오면 일정만 처리하고 나머지 호출에는 "한 번에 하나씩 처리할게요" ToolMessage(error)를 붙여 짝을 닫습니다.
 

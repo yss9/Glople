@@ -10,6 +10,9 @@
   (from_server). 그래서 content None → "", 병렬 content "\\n", 서버 uuid id, finish_reason이 실제와 같다.
 - M2: CassetteScript(실제 서버 응답 녹화 재생, 키 = 정규화 요청 sha256, 없으면 CassetteMiss — llm/cassette.py),
   ResultEchoScript(가짜 답변 모델: 요청의 도구 결과에서 이름만 골라 짧게 답함, 가드를 통과하는 '착한 LLM')
+- M7 loop(도구 결과 뒤 라우터): AfterToolsScript(요청에 도구 결과가 없으면 첫 판단 스크립트, 있으면 결과 뒤 스크립트로 나눔),
+  LoopAnswerScript(결과 뒤 가짜: 항목이 있으면 이름, 없으면 제한 이유를 말하고 다시 부르지 않음),
+  V4OracleScript(v4 test 정답을 (발화, 결과 라운드 수)로 찾아 돌려주는 '학습한 그대로의 v4'), check_after_tools_request
 
 정형 문장(인사·거절·되묻기)은 build_tool_dataset.py를 실행하지 않고 ast로 읽는다(contract.py와 같은 방식).
 """
@@ -246,8 +249,13 @@ _INVENTED_ROUTE_ARGS = {"age": 30, "gender": "여성", "mbti": "ENFP"}
 _RETRY_MAX_TOKENS = 768
 
 
+_NAME_ENDINGS = ("마을",)   # '감천문화마을'의 '을'은 조사가 아니다(M5 실제 화면 점검에서 '감천문화마'로 저장됨)
+
+
 def _strip_particle(word: str) -> str:
     word = word.strip(" ,.!?~·'\"“”‘’()")
+    if word.endswith(_NAME_ENDINGS):
+        return word
     for p in _PARTICLES:
         if word.endswith(p) and len(word) > len(p) + 1:
             return word[: -len(p)]
@@ -771,3 +779,130 @@ class ResultEchoScript:
         shown = ", ".join(names[:3])
         parts = [f"찾은 결과 중에는 {josa(shown, '이/가')} 있어요.", *notes, "자세한 내용은 화면 카드에서 볼 수 있어요."]
         return text_message(" ".join(p if p.endswith((".", "?", "!")) else p + "." for p in parts))
+
+
+# --- M7 도구 결과 뒤(loop) 가짜 -------------------------------------------------------------
+
+V4_TEST_PATH = contract.TRAINING_DIR / "data" / "tool_calling_v4" / "test.jsonl"   # gitignore(생성기로 다시 만듦)
+
+
+def after_tools_rounds(messages: Sequence[BaseMessage]) -> int:
+    """라우터 요청에 든 도구 결과 라운드 수(결과가 붙은 호출 AIMessage 수). 0이면 첫 판단 요청([System, Human])."""
+    answered = {m.tool_call_id for m in messages if isinstance(m, ToolMessage)}
+    return sum(1 for m in messages if isinstance(m, AIMessage) and m.tool_calls
+               and any(tc["id"] in answered for tc in m.tool_calls))
+
+
+def check_after_tools_request(messages: Sequence[BaseMessage], kwargs: dict) -> None:
+    """도구 결과 뒤 요청이 v4 학습 기록 모양인지: [System(SYSTEM_PROMPT), Human, (AI(호출, content ""), Tool…)+] +
+    tools == glople_tools.json, 강제 옵션 없음. 결과는 호출 순서대로 바로 뒤에 온다."""
+    if len(messages) < 4 or not isinstance(messages[0], SystemMessage) or not isinstance(messages[1], HumanMessage):
+        raise RequestShapeError(f"결과 뒤 요청은 [System, Human, AI, Tool…]이어야 합니다: {[type(m).__name__ for m in messages]}")
+    if messages[0].content != contract.SYSTEM_PROMPT:
+        raise RequestShapeError("system이 학습 SYSTEM_PROMPT와 다릅니다")
+    i = 2
+    while i < len(messages):
+        ai = messages[i]
+        if not isinstance(ai, AIMessage) or not ai.tool_calls or ai.content != "":
+            raise RequestShapeError(f"{i}번째는 content가 빈 호출 AIMessage여야 합니다: {type(ai).__name__}")
+        results = messages[i + 1:i + 1 + len(ai.tool_calls)]
+        if [getattr(m, "tool_call_id", None) for m in results] != [tc["id"] for tc in ai.tool_calls] \
+                or not all(isinstance(m, ToolMessage) and isinstance(m.content, str) for m in results):
+            raise RequestShapeError(f"{i}번째 호출 뒤에 호출 순서대로 결과가 와야 합니다")
+        i += 1 + len(ai.tool_calls)
+    tools = kwargs.get("tools")
+    if tools is None or json.dumps(tools, ensure_ascii=False) != json.dumps(contract.TOOLS, ensure_ascii=False):
+        raise RequestShapeError("tools가 glople_tools.json과 다릅니다(순서·키 포함)")
+    extra = sorted({"tool_choice", "parallel_tool_calls", "strict"} & set(kwargs))
+    if extra:
+        raise RequestShapeError(f"학습에 없던 옵션: {extra}")
+
+
+class LoopAnswerScript:
+    """가짜 '도구 결과 뒤' 라우터(M7 loop 데모·테스트): 결과에 항목이 있으면 ResultEchoScript처럼 이름을 말하고, 없으면(빈 결과·
+    준비 중·미지원·오류) 결과의 notes·message_ko(제한 이유)를 그대로 말한다. 다시 부르지 않는다(가드를 통과하는 '착한 v4')."""
+
+    def __init__(self) -> None:
+        self._echo = ResultEchoScript()
+
+    def __call__(self, messages: list[BaseMessage], kwargs: dict) -> AIMessage:
+        limits: list[str] = []
+        for m in messages:
+            if not isinstance(m, ToolMessage) or not isinstance(m.content, str):
+                continue
+            try:
+                body = json.loads(m.content)
+            except ValueError:
+                continue
+            if not isinstance(body, dict):
+                continue
+            if any(isinstance(i, dict) for i in body.get("items") or []):
+                return self._echo(messages, kwargs)
+            limits += [n for n in body.get("notes") or [] if isinstance(n, str) and n not in limits]
+            if isinstance(body.get("message_ko"), str) and body["message_ko"] not in limits:
+                limits.append(body["message_ko"])
+        return text_message(" ".join(limits) if limits else "찾은 결과가 없어요. 다른 조건으로 다시 말씀해 주시겠어요?")
+
+
+class AfterToolsScript:
+    """라우터 가짜를 '첫 판단'과 '도구 결과 뒤'(M7 loop)로 나눈다. 요청에 도구 결과가 없으면 first, 있으면 after.
+    check_request=True면 결과 뒤 요청이 학습 모양(check_after_tools_request)인지 본다(첫 판단 검사는 first의 몫)."""
+
+    def __init__(self, first: Script, after: Script | None = None, *, check_request: bool = False) -> None:
+        self.first = first
+        self.after = after if after is not None else LoopAnswerScript()
+        self.check_request = check_request
+        self.after_calls = 0
+
+    def __call__(self, messages: list[BaseMessage], kwargs: dict) -> AIMessage:
+        if after_tools_rounds(messages):
+            if self.check_request:
+                check_after_tools_request(messages, kwargs)
+            self.after_calls += 1
+            return self.after(messages, kwargs)
+        return self.first(messages, kwargs)
+
+
+class V4OracleScript:
+    """v4 test(training/data/tool_calling_v4/test.jsonl, M7)의 정답 assistant를 (발화, 도구 결과 라운드 수)로 찾아 돌려준다.
+
+    '학습한 그대로 하는 v4 모델' 흉내: 라운드 0 → 첫 판단(chain_first·first_turn), 1 → after_call(두 번째 호출)·after_answer·
+    after_limit, 2 → after2_answer. 도구 결과 글은 보지 않는다(test는 에이전트 기본 fixture로 만들었으므로 같은 결과라고 본다).
+    못 찾으면 fallback, 없으면 OracleMiss. 같은 열쇠에 다른 정답이 있으면 처음 것을 쓰고 conflicts에 센다."""
+
+    def __init__(self, path: str | Path | None = None, *, records: Sequence[dict] | None = None,
+                 fallback: Script | None = None, check_request: bool = False, new_id: IdFactory = new_call_id):
+        if records is None:
+            records = contract.read_jsonl(Path(path) if path is not None else V4_TEST_PATH)
+        self.fallback = fallback
+        self.check_request = check_request
+        self.new_id = new_id
+        self.conflicts = 0
+        self._index: dict[tuple[str, int], dict] = {}
+        for rec in records:
+            msgs = rec["messages"]
+            user = next(m["content"] for m in msgs if m["role"] == "user")
+            rounds = sum(1 for m in msgs[:-1] if m["role"] == "assistant" and m.get("tool_calls"))
+            for key in {(user, rounds), (clean_text(user), rounds)}:
+                prev = self._index.setdefault(key, msgs[-1])
+                if prev is not msgs[-1] and prev != msgs[-1]:
+                    self.conflicts += 1
+
+    def __len__(self) -> int:
+        return len(self._index)
+
+    def find(self, utterance: str, rounds: int) -> dict | None:
+        return self._index.get((utterance, rounds)) or self._index.get((clean_text(utterance), rounds))
+
+    def __call__(self, messages: list[BaseMessage], kwargs: dict) -> AIMessage:
+        rounds = after_tools_rounds(messages)
+        if self.check_request:
+            (check_after_tools_request if rounds else check_router_request)(messages, kwargs)
+        text = last_human_text(messages)
+        target = self.find(text, rounds)
+        if target is None:
+            if self.fallback is not None:
+                return self.fallback(messages, kwargs)
+            raise OracleMiss(f"{text} (라운드 {rounds})")
+        return oracle_message(target, new_id=self.new_id)
+

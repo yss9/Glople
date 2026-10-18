@@ -145,10 +145,25 @@ def clarify_region_choice(candidates: Sequence[str]) -> str:
     return CLARIFY_REGION_CHOICE.format(candidates=joined)
 
 
+# M6 동명 장소(design.md 8.2 get_destination_detail: 여러 개면 후보 지역 → "어느 지역의 ○○인가요?")
+CLARIFY_PLACE_CHOICE = "{name_eun} {places}에 있어요. 어느 지역의 {name}인가요?"
+
+
+def clarify_place_choice(name: str, places: Sequence[str]) -> str:
+    """같은 이름의 여행지가 여러 지역에 있을 때: '보문사는 인천 강화군과 서울특별시 성북구에 있어요. 어느 지역의 보문사인가요?'"""
+    names = [p for p in dict.fromkeys(places) if p]
+    if not names:
+        raise ValueError("후보 지역이 없습니다")
+    joined = names[0] if len(names) == 1 else (
+        josa(names[0], "과/와") + " " + names[1] if len(names) == 2 else ", ".join(names))
+    return CLARIFY_PLACE_CHOICE.format(name_eun=josa(name, "은/는"), places=joined, name=name)
+
+
 _CLARIFY_FRAMES = (
     ("search_region", re.compile(r"^어느 지역의 .+[을를] 찾아드릴까요\?$")),
     ("routes", re.compile(r"^비슷한 여행자를 찾으려면 .+[이가] 필요해요\. 알려주시겠어요\?$")),
     ("region_choice", re.compile(r"^.+ 중 어느 곳을 말씀하시는 건가요\?$")),
+    ("place_choice", re.compile(r"^.+에 있어요\. 어느 지역의 .+인가요\?$")),
 )
 
 
@@ -214,6 +229,11 @@ PLAN_SAVE_FAILED = "일정을 저장하지 못했어요. 잠시 뒤에 다시 �
 PLAN_EDIT_LIMIT = "일정은 세 번까지 고칠 수 있어요. 저장하지 않았어요."
 PLAN_ONE_AT_A_TIME = "한 번에 하나씩 처리할게요."   # 일정과 섞여 온 다른 호출의 ToolMessage(error)
 PLAN_NO_PLACES = "일정에 넣을 장소가 없어 저장하지 않았어요."
+# M7 loop: 도구 결과 뒤 라우터가 일정 저장을 부르면 받지 않고 이 문장을 템플릿 답 뒤에 붙인다(graph/after_tools.py).
+# 다음 턴에 사용자가 직접 부탁하면 찾은 장소(memory.recent_places)가 일정 장소 근거가 된다
+PLAN_IN_LOOP = "일정은 따로 확인을 받고 만들어요. 찾은 곳으로 일정을 짜려면 한 번 더 말씀해 주세요."
+# M3: 같은 확인 카드(멱등키 = tool_call_id)로 이미 다른 내용이 저장돼 있음(시간 여행 /fork 뒤 고쳐서 승인한 경우)
+PLAN_ALREADY_SAVED = "이 요청으로 저장한 일정이 이미 있어서 바꾼 내용은 저장하지 않았어요. 새 일정으로 저장하려면 다시 요청해 주세요."
 PLAN_NOTICES: dict[str, str] = {    # state.plan_notice → 확인 카드에 띄우는 문장
     "AUTH_EXPIRED": "로그인이 만료됐어요. 다시 로그인한 뒤 저장을 눌러 주세요.",
 }
@@ -245,7 +265,7 @@ KOGL_LABELS = {  # copyrightType(공백 제거·소문자) → 공공누리 유�
 TOUR_API_SUMMARY_NOTE = "이 소개는 TourAPI 분류 정보(지역·관광 타입·분류)로 만든 글입니다."
 WIKIDATA_SUMMARY_ATTRIBUTION = "출처: 위키데이터 (CC0) 항목 정보로 만든 소개"
 WIKIPEDIA_ATTRIBUTION = "출처: 한국어 위키백과 {doc}도입부 발췌 (CC BY-SA 4.0) · 위키데이터 (CC0)"
-WEATHER_ATTRIBUTION = "날씨: Open-Meteo.com (CC BY 4.0)"
+WEATHER_ATTRIBUTION = "Weather data by Open-Meteo.com (CC BY 4.0)"   # M6: Open-Meteo 출처 조건(카드에 그대로)
 
 
 def normalize_copyright(copyright_type: str | None) -> str:
@@ -284,6 +304,8 @@ TOOL_LABELS: dict[str, str] = {
 
 _STATUS_DEFAULTS: dict[tuple[str, str], str] = {
     ("search_destinations", "pending_feature"): "지역별 여행지 검색은 아직 준비 중이에요.",
+    # M6: 음식점(국내)·숙박은 수집하지 않아 부르지 않음(design.md 8.2 그대로)
+    ("search_destinations", "unsupported"): "음식점·숙소 정보는 아직 모으지 않았어요. 관광지·문화시설·축제·레포츠는 찾아드릴 수 있어요.",
     ("get_destination_detail", "pending_feature"): "여행지 상세 정보는 아직 준비 중이에요.",
     ("get_weather", "unsupported"): "날씨 정보는 아직 연결하지 않았어요.",
     ("recommend_by_keywords", "empty"): "그 취향으로 찾은 곳이 없어요.",
@@ -300,6 +322,7 @@ ERROR_MESSAGES: dict[str, str] = {
 NO_RESULT = "이번 요청으로 보여드릴 결과가 없어요."
 
 LIST_NAMES_MAX = 5  # 템플릿 답에 이름을 늘어놓는 최대 개수(나머지는 카드에서)
+WEATHER_DAYS_MAX = 7  # 날씨 답에 말하는 최대 일수(다음 주 = 7일)
 
 
 def tool_label(tool: str | None) -> str:
@@ -366,7 +389,9 @@ def ok_message(tool: str, args: Mapping[str, Any] | None, items: Sequence[Mappin
         return f"나이·성별·MBTI가 비슷한 여행자 {n}명의 루트를 찾았어요: {_names(people)}."
     if tool == "get_destination_detail":
         name = shown[0].get("name") or args.get("name") or "그 장소"
-        return f"{name} 정보를 찾았어요. 자세한 소개는 카드에서 볼 수 있어요."
+        where = shown[0].get("location") or shown[0].get("country")
+        head = f"{where}에 있는 {name}" if where else name
+        return f"{head} 정보를 찾았어요. 자세한 소개는 카드에서 볼 수 있어요."
     if tool == "search_reviews":
         query = args.get("query")
         head = f"{query} 관련 " if query else ""
@@ -380,17 +405,18 @@ def ok_message(tool: str, args: Mapping[str, Any] | None, items: Sequence[Mappin
             nick, country = i.get("nickname") or "", i.get("country") or ""
             people.append(f"{nick}({country})" if country else nick)
         return f"{head}글로플러 {n}명을 찾았어요: {_names(people)}."
-    if tool == "get_weather":
+    if tool == "get_weather":   # 수치는 모두 카드 값 그대로(코드가 만든 답, design.md 6.1). 다음 주는 7일 모두
         region = args.get("region") or ""
+        when = args.get("when") or "오늘"
         days = []
-        for i in shown:
+        for i in items[:WEATHER_DAYS_MAX]:
             parts = [i.get("summary")]
             if i.get("tmin") is not None and i.get("tmax") is not None:
                 parts.append(f"최저 {i['tmin']}도·최고 {i['tmax']}도")
             if i.get("pop") is not None:
                 parts.append(f"강수 확률 {i['pop']}%")
-            days.append(f"{i.get('date', '')} " + ", ".join(p for p in parts if p))
-        return f"{region} 날씨예요: {' / '.join(d.strip() for d in days)}.".strip()
+            days.append(f"{i.get('label') or i.get('date', '')} " + ", ".join(p for p in parts if p))
+        return f"{region} {when} 날씨예요: {' / '.join(d.strip() for d in days)}.".strip()
     return f"{tool_label(tool)} 결과 {n}개를 찾았어요."
 
 
@@ -410,22 +436,27 @@ def join_answers(parts: Iterable[str | None]) -> str:
     return " ".join(seen)
 
 
-def answer_for_card(card: Mapping[str, Any]) -> str:
-    """도구 결과 카드 하나의 템플릿 답. ok면 틀 문장 + notes, 그 밖은 notes(이유) 또는 기본 문장."""
+def card_sentences(card: Mapping[str, Any]) -> list[str]:
+    """도구 결과 카드 하나의 템플릿 문장들. ok면 틀 문장 + notes, 그 밖은 notes(이유) 또는 기본 문장."""
     tool, status = card.get("tool") or "", card.get("status") or "error"
     data = card.get("data") or {}
     notes = [n for n in data.get("notes") or [] if isinstance(n, str)]
+    if status == "ok" and data.get("needsClarification") and data.get("clarify"):
+        return [data["clarify"]]   # M6 동명 장소: 후보 카드 + 되묻기 한 문장
     if status == "ok":
         args = dict(data.get("args") or {})
         if data.get("appliedKeywords"):   # 목록 밖 키워드는 빼고 말한다(그 키워드는 notes가 따로 알림)
             args["keywords"] = data["appliedKeywords"]
-        main = ok_message(tool, args, data.get("items") or [])
-        return join_answers([main, *notes])
-    if not notes:
-        notes = [data.get("message") or status_message(tool, status, data.get("args"))]
-    return join_answers(notes)
+        return [ok_message(tool, args, data.get("items") or []), *notes]
+    return notes or [data.get("message") or status_message(tool, status, data.get("args"))]
+
+
+def answer_for_card(card: Mapping[str, Any]) -> str:
+    """도구 결과 카드 하나의 템플릿 답."""
+    return join_answers(card_sentences(card))
 
 
 def answer_for_cards(cards: Iterable[Mapping[str, Any]]) -> str:
-    """이번 턴 도구 카드들(호출 순서)의 답을 이어 붙인다. 카드가 없으면 NO_RESULT."""
-    return join_answers(answer_for_card(c) for c in cards) or NO_RESULT
+    """이번 턴 도구 카드들(호출 순서)의 답을 이어 붙인다. 같은 문장(병렬 날씨 둘의 같은 note 등)은 한 번만.
+    카드가 없으면 NO_RESULT."""
+    return join_answers(s for c in cards for s in card_sentences(c)) or NO_RESULT

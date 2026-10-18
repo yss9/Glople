@@ -2,8 +2,16 @@
 
 state·messages·configurable·체크포인트·로그·프롬프트에는 토큰을 넣지 않는다(design.md 10절).
 """
+import re
 from dataclasses import dataclass
 from datetime import datetime
+
+_TOKEN_CHARS = re.compile(r"[!-~]+")   # 보이는 ASCII만(공백·제어 문자 없음). JWT는 base64url·점
+
+
+def token_chars_ok(raw: str) -> bool:
+    """HTTP 헤더에 그대로 넣을 수 있는 토큰인지. 아니면 보내지 않는다(h11 오류 메시지가 헤더 값을 그대로 담기 때문)."""
+    return bool(_TOKEN_CHARS.fullmatch(raw))
 
 
 class BearerToken:
@@ -21,6 +29,10 @@ class BearerToken:
 
     def header(self) -> dict[str, str]:
         return {"Authorization": f"Bearer {self._v}"}
+
+    def sendable(self) -> bool:
+        """헤더로 보낼 수 있는 글자로만 됐는지(값은 돌려주지 않음)."""
+        return token_chars_ok(self._v)
 
     def __repr__(self) -> str:
         return "BearerToken(***)"

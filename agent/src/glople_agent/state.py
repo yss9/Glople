@@ -65,7 +65,10 @@ class PlanDraft(TypedDict):
     problems: NotRequired[list[str]]  # edit 검사에서 걸린 점(확인 카드에 표시)
 
 
-class AgentState(TypedDict):
+class ParentState(TypedDict):
+    """일정 키(plan_*)가 없는 그래프 상태. M3 서브그래프 판의 부모가 이것을 쓴다(design.md 9.3:
+    plan_draft·plan_edits·plan_notice는 서브그래프 자기 키). 평평한 판은 여기에 일정 키를 더한 AgentState."""
+
     messages: Annotated[list[AnyMessage], add_messages]  # Human / 라우터 AIMessage / ToolMessage / 최종 AIMessage
     cards: Annotated[list[Card], merge_cards]
     memory: Annotated[Memory, merge_memory]
@@ -78,10 +81,39 @@ class AgentState(TypedDict):
     router_attempts: int
     verdicts: list[dict]             # 호출별 {tool_call_id, name, ok, reason}
     results: list[dict]              # 호출별 {tool_call_id, tool, status}
-    plan_draft: PlanDraft | None
-    plan_edits: int
-    plan_notice: str | None          # "AUTH_EXPIRED" 등
     final_text: str | None
     reply_kind: ReplyKind | None
     trace: dict                      # 궤적 로그용(라우터 원출력, 가드 결과). UI로 안 보냄
     remaining_steps: RemainingSteps
+
+
+class AgentState(ParentState):
+    """평평한 판(M0~M2, 기본)의 상태: 부모 상태 + 일정 키."""
+
+    plan_draft: PlanDraft | None
+    plan_edits: int
+    plan_notice: str | None          # "AUTH_EXPIRED" 등
+
+
+class PlanState(TypedDict):
+    """M3 일정 서브그래프(graph/plan_subgraph.py)의 상태. 부모와 이름·리듀서가 같은 키는 공유하고(들어올 때 부모 값,
+    끝날 때 부모로 씀), plan_* 세 키는 서브그래프 자기 키라 부모 state·체크포인트 값에 없다.
+
+    call_log(operator.add)는 넣지 않는다: 서브그래프가 끝날 때 키 전체 값이 부모 리듀서로 들어가므로 덧붙이는
+    리듀서는 두 번 쌓인다(messages·cards·memory는 id·키로 합쳐서 괜찮음). tests/test_pins_m3.py가 고정."""
+
+    messages: Annotated[list[AnyMessage], add_messages]
+    cards: Annotated[list[Card], merge_cards]
+    memory: Annotated[Memory, merge_memory]
+    turn_id: str
+    router_input: str
+    results: list[dict]
+    final_text: str | None
+    reply_kind: ReplyKind | None
+    trace: dict
+    plan_draft: PlanDraft | None
+    plan_edits: int
+    plan_notice: str | None
+
+
+PLAN_KEYS = ("plan_draft", "plan_edits", "plan_notice")   # 서브그래프 판에서는 서브그래프 자기 키

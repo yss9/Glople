@@ -69,10 +69,11 @@ def test_parallel_two_calls_keep_order_and_make_two_cards(make_graph, agent_cont
     assert [tc["name"] for tc in router.tool_calls] == ["get_destination_detail", "search_reviews"]
     tool_msgs = [m for m in v["messages"] if isinstance(m, ToolMessage)]
     assert [m.tool_call_id for m in tool_msgs] == [tc["id"] for tc in router.tool_calls]   # 호출 순서
-    assert [(c["tool"], c["status"]) for c in r.cards] == [("get_destination_detail", "pending_feature"),
+    # M6: 상세는 S1 lookup(바나힐은 fixture에 없음 → 빈 결과)
+    assert [(c["tool"], c["status"]) for c in r.cards] == [("get_destination_detail", "empty"),
                                                           ("search_reviews", "ok")]
     assert len([c for c in v["cards"] if c["turn_id"] == v["turn_id"]]) == 2
-    assert r.final_text.startswith("여행지 상세 정보는 아직 준비 중이에요. 바나힐 관련 Glople 후기 3개를 찾았어요")
+    assert r.final_text.startswith("Glople에 그 장소 정보가 없어요. 바나힐 관련 Glople 후기 3개를 찾았어요")
 
 
 def test_one_tool_error_keeps_the_other_card(make_graph, agent_context):
@@ -80,10 +81,10 @@ def test_one_tool_error_keeps_the_other_card(make_graph, agent_context):
     kit = make_graph(RuleScript(), backend=backend)
     r = kit.turn("바나힐 정보랑 사람들 리뷰 같이 알려줘", agent_context)
     assert r.path == TEMPLATE_PATH and r.done
-    assert [(c["tool"], c["status"]) for c in r.cards] == [("get_destination_detail", "pending_feature"),
+    assert [(c["tool"], c["status"]) for c in r.cards] == [("get_destination_detail", "empty"),
                                                           ("search_reviews", "error")]
     err = tpl.error_message("search_reviews", "upstream_unavailable")
-    assert r.final_text == tpl.join_answers([tpl.status_message("get_destination_detail", "pending_feature"), err])
+    assert r.final_text == tpl.join_answers([tpl.status_message("get_destination_detail", "empty"), err])
     tool_msgs = [m for m in kit.values()["messages"] if isinstance(m, ToolMessage)]
     assert [m.status for m in tool_msgs] == ["success", "error"]
     assert "비밀" not in tool_msgs[1].content and "비밀" not in r.final_text   # 예외 문자열은 새지 않음

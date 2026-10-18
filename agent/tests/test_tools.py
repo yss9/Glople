@@ -307,15 +307,22 @@ def test_routes_age_band_without_birthdate(tools):
 
 
 @pytest.mark.parametrize(("name", "args", "status"), [
-    ("search_destinations", {"region": "강릉", "category": "숙박"}, "pending_feature"),
-    ("get_destination_detail", {"name": "바나힐"}, "pending_feature"),
-    ("get_weather", {"region": "부산", "when": "내일"}, "unsupported"),
+    ("search_destinations", {"region": "강릉", "category": "숙박"}, "unsupported"),   # M6: 숙박은 수집 안 함(부르지 않음)
+    ("get_destination_detail", {"name": "바나힐"}, "empty"),                          # M6: S1 lookup이 [] (fixture에 없음)
 ])
-def test_not_yet_connected_tools(tools, name, args, status):
+def test_m6_tools_without_results(tools, name, args, status):
     msg = _call(tools[name], args)
     body = json.loads(msg.content)
     assert body["status"] == status and body["items"] == [] and len(body["notes"]) == 1
     assert msg.artifact["status"] == status and msg.artifact["data"]["message"] == body["notes"][0]
+
+
+def test_weather_off_is_unsupported_and_makes_no_request():
+    backend = FakeBackend(today=TODAY, weather="off")   # GLOPLE_WEATHER=off
+    msg = _call({t.name: t for t in build_read_tools(backend)}["get_weather"], {"region": "부산", "when": "내일"})
+    body = json.loads(msg.content)
+    assert body["status"] == "unsupported" and body["notes"] == ["날씨 정보는 아직 연결하지 않았어요."]
+    assert backend.weather_fixture.requests == []
 
 
 # --- ToolNode(병렬·오류) + 체크포인트 왕복 --------------------------------------------
@@ -349,7 +356,7 @@ def test_toolnode_parallel_order_errors_and_checkpoint():
     assert (bad["tool"], bad["error"]) == ("search_reviews", "bad_request")
     assert "u2" not in msgs[3].content and "userId" not in msgs[3].content  # 인자를 되풀이하지 않음
     cards = [card_from_tool_message(m, turn_id="turn-1") for m in msgs]
-    assert [c["status"] for c in cards] == ["pending_feature", "ok", "error", "error", "error"]
+    assert [c["status"] for c in cards] == ["empty", "ok", "error", "error", "error"]   # M6: 바나힐은 S1에 없음
     assert [c["card_id"] for c in cards][:3] == ["get_destination_detail:c1", "search_reviews:c2",
                                                  "search_gloplers:c3"]
     assert all(c["turn_id"] == "turn-1" for c in cards)

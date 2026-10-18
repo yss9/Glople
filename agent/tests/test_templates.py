@@ -152,23 +152,38 @@ def test_clarify_for_each_tool():
 
 # --- 도구별 템플릿 답과 병렬 이어 붙이기 --------------------------------------------------
 
-def test_parallel_detail_pending_and_reviews_like_design_example(tools):
-    # design.md 5.5의 1번: 상세는 준비 중, 후기는 ok → 호출 순서대로 이어 붙임
+def test_parallel_detail_empty_and_reviews_like_design_example(tools):
+    # design.md 5.5의 1번: 상세(M6: S1에 바나힐 없음 → 빈 결과), 후기는 ok → 호출 순서대로 이어 붙임
     cards = [_card(tools["get_destination_detail"], {"name": "바나힐"}, "c1"),
              _card(tools["search_reviews"], {"query": "바나힐"}, "c2")]
     text = T.answer_for_cards(cards)
-    assert text.startswith("여행지 상세 정보는 아직 준비 중이에요. 바나힐 관련 Glople 후기 3개를 찾았어요: ")
+    assert text.startswith("Glople에 그 장소 정보가 없어요. 바나힐 관련 Glople 후기 3개를 찾았어요: ")
     assert "'다낭 3박 4일: 바나힐, 미케비치, 호이안'" in text and "<|im_end|>" not in text
     # 순서를 바꾸면 답 순서도 바뀐다
     assert T.answer_for_cards(cards[::-1]).startswith("바나힐 관련 Glople 후기 3개")
 
 
-def test_parallel_same_message_said_once(tools):
-    cards = [_card(tools["get_weather"], {"region": "부산", "when": "오늘"}, "c1"),
-             _card(tools["get_weather"], {"region": "부산", "when": "이번 주말"}, "c2"),
-             _card(tools["search_gloplers"], {"hashtag": "공주"}, "c3")]
+def test_parallel_same_message_said_once():
+    off = {t.name: t for t in build_read_tools(FakeBackend(today=date(2026, 10, 17), weather="off"))}   # 날씨 끔
+    cards = [_card(off["get_weather"], {"region": "부산", "when": "오늘"}, "c1"),
+             _card(off["get_weather"], {"region": "부산", "when": "이번 주말"}, "c2"),
+             _card(off["search_gloplers"], {"hashtag": "공주"}, "c3")]
     assert T.answer_for_cards(cards) == ("날씨 정보는 아직 연결하지 않았어요. 공주 글로플러를 찾지 못했어요. "
                                          "국내 글로플러는 아직 없어요(지금은 미국·이탈리아·일본).")
+
+
+def test_parallel_weather_numbers_from_cards_and_shared_note_once(tools):
+    # M6: 날씨 수치는 카드 값 그대로(코드), 오늘(토)·이번 주말(토·일)을 현지 날짜로. 같은 fixture note는 한 번만
+    cards = [_card(tools["get_weather"], {"region": "부산", "when": "오늘"}, "c1"),
+             _card(tools["get_weather"], {"region": "부산", "when": "이번 주말"}, "c2")]
+    text = T.answer_for_cards(cards)
+    today = cards[0]["data"]["items"][0]
+    assert text.startswith(f"부산 오늘 날씨예요: 10월 17일(토) {today['summary']}, 최저 {today['tmin']}도·최고 {today['tmax']}도, "
+                           f"강수 확률 {today['pop']}%. 오프라인 가짜 날씨(fixture)라 실제 날씨가 아니에요. "
+                           f"부산 이번 주말 날씨예요: 10월 17일(토) ")
+    assert "/ 10월 18일(일) " in text and text.count("오프라인 가짜 날씨") == 1
+    assert [i["date"] for i in cards[1]["data"]["items"]] == ["2026-10-17", "2026-10-18"]
+    assert all(c["data"]["attribution"] == "Weather data by Open-Meteo.com (CC BY 4.0)" for c in cards)
 
 
 def test_join_answers_rules():
@@ -191,8 +206,21 @@ def test_join_answers_rules():
      "나이·성별·MBTI가 비슷한 여행자 3명의 루트를 찾았어요: 20대 남성 ENTP(제주·부산·강릉), "
      "20대 남성 INTP(울릉도·독도·포항), 30대 남성 ENTJ(도쿄·오사카·교토)."),
     ("recommend_similar_traveler_routes", {"age": 90, "gender": "여성", "mbti": "ENFP"}, "비슷한 여행자를 찾지 못했어요."),
-    ("search_destinations", {"region": "강릉", "category": "숙박"}, "지역별 여행지 검색은 아직 준비 중이에요."),
-    ("get_weather", {"region": "부산"}, "날씨 정보는 아직 연결하지 않았어요."),
+    # M6: 숙박은 수집 안 함(부르지 않음), S1 검색·상세는 fixture 행, 날씨는 가짜 Open-Meteo 값(좌표·날짜로 정해짐)
+    ("search_destinations", {"region": "강릉", "category": "숙박"},
+     "음식점·숙소 정보는 아직 모으지 않았어요. 관광지·문화시설·축제·레포츠는 찾아드릴 수 있어요."),
+    ("search_destinations", {"region": "강릉", "category": "관광지", "limit": 5},
+     "강릉 관광지 5곳을 찾았어요: 오죽헌, 안목해변, 경포해변, 정동진, 주문진항."),
+    ("search_destinations", {"region": "도쿄", "category": "문화시설"},
+     "도쿄 문화시설 3곳을 찾았어요: 도쿄 국립박물관, 국립 서양 미술관, 에도 도쿄 박물관."),
+    ("get_destination_detail", {"name": "해동용궁사"},
+     "부산광역시 기장군에 있는 해동용궁사 정보를 찾았어요. 자세한 소개는 카드에서 볼 수 있어요."),
+    ("get_destination_detail", {"name": "보문사"}, "보문사는 인천 강화군과 서울특별시 성북구에 있어요. 어느 지역의 보문사인가요?"),
+    ("get_destination_detail", {"name": "바나힐"}, "Glople에 그 장소 정보가 없어요."),
+    ("get_weather", {"region": "부산"},
+     "부산 오늘 날씨예요: 10월 17일(토) 맑음, 최저 12도·최고 20도, 강수 확률 2%. 오프라인 가짜 날씨(fixture)라 실제 날씨가 아니에요."),
+    ("get_weather", {"region": "강원도"},
+     "날씨 정보를 찾지 못했어요. 도 전체 날씨는 한 곳으로 정하기 어려워요. 시·군 이름으로 물어봐 주세요."),
 ])
 def test_answer_for_card_per_tool(tools, name, args, expected):
     assert T.answer_for_card(_card(tools[name], args)) == expected

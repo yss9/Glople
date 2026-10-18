@@ -1,7 +1,8 @@
 """토큰 격리(design.md 10.1, 14.2 test_token_hygiene): sentinel 토큰으로 그래프 전 구간을 돌린 뒤
 저장소 바이트·체크포인트 기록·로그·가짜 모델 요청·interrupt 값 어디에도 0건인지 본다.
 
-M3에서 SqliteSaver 파일 바이트와 metadata 열 판을 더한다(api-notes '확인 못 함').
+M3: 같은 시나리오를 SqliteSaver(파일)로 평평한 판·서브그래프 판 모두 돌려 sqlite 파일 바이트(본 파일·-wal·-shm)와
+checkpoints.metadata 열, writes 표에도 0건인지 본다(test_sentinel_never_reaches_sqlite_file).
 """
 import json
 import logging
@@ -34,13 +35,11 @@ def saver_bytes(saver: InMemorySaver) -> bytes:
     return _flatten_bytes((saver.storage, saver.writes, saver.blobs))
 
 
-@pytest.fixture
-def scenario(make_graph, agent_context, anon_context, caplog, fixed_now, seed):
+def run_hygiene_scenario(make_graph, saver, agent_context, anon_context, fixed_now, seed, *, plan_graph="flat"):
     """조회·병렬·되묻기·직답·quirk·일정(401 재승인·edit·reject·스키마 위반 재개)·비로그인을 한 저장소에서."""
-    caplog.set_level(logging.DEBUG)   # 모든 로거(langgraph 재시도 로그 포함)
-    saver = InMemorySaver()
     store = InMemoryPlanStore(expire_auth=1)
-    kit = make_graph(QuirkScript(["connection_error"], then=RuleScript()), store=store, saver=saver)
+    kit = make_graph(QuirkScript(["connection_error"], then=RuleScript()), store=store, saver=saver,
+                     plan_graph=plan_graph)
     outputs: list[TurnResult] = []
     threads: list[str] = []
 
@@ -53,6 +52,7 @@ def scenario(make_graph, agent_context, anon_context, caplog, fixed_now, seed):
     outputs.append(kit.turn("나랑 비슷한 여행자 루트 보고 싶은데 ENTP 남자임", agent_context))
     outputs.append(kit.turn("안녕", agent_context))
     outputs.append(kit.turn("깨진 응답 흉내: 부산 날씨 알려줘", agent_context))
+    outputs.append(kit.turn("부산 이번 주말 날씨 어때?", agent_context))           # M6: 가짜 Open-Meteo(지오코딩 + 예보)
 
     on("t-plan-401")
     outputs.append(kit.turn("제주 2박 3일 성산일출봉이랑 우도 넣어서 저장해줘", agent_context))
@@ -63,8 +63,9 @@ def scenario(make_graph, agent_context, anon_context, caplog, fixed_now, seed):
 
     on("t-plan-edit")
     outputs.append(kit.turn("(잘림) 강릉 2박 3일 경포대랑 안목해변 일정 저장해줘", agent_context))
-    with pytest.raises(ValidationError):
-        kit.graph.invoke(Command(resume={"decision": "maybe"}), kit.config, context=agent_context, version="v2")
+    with pytest.raises(ValidationError):   # 스키마 위반 재개(호출부 계약대로 interrupt id를 붙여서, api-notes M3)
+        kit.graph.invoke(Command(resume={kit.last.pending.id: {"decision": "maybe"}}), kit.config,
+                         context=agent_context, version="v2")
     outputs.append(kit.resume({"decision": "edit", "draft": {"region": "강릉", "days": 2, "places": ["경포대"]}},
                               agent_context))
     outputs.append(kit.resume({"decision": "reject"}, agent_context))
@@ -72,6 +73,14 @@ def scenario(make_graph, agent_context, anon_context, caplog, fixed_now, seed):
     on("t-anon")
     outputs.append(kit.turn("제주 2박 3일 성산일출봉이랑 우도 넣어서 저장해줘", anon_context))
     assert store.save_count == 1 and store.call_count == 2
+    return kit, outputs, threads
+
+
+@pytest.fixture
+def scenario(make_graph, agent_context, anon_context, caplog, fixed_now, seed):
+    caplog.set_level(logging.DEBUG)   # 모든 로거(langgraph 재시도 로그 포함)
+    saver = InMemorySaver()
+    kit, outputs, threads = run_hygiene_scenario(make_graph, saver, agent_context, anon_context, fixed_now, seed)
     return kit, saver, outputs, threads, caplog
 
 
@@ -96,6 +105,7 @@ def test_sentinel_never_leaves_context(scenario, sentinel_raw, agent_context):
         "저장된 일정": repr(kit.store.list_plans(agent_context.user_id)).encode(),
         "가짜 백엔드 호출": repr(kit.backend.calls).encode(),
         "Spring으로 나간 HTTP 요청(M1)": repr(kit.backend.fixture.requests).encode(),
+        "Open-Meteo로 나간 요청(M6)": repr(kit.backend.weather_fixture.requests).encode(),
     }
     for name, blob in places.items():
         for needle in needles:
@@ -103,6 +113,11 @@ def test_sentinel_never_leaves_context(scenario, sentinel_raw, agent_context):
     assert "Retrying task route" in log_text   # 로그 캡처가 실제로 동작했는지
     # M1: 읽기 도구는 공개 API만 부르고 Authorization을 붙이지 않는다(SpringClient + 어댑터, 10.1)
     assert kit.backend.fixture.requests and not any(r.has_authorization for r in kit.backend.fixture.requests)
+    # M6: 날씨는 좌표·일수(+ 지역 표 이름)만, 헤더에 토큰·쿠키 없음
+    sent = kit.backend.weather_fixture.requests
+    assert [w.path for w in sent] == ["/v1/search", "/v1/forecast"]
+    assert not any(w.has_authorization or w.has_cookie for w in sent)
+    assert agent_context.user_id not in repr(sent) and "이번 주말" not in repr(sent)
     # 사용자 id도 state·체크포인트에는 없음(context로만)
     assert agent_context.user_id.encode() not in stored
 
@@ -180,3 +195,41 @@ def test_sentinel_never_reaches_answer_model(make_graph, agent_context, sentinel
             assert needle not in blob, f"{name}에 {needle!r}"
     assert TYPE3_SENTINEL not in blobs["답변 모델 요청"] and TYPE3_SENTINEL not in blobs["궤적"]
     assert all(kwargs == {} for _, kwargs in answer.calls)   # 도구 목록도 없음
+
+
+# --- M3: SqliteSaver 파일 ------------------------------------------------------------------------
+
+@pytest.mark.parametrize("plan_graph", ["flat", "subgraph"])
+def test_sentinel_never_reaches_sqlite_file(make_graph, agent_context, anon_context, fixed_now, seed, tmp_path,
+                                            sentinel_raw, caplog, plan_graph):
+    from glople_agent.checkpoints import db_files, open_saver
+
+    caplog.set_level(logging.DEBUG)
+    path = tmp_path / "checkpoints.sqlite"
+    saver, conn = open_saver(path)
+    kit, outputs, threads = run_hygiene_scenario(make_graph, saver, agent_context, anon_context, fixed_now, seed,
+                                                 plan_graph=plan_graph)
+    needles = [sentinel_raw, agent_context.request_id, agent_context.user_id]
+
+    def check_files(when: str) -> bytes:
+        blob = b"".join(p.read_bytes() for p in db_files(path))
+        assert "바나힐".encode() in blob and b"plan_confirm" in blob, when   # 파일을 실제로 훑었는지
+        for needle in needles:
+            assert needle.encode() not in blob, f"{when}: sqlite 바이트에 {needle!r}"
+        return blob
+
+    check_files("연결 중(-wal 포함)")
+    metadata = [json.loads(m) for (m,) in conn.execute("SELECT metadata FROM checkpoints").fetchall()]
+    assert metadata and all({"source", "step"} <= set(m) for m in metadata)   # metadata 열을 실제로 읽었는지
+    namespaces = {ns for (ns,) in conn.execute("SELECT DISTINCT checkpoint_ns FROM checkpoints").fetchall()}
+    writes = b"".join(bytes(v or b"") for (v,) in conn.execute("SELECT value FROM writes").fetchall())
+    for needle in needles:
+        assert needle not in json.dumps(metadata, ensure_ascii=False), f"metadata 열에 {needle!r}"
+        assert needle.encode() not in writes, f"writes 표에 {needle!r}"
+    # 서브그래프 판은 안쪽 체크포인트가 plan:<task id> namespace로 따로 쌓인다(그 바이트도 위에서 같이 봄)
+    assert any(ns.startswith("plan:") for ns in namespaces) == (plan_graph == "subgraph")
+    log_text = "\n".join(logging.Formatter().format(r) for r in caplog.get_records("call"))
+    assert sentinel_raw not in log_text and "Retrying task route" in log_text
+    conn.close()
+    assert not (tmp_path / "checkpoints.sqlite-wal").exists()   # 닫으면 WAL이 본 파일로 합쳐짐
+    check_files("닫은 뒤")
