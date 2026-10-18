@@ -16,11 +16,11 @@
    - `@EnableMethodSecurity`를 켰습니다. 그래서 기존 `@PreAuthorize`도 이제 실제로 동작합니다(URL 규칙과 이중 방어).
 5. **비로그인은 401, 권한 없음은 403입니다.** 둘 다 같은 모양의 JSON으로 응답합니다.
 
-접근 수준별 개수(전체 114개, `matrix.json` 기준)는 다음과 같습니다.
+접근 수준별 개수(전체 122개)는 다음과 같습니다. `matrix.json`(114개)에 2026-10-18에 더한 여행지 읽기 3개(공개), 여행 일정 4개(로그인 1, 본인 3), 키워드 태거 예측 가져오기 1개(관리자)를 합친 수입니다.
 
 | 공개 | 로그인 | 본인 | 당사자 | 관리자 | 차단 |
 |---|---|---|---|---|---|
-| 36 | 22 | 17 | 11 | 17 | 11 |
+| 39 | 23 | 20 | 11 | 18 | 11 |
 
 - **본인**: 자원 주인. 일부는 관리자도 허용합니다.
 - **당사자**: 채팅방 참가자, 예약의 두 사람입니다.
@@ -64,6 +64,15 @@ curl -i "http://localhost:8080/api/users/my-info?userId=someone-else" -H "Author
 | `404`·`409`·`400` | 권한과 관계없는 기존 의미 그대로입니다. 예: 없는 게시글, 이미 쓰는 닉네임, 잘못된 진행 단계 |
 
 - 컨트롤러·서비스가 던진 `AccessDeniedException`과 `AuthenticationCredentialsNotFoundException`도 같은 JSON이 됩니다.
+- 새 API(여행지 읽기, 여행 일정, `/api/search`의 선택 값, 프로필 수정의 비밀번호 확인)의 `400`도 같은 모양이고, 틀린 칸마다 `errors` 항목이 붙습니다. 칸 이름 `errors`는 에이전트(`agent/src/glople_agent/plan/spring_store.py`)가 읽는 이름입니다.
+
+```json
+{"status":400,"error":"BAD_REQUEST","message":"일정 값이 올바르지 않습니다.","path":"/api/travel-plans",
+ "errors":[{"field":"days","code":"out_of_range","message":"여행 일수는 1~30일이어야 합니다."},
+           {"field":"places[1].position","code":"duplicate","message":"position 1이 겹칩니다."}]}
+```
+
+  - 여행지 읽기·여행 일정에서는 읽을 수 없는 JSON 본문(`field: body`)과 숫자가 아닌 경로·쿼리 값(`field: id`, `limit` 등)도 이 모양의 400입니다. 기존 API의 400은 그대로입니다.
 - 넓은 `catch (RuntimeException)` 안에서 검사하면 403이 다른 상태로 바뀝니다. 그래서 검사는 항상 `try` 블록 앞에서 합니다(예: 게시글 수정).
 
 ## 규칙 순서 (SecurityConfig)
@@ -84,11 +93,13 @@ curl -i "http://localhost:8080/api/users/my-info?userId=someone-else" -H "Author
    - 계정: 회원가입, 로그인, 아이디·닉네임 중복 확인
    - 공개 대행자 프로필: `agents`, `search-agents-by-hashtag`, `recent-agents`, `profile-picture`
    - 추천: `POST /api/search`, `POST /api/info-recommend`
+   - 여행지 읽기: `GET /api/destinations`, `GET /api/destinations/**` (목록·이름 찾기·상세. 같은 경로의 다른 메서드는 로그인 필요)
    - 읽기 전용 둘러보기: `GET /api/posts/**`, `GET /api/comments/**`, `GET /api/bookReviews/**`, `GET /api/likes/*/count`, `GET /api/likes/*/is-liked`, `GET /api/likes/best-reviews`
    - 외부 장소 검색 `GET /api/search-place`
    - 정적 파일: `/image/**`, `/profile-pictures/**`, `/`, `/index.html`, `/app.js`, `/chat.html`, `/data/**`, `/favicon.ico`
    - Swagger 문서, `/ws/**`, `/error`
 4. **그 밖에는 로그인 필요**
+   - 여행 일정 `/api/travel-plans/**`는 따로 규칙을 두지 않고 여기에 걸립니다. 주인 검사는 `TravelPlanService`가 합니다.
 
 함께 바꾼 설정입니다.
 
@@ -114,7 +125,7 @@ curl -i "http://localhost:8080/api/users/my-info?userId=someone-else" -H "Author
 | U08 | GET | `/api/users/check-nickname` | 공개 | 누구나 |  |
 | U09 | POST | `/api/users/upload-profile-picture` | 본인 | 로그인한 본인 | userId 생략 가능. 쿼리·폼에 같은 값이 두 번 와 'id,id'가 되어도 본인으로 봄 |
 | U10 | POST | `/api/users/upload-verification-file` | 본인 | 로그인한 본인 | userId 생략 가능, 본인 아니면 403 |
-| U11 | POST | `/api/users/update-profile` | 본인 | 로그인한 본인 | 닉네임 중복(다른 사용자) 409, 바뀌면 내 게시글 Post.nickname도 함께 변경. 응답 {message, token}에 새 토큰. 요청의 profilePicture는 무시 |
+| U11 | POST | `/api/users/update-profile` | 본인 | 로그인한 본인 | 닉네임 중복(다른 사용자) 409, 바뀌면 내 게시글 Post.nickname도 함께 변경. 응답 {message, token}에 새 토큰. 요청의 profilePicture는 무시. 비밀번호(password)를 바꾸려면 현재 비밀번호(currentPassword)도 보내야 함: 없으면 400, 틀리면 403(둘 다 JSON, 아무 칸도 바꾸지 않음). password가 없거나 빈 문자열이면 비밀번호는 그대로 |
 | U12 | POST | `/api/users/update-agent-details` | 본인 | 로그인한 본인(isAgent) | 요청의 averageReviewRating은 무시 |
 | U13 | GET | `/api/users/agents` | 공개 | 누구나 | 승인된 대행자만 반환 |
 | U14 | GET | `/api/users/my-info` | 본인 | 로그인한 본인 또는 관리자 | userId 생략 = 본인. 남의 userId는 관리자만 |
@@ -148,6 +159,12 @@ curl -i "http://localhost:8080/api/users/my-info?userId=someone-else" -H "Author
 | T06 | POST | `/api/admin/wiki-sync/descriptions` | 관리자 | 관리자 |  |
 | T07 | POST | `/api/admin/wiki-sync/summaries` | 관리자 | 관리자 |  |
 | T08 | GET | `/api/admin/wiki-sync/status` | 관리자 | 관리자 |  |
+
+### 키워드 마스크 `/api/admin/keyword-masks`
+
+| ID | 메서드 | 경로 | 접근 | 허용 대상 | 구현 메모 |
+|---|---|---|---|---|---|
+| K01 | POST | `/api/admin/keyword-masks/import` | 관리자 | 관리자 | URL 규칙 + @PreAuthorize. 키워드 태거 예측(JSON Lines·배열)을 여행지의 태거 열에 씀. 형식 오류 400 JSON(아무것도 안 씀), 동기화 중 409, 본문 형식이 JSON Lines·JSON·텍스트가 아니면 415. [keyword-tagger-serving.md](keyword-tagger-serving.md) |
 
 ### 대행 리뷰 `/api/bookReviews`
 
@@ -258,7 +275,7 @@ curl -i "http://localhost:8080/api/users/my-info?userId=someone-else" -H "Author
 | PL1 | POST | `/api/places` | 관리자 | 관리자(프론트 미사용 전역 데이터) | URL 규칙 + @PreAuthorize |
 | PL2 | GET | `/api/places` | 로그인 | 로그인 사용자 |  |
 | PL3 | GET | `/api/search-place` | 공개 | 누구나(경로 탐색 화면이 비로그인으로 호출) |  |
-| RC1 | POST | `/api/search` | 공개 | 누구나 |  |
+| RC1 | POST | `/api/search` | 공개 | 누구나 | 선택 값 scope·limit·seed가 틀리면 400 JSON |
 | RC2 | POST | `/api/info-recommend` | 공개 | 누구나 |  |
 | RC3 | POST | `/api/save-route` | 로그인 | 로그인 사용자(본인 경로만) | body.userId가 본인이 아니면 403, 저장 값은 토큰 사용자 |
 | RC4 | GET | `/api/get-routes` | 본인 | 본인 또는 관리자 | userId 생략 = 본인. 남의 것은 관리자만 |
@@ -266,6 +283,27 @@ curl -i "http://localhost:8080/api/users/my-info?userId=someone-else" -H "Author
 | CI1 | GET | `/api/country-info` | 로그인 | 로그인 사용자 | 프론트 미사용이라 공개에서 뺌 |
 | WK1 | GET | `/api/wikipedia` | 로그인 | 로그인 사용자 | 프론트 미사용이라 공개에서 뺌 |
 | TE1 | GET | `/api/data` | 로그인 | 로그인 사용자(테스트용, 삭제 권장) |  |
+
+### 여행지 읽기 `/api/destinations`
+
+저장된 여행지(`destination_info`)를 읽기만 합니다. 화면과 에이전트 도구(search_destinations, get_destination_detail)가 같이 씁니다.
+
+| ID | 메서드 | 경로 | 접근 | 허용 대상 | 구현 메모 |
+|---|---|---|---|---|---|
+| DS1 | GET | `/api/destinations` | 공개 | 누구나 | region·category·query·limit(1~50)·seed 모두 선택. 틀린 값 400 JSON |
+| DS2 | GET | `/api/destinations/lookup` | 공개 | 누구나 | name 필수(없으면 400). 같은 이름이 여러 곳이면 최대 10곳 |
+| DS3 | GET | `/api/destinations/{id}` | 공개 | 누구나 | 없는 id 404 JSON(공개 데이터라 존재를 숨기지 않음) |
+
+### 여행 일정 `/api/travel-plans`
+
+주인 = 토큰 사용자(`currentUser.requireUser()`)입니다. 요청 본문에는 userId 칸이 없고, 보내도 무시합니다. 존재 여부는 C01(채팅 기록)처럼 숨깁니다.
+
+| ID | 메서드 | 경로 | 접근 | 허용 대상 | 구현 메모 |
+|---|---|---|---|---|---|
+| TP1 | POST | `/api/travel-plans` | 로그인 | 로그인 사용자(주인 = 본인) | 새로 저장 201 + Location. 같은 사용자의 같은 clientRequestId는 200으로 처음 일정(UNIQUE(user_id, client_request_id), 새 행 없음). 값 검사가 먼저라 틀린 값은 같은 키여도 400 |
+| TP2 | GET | `/api/travel-plans` | 본인 | 로그인한 본인(내 일정만) | 다른 사용자를 고르는 파라미터 없음. 관리자도 자기 일정만. 최근 저장 순 |
+| TP3 | GET | `/api/travel-plans/{id}` | 본인 | 일정 주인 또는 관리자 | 남의 일정·없는 일정 모두 403(존재 여부 숨김). 관리자도 없는 일정은 403 |
+| TP4 | DELETE | `/api/travel-plans/{id}` | 본인 | 일정 주인만 | 204. 남의 일정·없는 일정 403. 관리자도 남의 일정은 403 |
 
 ### 정적 파일·문서·기타 경로
 
@@ -279,6 +317,29 @@ curl -i "http://localhost:8080/api/users/my-info?userId=someone-else" -H "Author
 | ST6 | GET/POST | `/ws/** (SockJS 핸드셰이크·info·전송)` | 공개 | 누구나(HTTP 단계). STOMP 단계에서 S01~S11로 검사 | HTTP 단계는 공개, STOMP 단계에서 검사 |
 | ST7 | ANY | `/error` | 공개 | 누구나 | 필수(오류 응답이 401로 덮이지 않게) |
 | ST8 | ANY | `/logout` | 차단 | 허용 안 함(기능을 끔). 로그아웃은 프론트가 jwt 쿠키 삭제로 처리(main.js:113) | .logout(disable). 비로그인 401, 로그인 404 |
+
+### 여행 도우미 에이전트 `/ai-api/v1` (agent/, Spring 밖)
+
+LangGraph 에이전트 서비스(`agent/src/glople_agent/service/`, FastAPI `127.0.0.1:8095`)의 경로입니다. Spring `SecurityConfig` 밖이라 위 접근 수준별 개수와 `AuthorizationMatrixTest`에는 들어가지 않고, 같은 원칙을 에이전트가 직접 지킵니다(설계: `agent/docs/design.md` 10.2).
+
+- **요청자**: 모든 요청(AI1 빼고)의 `Authorization` 헤더를 Spring `GET /api/users/my-info`에 그대로 보내 확인하고 `userId`만 씁니다. 에이전트는 JWT 비밀키가 없습니다. `sha256(토큰)` 키로 60초 메모리 캐시. `Bearer undefined`·`Bearer null`·빈 값·헤더로 보낼 수 없는 글자는 Spring에 묻지 않고 401, Spring이 401이면 401, Spring에 닿지 않으면 503.
+- **행위자 파라미터**: 새 API라 **아예 받지 않습니다**. 모든 본문이 `extra="forbid"`라 `userId`·`nickname` 같은 칸이 오면 422입니다(Spring의 '받기만 함'과 다름).
+- **자원 주인**: 대화(thread)는 에이전트의 주인 표(`agent/var/service/threads.sqlite`의 `threads(thread_id, owner_user_id, …)`)로 판정합니다. thread_id는 서버가 만든 UUID4입니다. **남의 대화·없는 대화·모양이 틀린 id는 모두 같은 403**(C01처럼 존재 여부를 숨김). 일정 검토의 일정은 Spring이 판정합니다(TP3을 사용자 토큰으로 부름).
+- **오류 모양**: Spring과 같은 `{status, error, message, path}`에 기계용 `code`(예: `THREAD_BUSY`)를 더합니다. 422의 `errors`에는 칸 이름과 종류만 있고 입력 값은 없습니다.
+- **토큰이 가는 곳**: Spring 로그인 경로(my-info, travel-plans)의 그 요청 헤더뿐입니다. 공개 API·모델 서버·체크포인트·주인 표·로그·SSE에는 없습니다(`agent/tests/test_service_hygiene.py`).
+- **비로그인**: 지금은 허용하지 않습니다(AI1만 공개). 허용 여부는 오너 결정입니다(허용하면 읽기 도구만, 일정 저장 진입 불가).
+
+| ID | 메서드 | 경로 | 접근 | 허용 대상 | 구현 메모 |
+|---|---|---|---|---|---|
+| AI1 | GET | `/ai-api/v1/health` | 공개 | 누구나 | `{status, llm: up·down·rule, spring: up·down}`. 내부 주소 없음(TCP 연결만 확인) |
+| AI2 | POST | `/ai-api/v1/threads` | 로그인 | 로그인 사용자(주인 = 본인) | 201 `{threadId}`. 본문 없음(칸이 있으면 422). 사용자당 100개 |
+| AI3 | GET | `/ai-api/v1/threads` | 본인 | 로그인한 본인(내 대화만) | 다른 사용자를 고르는 파라미터 없음. 최근 순 |
+| AI4 | GET | `/ai-api/v1/threads/{id}` | 본인 | 대화 주인 | 화면 복원(턴·카드·대기 중인 확인 카드). 남의 것·없는 것 403 |
+| AI5 | DELETE | `/ai-api/v1/threads/{id}` | 본인 | 대화 주인 | 204, 체크포인트와 주인 표 행을 함께 지움. 실행 중이면 409 |
+| AI6 | POST | `/ai-api/v1/threads/{id}/messages` | 본인 | 대화 주인 | SSE. 본문 `{text(1~500자), clientMessageId?}`. 실행 중 409 `THREAD_BUSY`, 같은 clientMessageId 409, 사용자별 10분 20번(429) |
+| AI7 | POST | `/ai-api/v1/threads/{id}/resume` | 본인 | 대화 주인 | SSE. 본문 `{interruptId, decision: approve·edit·reject, draft?}`. 대기 카드 id가 아니면 409 `INTERRUPT_NOT_PENDING`, 24시간 지난 카드 409 `CONFIRM_EXPIRED`. 일정 저장은 save_plan이 사용자 토큰으로 TP1 |
+| AI8 | POST | `/ai-api/v1/threads/{id}/cancel` | 본인 | 대화 주인 | 202 `{cancelled}`. 실행 중인 턴을 멈춤 |
+| AI9 | POST | `/ai-api/v1/plans/{planId}/review` | 본인 | 일정 주인(Spring TP3이 판정) | 일정 AI 검토. Spring 403·404 → 403, 401 → 401. planId는 양의 정수(아니면 422). 본문 없음 |
 
 ## 예약·송금·리뷰 규칙
 
@@ -310,6 +371,7 @@ curl -i "http://localhost:8080/api/users/my-info?userId=someone-else" -H "Author
   - 상대 경로 `/api…`, `/chat…`와 `http://localhost:8080/…` 모두 해당합니다.
   - axios 인터셉터 하나와 `fetch` 래퍼로 처리합니다.
 - **외부 호출에는 토큰을 붙이지 않습니다.** 예: ko.wikipedia.org, restcountries.com
+- 여행 도우미 에이전트(`/ai-api/v1/...`)도 같은 출처 상대 경로라 같은 규칙으로 토큰이 붙습니다. 개발 서버는 `setupProxy.js`가 `/ai-api`를 `http://127.0.0.1:8095`(`AGENT_URL`)로 넘깁니다. 화면: `/assistant`(대화), `/my/plans`(내 여행 일정, TP2~TP4 + AI9).
 - 쿠키가 없으면 헤더를 빼는 것이 맞습니다. 서버는 `Bearer undefined`를 토큰 없음으로 처리하지만, 그 값을 보낼 이유가 없습니다.
 
 ### 401·403 처리
@@ -321,6 +383,8 @@ curl -i "http://localhost:8080/api/users/my-info?userId=someone-else" -H "Author
 ### 프로필 수정 응답
 
 `POST /api/users/update-profile`은 이제 JSON `{"message": "...", "token": "<새 토큰>"}`을 돌려줍니다.
+
+- 비밀번호를 바꿀 때만 `password`(새 비밀번호)와 `currentPassword`(현재 비밀번호)를 함께 보냅니다. 화면(`myprofilemodify.js`)은 '새 비밀번호' 칸이 비어 있으면 둘 다 보내지 않습니다. 현재 비밀번호가 없으면 400, 틀리면 403입니다.
 
 - 응답의 `token`으로 `jwt` 쿠키를 바꿉니다. 그러지 않으면 닉네임을 바꾼 뒤 옛 `nickname` 클레임 때문에 예약·채팅·이체·팔로우 호출이 403이 됩니다.
 - 다른 사용자가 쓰는 닉네임이면 409입니다.
@@ -369,7 +433,9 @@ axios.get(`/api/users/verification-file/${userId}`, { responseType: 'blob' })
 이번 범위 밖이거나 오너가 결정할 항목입니다.
 
 - **토큰 저장 위치**: JWT를 HttpOnly가 아닌 쿠키(`js-cookie`)에 둡니다. 게시글 본문은 HTML로 렌더링하므로 XSS가 생기면 토큰이 새어 나갑니다.
-- **비밀번호 변경**: `update-profile`의 비밀번호 변경은 본인 토큰만 확인하고 현재 비밀번호를 묻지 않습니다. 프론트는 지금 비밀번호를 보내지 않습니다. 현재 비밀번호 확인을 넣을지는 오너가 정합니다.
+- **비밀번호 변경**: 2026-10-18부터 현재 비밀번호를 확인합니다(U11). 남은 점은 두 가지입니다.
+  - 현재 비밀번호를 틀리는 횟수에 제한이 없습니다(아래 '요청 수 제한'과 같은 문제). 토큰이 있어야 시도할 수 있습니다.
+  - 비밀번호를 바꿔도 이미 발급된 토큰은 만료(24시간) 전까지 유효합니다. 응답의 새 토큰과 별개로 옛 토큰을 끊는 장치가 없습니다.
 - **채팅 첨부 파일**: `/image/<UUID>`로 공개 서빙됩니다. 참가자 전용으로 하려면 별도 다운로드 엔드포인트가 필요합니다.
 - **리뷰 작성자**: 리뷰 엔티티에 작성자 컬럼이 없습니다.
   - 그래서 리뷰 삭제는 관리자만 할 수 있습니다.
@@ -386,6 +452,7 @@ axios.get(`/api/users/verification-file/${userId}`, { responseType: 'blob' })
 - **API 키**: `PlaceController`에 Google API 키가 하드코딩돼 있습니다. `.env`로 옮기고 키를 교체할지는 오너가 정합니다.
 - **요청 수 제한**: 로그인·외부 프록시에 요청 수 제한이 없습니다.
 - **승인 상태 표시**: `my-info`는 승인 여부를 따로 내려주지 않습니다. 프론트는 `agent`(신청 여부)만 봅니다.
+- **여행 일정 동시 저장**: 같은 키 요청 두 개가 동시에 오면 둘째 요청은 UNIQUE 위반 뒤 먼저 저장된 일정을 다시 읽어 200으로 답합니다. 이 경로는 저장소를 목으로 둔 테스트로만 확인했습니다(실제 MySQL에서는 확인 못 함).
 - **권한과 무관한 기존 버그**
   - `update-profile`이 보내지 않은 `name`을 null로 덮습니다.
   - `recent-agents`는 null 값이 있으면 500입니다(`Map.of`).
@@ -409,8 +476,16 @@ axios.get(`/api/users/verification-file/${userId}`, { responseType: 'blob' })
   - `ChatMessagingAuthorizationTest`: sender 덮어쓰기, 챗봇 JOIN에 토큰 없음, `@SendToUser`
 - **서비스 규칙**
   - `BookingProgressRulesTest`
-  - `UserServiceAuthorizationTest`: 신청·승인, 닉네임 변경, 이체
+  - `UserServiceAuthorizationTest`: 신청·승인, 닉네임 변경, 비밀번호 변경(현재 비밀번호), 이체
   - `ContentOwnershipTest`: 게시글·댓글·리뷰·채팅 참가자
+- **여행지 읽기·여행 일정**
+  - `TravelPlanControllerTest`: 실제 SecurityConfig·CurrentUser·TravelPlanService, 저장소만 목. 비로그인 401, 201/200(같은 키), 동시 저장, 400 JSON, 남의 것·없는 것 403, 관리자 조회·삭제 규칙
+  - `TravelPlanServiceTest`: 값 한도(글자 수 = 코드 포인트), 저장 값
+  - `DestinationControllerTest`: 비로그인 공개, 응답 칸, 400·404 JSON, GET만 공개
+  - `JpaMappingWithoutDatabaseTest`: DB 연결 없이 Hibernate(MySQL 방언)로 엔티티 매핑·저장소 파생 쿼리를 검사하고, `travel_plan`의 UNIQUE(user_id, client_request_id)·외래 키를 DDL 문자열로 확인
+- **키워드 태거 예측 가져오기**
+  - `KeywordMaskControllerTest`: 실제 SecurityConfig·KeywordTaggerImportService, 저장소·동기화 실행기만 목. 관리자 200, 일반 사용자 403, 비로그인 401, 형식 오류 400 JSON, 동기화 중 409, form 본문 415
+  - `AuthorizationMatrixTest`의 관리자 경로 403·비로그인 401 목록에도 들어 있음
 
 ```bash
 sh gradlew test --offline --console=plain \
@@ -423,10 +498,17 @@ sh gradlew test --offline --console=plain \
   --tests "proj.travien.controller.UserControllerTest" \
   --tests "proj.travien.service.BookingProgressRulesTest" \
   --tests "proj.travien.service.UserServiceAuthorizationTest" \
-  --tests "proj.travien.service.ContentOwnershipTest"
+  --tests "proj.travien.service.ContentOwnershipTest" \
+  --tests "proj.travien.controller.TravelPlanControllerTest" \
+  --tests "proj.travien.controller.DestinationControllerTest" \
+  --tests "proj.travien.service.TravelPlanServiceTest" \
+  --tests "proj.travien.repository.JpaMappingWithoutDatabaseTest" \
+  --tests "proj.travien.controller.KeywordMaskControllerTest"
 ```
 
-> `proj.travien.repository.UserRepositoryTest`, `TravienApplicationTests`는 실제 DB(`glople-mysql`)에 붙습니다. 그래서 위처럼 클래스를 지정해 실행합니다.
+에이전트 경로(AI1~AI9)는 `agent/`의 pytest가 가짜 Spring(respx)으로 확인합니다: `cd agent && .venv/bin/pytest -q tests/test_service_api.py tests/test_service_hygiene.py tests/test_service_review.py`(토큰 없음·무효 401, Spring 장애 503, 남의 대화·없는 대화 403, 행위자 칸 422, 남의 일정 검토 403, sentinel 토큰이 저장소·로그·SSE에 0건).
+
+> `proj.travien.repository.UserRepositoryTest`, `TravienApplicationTests`는 실제 DB(`glople-mysql`)에 붙습니다. 그래서 위처럼 클래스를 지정해 실행합니다. `--tests "proj.travien.repository.*"`처럼 패키지 전체를 고르면 `UserRepositoryTest`가 같이 돌아 실제 DB에 테스트 사용자를 남기므로 쓰지 않습니다.
 
 ## 관련 파일
 
@@ -435,5 +517,7 @@ sh gradlew test --offline --console=plain \
 - [`jwt/JwtUtil.java`](../src/main/java/proj/travien/jwt/JwtUtil.java), [`jwt/JwtTokenProvider.java`](../src/main/java/proj/travien/jwt/JwtTokenProvider.java): subject, 수정 전 토큰 처리, `Bearer undefined`
 - [`jwt/StompAuthChannelInterceptor.java`](../src/main/java/proj/travien/jwt/StompAuthChannelInterceptor.java), [`WebSocketConfig.java`](../src/main/java/proj/travien/WebSocketConfig.java): STOMP 인증·인가
 - [`service/ChatAccessService.java`](../src/main/java/proj/travien/service/ChatAccessService.java): 채팅방 참가자 판정
+- [`service/TravelPlanService.java`](../src/main/java/proj/travien/service/TravelPlanService.java), [`controller/TravelPlanController.java`](../src/main/java/proj/travien/controller/TravelPlanController.java): 여행 일정 주인 검사, 멱등 저장
+- [`controller/ApiErrorAdvice.java`](../src/main/java/proj/travien/controller/ApiErrorAdvice.java): 새 API의 400 JSON(`errors`)
 - [`config/WebConfig.java`](../src/main/java/proj/travien/config/WebConfig.java): 검증 서류 정적 매핑 삭제. 기존 파일은 지우지 않았습니다. 히스토리 정리는 오너가 결정합니다.
 - [`build.gradle`](../build.gradle): `processResources`에서 `static/verification-files/**` 제외(클래스패스 정적 리소스로 복사하지 않음)

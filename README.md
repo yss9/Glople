@@ -13,6 +13,25 @@
 
 <br>
 
+## 개인 개편 (2026.10~, 1인)
+
+팀 프로젝트가 끝난 뒤 혼자 하는 개편입니다. 실제 서비스 데이터 위에서 **AI 에이전트, tool calling, 모델 학습(파인튜닝·LoRA), Hugging Face, LangChain/LangGraph**를 직접 만들어 보며 익히는 것이 목적입니다. 학습은 모두 Apple Silicon 맥 한 대(MLX, PyTorch MPS)에서 했습니다. 개편으로 만든 기능은 표에서 "2026 개편"으로 표시했습니다.
+
+| 로드맵 | 한 일 | 결과 (학습에 쓰지 않은 시험지) | 자세히 |
+| :-- | :-- | :-- | :-- |
+| 1. 여행지 데이터 | 국내 한국관광공사 TourAPI, 해외 위키데이터·한국어 위키백과를 DB로 수집. 출처·이용 조건(공공누리 유형, CC BY-SA)을 행마다 저장 | 국내 1,828곳 · 해외 7,579곳 | [국내](docs/domestic-tour-sync.md) · [해외](docs/overseas-wiki-sync.md) |
+| 2. 키워드 태거 | 설명문 글자 포함 규칙 대신 `klue/roberta-base` 다중 라벨 분류기. 서비스에는 키워드마다 규칙/모델 중 나은 쪽을 고른 결과를 씀 | micro F1 국내 0.409 → 0.733, 해외 0.701 → 0.728 | [training/keyword_tagger](training/keyword_tagger/README.md) · [서버 적용](docs/keyword-tagger-serving.md) |
+| 3. 임베딩 파인튜닝 | `multilingual-e5-base`를 여행지 데이터로 파인튜닝(sentence-transformers, 어려운 음성 예). 여행지 9,407곳을 색인해 '문장으로 찾기' 화면(`/search/semantic`)에 붙임 | 문장 검색 nDCG@10 0.466 → 0.802 (합성 질의, 국내) | [training/embedding](training/embedding/README.md) |
+| 4. LangGraph 에이전트 | 라우터 모델이 고른 호출을 코드가 다시 검사(인자 근거, 공공누리 제3유형 원문은 모델에 안 보냄, 저장 전 확인 카드). FastAPI SSE 서비스로 감쌈 | 정답 재생 390건 예외 0 · 테스트 1,209개 · 권장 구성(첫 판단 v3 + 결과 뒤 v4)에서 가드 통과 92% | [agent/](agent/README.md) |
+| 5. LLM tool calling LoRA | `Qwen3-4B-Instruct-2507` 4bit 위 LoRA(QLoRA 구성), 합성 대화 데이터 v1~v4. v4는 도구 결과를 받은 뒤의 턴(답하기·한 번 더 부르기·빈 결과 알리기)을 더 배움 | 첫 판단 전체 정답률 58.7% → 91.0% (v3, 300문제). 도구 결과 뒤 근거로 답함 128 → 159/161 (v3 → v4) | [training/](training/README.md) · [Hub 업로드 준비](training/hf/README.md) |
+| 6. 일정 화면 + AI 검토 | `/assistant`에서 대화로 일정 초안 → 확인 카드에서 저장·고치기 → `/my/plans` 일차별 일정과 AI 검토 | 실제 서버에서 저장·검토 확인 | [agent/README.md 'M5'](agent/README.md) |
+
+- 그 밖에 한 일: 인가 정비(요청자는 토큰으로만 정하고 남의 데이터는 403, 실서버 358건 점검 → [docs/authorization.md](docs/authorization.md)), 비밀번호 변경 시 현재 비밀번호 확인, 관리자 비밀번호·JWT 키를 환경 변수로, 키워드 추천 동점 정렬 개선([docs/travel-api.md](docs/travel-api.md)).
+- 라벨과 평가 세트 일부는 AI가 만든 silver 데이터라, 숫자는 "AI 라벨과 얼마나 같은가"입니다. 각 문서에 어떤 데이터로 잰 숫자인지 적었습니다.
+- 남은 일과 판단이 필요한 것: [docs/revamp-todo.md](docs/revamp-todo.md)
+
+<br>
+
 ## 주요 기능
 
 `구분`이 **본인**인 항목이 제가 구현한 부분이고, **팀**은 팀 전체가 만든 서비스 기능입니다.
@@ -28,6 +47,7 @@
 | 여행 경로 설정 | 출발지·경유지·도착지를 장소 검색으로 고르고 드래그로 순서를 바꾸며 Google Maps Directions로 경로 표시 | 팀 |
 | 여행 리뷰 커뮤니티 | Quill 에디터 리뷰 작성, 썸네일·이미지 업로드, 댓글·좋아요, 베스트 리뷰, 리뷰 작성 시 포인트 적립 | 팀 |
 | AI 챗봇 | 사용자 질문을 STOMP 메시지로 받아 OpenAI `gpt-3.5-turbo`에 전달하고 답변을 돌려줌 | 팀 |
+| AI 여행 도우미 (2026 개편) | 직접 학습한 tool calling 모델 + LangGraph 에이전트([`agent/`](agent/README.md))가 추천·후기·글로플러 도구를 골라 부르고, 결과 카드(출처·원문 그대로)를 먼저, 답을 나중에 SSE로 보냄(`/assistant`). 일정은 확인 카드에서 저장·취소·고친 뒤에만 저장하고, 저장한 일정은 일차별로 보며 AI 검토를 받음(`/my/plans`) | 본인 |
 | 글로플러 채팅 | STOMP over SockJS 1:1 채팅방, 대화 기록 저장, 이미지 전송, 음성 메시지를 Google Speech-to-Text로 텍스트 변환 | 팀 |
 | 글로플러 · 예약 | 인증 파일을 첨부한 글로플러 신청, 해시태그 검색·팔로우, 예약 진행도(글로플러 매칭 → 대행 진행 → 입금 완료 → 여행 완료) 관리, 채팅방에서 글로플러에게 포인트 전송 | 팀 |
 | 회원 · 관리자 | JWT 로그인, 회원가입 단계의 MBTI 입력, 관리자 API(글로플러 승인, 포인트 조정, 관리자 승격, 회원 삭제) | 팀 |
@@ -42,7 +62,7 @@ MBTI 여행지 카드는 유형별로 미리 정한 목록을 보여주는 화�
 
 | 메서드 | 경로 | 동작 |
 | :-- | :-- | :-- |
-| `POST` | `/api/search` | 선택한 키워드 목록으로 여행지 상위 21곳 조회 |
+| `POST` | `/api/search` | 선택한 키워드 목록으로 여행지 상위 21곳 조회 (2026 개편: 선택 값 `scope`·`limit`·`seed`) |
 | `POST` | `/api/info-recommend` | 생년월일·성별·MBTI로 유사 여행자 상위 12명과 각자의 여행 루트 조회 |
 | `POST` | `/api/save-route` | 추천받은 여행자 루트를 내 루트로 저장 |
 | `GET` | `/api/get-routes` | 저장한 루트 목록 조회 |
@@ -52,6 +72,7 @@ MBTI 여행지 카드는 유형별로 미리 정한 목록을 보여주는 화�
 - 서버의 키워드 목록(`KeywordMask`)에서 키워드 위치를 비트 번호로 사용합니다. 부호 비트를 피해 앞 63개는 `keyword_mask_low`, 나머지는 `keyword_mask_high`에 담습니다.
 - 여행지(`DestinationInfo`)는 저장·수정 시 `@PrePersist`/`@PreUpdate`에서 설명문(`info`)에 들어 있는 키워드로 마스크를 다시 계산합니다. 서버가 뜰 때 마스크가 비어 있는 기존 행은 `DestinationKeywordMaskBackfill`이 채웁니다.
 - 목록에 없는 키워드만 들어오면 쿼리를 실행하지 않고 빈 목록을 반환합니다.
+- (2026 개편) 일치 수가 같으면 예전에는 id 순이라 '가'로 시작하는 국내 관광지만 나왔습니다. 지금은 설명문 있는 곳 → 이미지 있는 곳 → `CRC32(CONCAT(id, ':', seed))` 순이고, seed 기본값은 오늘 날짜라 같은 날에는 같은 결과입니다. 한 지역(국내 시도, 해외 나라)은 최대 `max(2, ⌈limit/4⌉)`곳이고, 선택 값 `scope`(all·domestic·overseas)·`limit`(1~50)·`seed`를 받습니다. 규칙: [docs/travel-api.md](docs/travel-api.md#s0--키워드-추천-동점-정렬-post-apisearch)
 - 화면: 키워드 선택 화면(`keyword.js`)을 만들고, 선택 결과를 `/api/search`로 보내 추천 결과 화면으로 넘기도록 연결했습니다.
 
 ### 유사 여행자 루트 추천
@@ -88,6 +109,7 @@ MBTI 여행지 카드는 유형별로 미리 정한 목록을 보여주는 화�
   ```
 
 - **결과**: 평균 응답 시간 15.7ms → 8.92ms, p95 20ms → 10ms
+- **이후 변경 (2026 개편)**: 위 쿼리와 측정은 2024년 사후 개선 기준입니다. 지금은 동점 정렬이 `(info IS NOT NULL) DESC, (image_url IS NOT NULL) DESC, CRC32(CONCAT(id, ':', :seed))`로 바뀌었고, 지역 상한을 위해 후보를 `limit`의 4배까지 읽은 뒤 고른 행만 다시 읽습니다. 바뀐 쿼리의 응답 시간은 아직 재지 않았습니다.
 - **한계**: 서버 목록의 순서가 곧 비트 번호라서, 목록 중간에 키워드를 넣거나 빼면 저장된 마스크를 모두 다시 계산해야 합니다(현재 백필은 마스크가 0인 행만 채웁니다). 설명문에서 키워드를 찾는 방식은 기존과 같은 부분 문자열 일치라서 '성'처럼 짧은 키워드는 '성당'에도 매칭됩니다.
 
 ### 2. 유사 사용자(MBTI) 추천: 전체 정렬을 Top-K 추출로 (사후 개선)
@@ -125,6 +147,8 @@ MBTI 여행지 카드는 유형별로 미리 정한 목록을 보여주는 화�
 | 외부 API | OpenAI Chat Completions (`gpt-3.5-turbo`), Google Cloud Speech-to-Text, Google Places, Google Maps JavaScript API, Wikipedia, RestCountries, Pixabay |
 | Infra | Docker, Docker Compose, Nginx (리버스 프록시) |
 | API 문서 | springdoc-openapi 2.6.0 (Swagger UI) |
+| AI·ML (2026 개편) | Python 3.12, MLX 0.32 · mlx-lm 0.32 (LoRA 학습·서빙), PyTorch 2.14 (MPS) · transformers 5.20 · sentence-transformers, LangGraph 1.2 · LangChain Core 1.6, FastAPI (SSE) |
+| 데이터 API (2026 개편) | 한국관광공사 TourAPI, Wikidata SPARQL, 한국어 위키백과, Open-Meteo(날씨) |
 
 <br>
 
@@ -143,7 +167,10 @@ MBTI 여행지 카드는 유형별로 미리 정한 목록을 보여주는 화�
 | 도메인 | 엔드포인트 |
 | :-- | :-- |
 | 추천 | `POST /api/search`, `POST /api/info-recommend`, `POST /api/save-route`, `GET /api/get-routes` |
-| 회원 · 글로플러 | `POST /api/users/signup`, `POST /api/users/login`, `GET /api/users/my-info`, `POST /api/users/apply-agent`, `POST /api/users/approve-agent/{userId}`, `GET /api/users/agents`, `GET /api/users/search-agents-by-hashtag`, `/api/follow` |
+| 여행지 조회 (2026 개편) | `GET /api/destinations`(지역·분류·검색어), `GET /api/destinations/lookup?name=`, `GET /api/destinations/{id}` — 공개, [docs/travel-api.md](docs/travel-api.md) |
+| 여행 일정 (2026 개편) | `POST /api/travel-plans`(같은 `clientRequestId`는 한 번만 저장), `GET /api/travel-plans`, `GET /api/travel-plans/{id}`, `DELETE /api/travel-plans/{id}` — 로그인, 본인 일정만 |
+| AI 여행 도우미 (2026 개편) | 에이전트 서비스 `/ai-api/v1`(FastAPI `127.0.0.1:8095`): `POST/GET /threads`, `GET/DELETE /threads/{id}`, `POST /threads/{id}/messages`·`/resume`(SSE), `POST /plans/{planId}/review` — 로그인, 본인 대화만([인가 규칙](docs/authorization.md#여행-도우미-에이전트-ai-apiv1-agent-spring-밖)) |
+| 회원 · 글로플러 | `POST /api/users/signup`, `POST /api/users/login`, `GET /api/users/my-info`, `POST /api/users/update-profile`(비밀번호를 바꿀 때 현재 비밀번호 필요), `POST /api/users/apply-agent`, `POST /api/users/approve-agent/{userId}`, `GET /api/users/agents`, `GET /api/users/search-agents-by-hashtag`, `/api/follow` |
 | 예약 · 포인트 | `POST /api/booking/update-progress`, `GET /api/booking/all-progress`, `POST /api/users/transfer-points`, `/api/bookReviews` |
 | 리뷰 커뮤니티 | `/api/posts` (작성·조회·수정·삭제·신고·썸네일·검색), `/api/comments`, `/api/likes` |
 | 채팅 | STOMP `/app/chat.sendMessage/{roomId}` → `/topic/public/{roomId}`, `POST /chat/createRoom`, `GET /chat/history/{roomId}`, `POST /chat/uploadFile/{roomId}`, `POST /chat/uploadVoiceMessage/{roomId}` |
@@ -230,9 +257,20 @@ yarn install
 yarn start                     # http://localhost:3000
 ```
 
-개발 서버는 [`setupProxy.js`](frontend/src/setupProxy.js)로 `/api` 요청을 `http://localhost:8080`에 넘깁니다. Google Maps 키는 환경 변수가 아니라 화면 코드에서 지정합니다. `frontend/src/pages/` 아래의 `GOOGLE_MAPS_API_KEY` 상수, 각 `MapComponent.js`의 `googleMapsApiKey`, `routeNavigation/routeNavigationPage.js`의 `apiKey`를 사용할 키로 바꿉니다.
+개발 서버는 [`setupProxy.js`](frontend/src/setupProxy.js)로 `/api` 요청을 `http://localhost:8080`에, `/ai-api` 요청을 에이전트 서비스 `http://127.0.0.1:8095`(`AGENT_URL`)에 넘깁니다. Google Maps 키는 환경 변수가 아니라 화면 코드에서 지정합니다. `frontend/src/pages/` 아래의 `GOOGLE_MAPS_API_KEY` 상수, 각 `MapComponent.js`의 `googleMapsApiKey`, `routeNavigation/routeNavigationPage.js`의 `apiKey`를 사용할 키로 바꿉니다.
 
-### 4. Docker Compose (참고)
+### 4. AI 여행 도우미 (선택, 2026 개편)
+
+```bash
+cd agent
+.venv/bin/pip install --uploaded-prior-to 2026-10-03T00:00:00Z -c requirements.lock -e ".[dev,server]"
+.venv/bin/python -m glople_agent.service            # 127.0.0.1:8095. 모델 서버(8090)·백엔드(8080)를 먼저 띄움
+.venv/bin/python -m glople_agent.service --llm fake # 모델 서버 없이 화면만 볼 때(가짜 모델, 일정은 메모리)
+```
+
+화면은 `/assistant`(대화)와 `/my/plans`(내 여행 일정, 마이페이지의 '내 여행 일정')입니다. 자세한 내용은 [agent/README.md](agent/README.md)의 'M5' 절에 있습니다.
+
+### 5. Docker Compose (참고)
 
 ```bash
 cd docker

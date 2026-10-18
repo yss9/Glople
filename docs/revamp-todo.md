@@ -34,6 +34,7 @@
 - **keyword_tagger README가 아직 '학습 전' 상태로 적혀 있음 (커밋 전에 고쳐야 함)** · 누가: Claude · 크기: S
   - 왜: 포트폴리오 문서가 실제 결과와 반대로 적혀 있습니다. README는 학습을 안 했다고 하는데 학습 결과 파일은 이미 있습니다. 저장소에 없는 세션 임시 스크립트도 언급합니다. 이대로 커밋하면 읽는 사람이 결과를 믿기 어렵습니다.
   - 근거: training/keyword_tagger/README.md:7 "본 학습(klue/roberta-base)은 아직 돌리지 않았습니다" 및 세션 임시 폴더의 kt_after_mlx.sh 언급, :186 "본 학습 시간은 아직 재지 않았습니다", :200-202 '다음 단계(아직 안 함)', :215 "(자동 실행이 만들 예정, 아직 없음)". 실제로는 results/roberta-base.json(train_seconds 1231.5, 약 20.5분)과 results/roberta-base.compare.md(micro F1 0.530)가 있습니다. 고칠 방법: 상태 문단을 결과 표로 바꾸고, 학습 시간을 적고, 임시 스크립트 언급과 '아직 없음' 표기를 지웁니다.
+  - 상태: 처리함(2026-10-18). 맨 위 상태 문단을 v3 결과표(서버 규칙·v2·v3·키워드별 섞기)와 서버 적용 상태로 바꾸고, '다음 단계'를 새로 썼습니다. 임시 스크립트 언급은 없습니다.
 
 ## P1 · 해야 함 (42개)
 
@@ -86,6 +87,7 @@
 - **키워드 마스크 재계산 범위 결함: 0인 마스크만 백필, TOUR_API만 재계산, 해외 한국어 설명은 부분 문자열 매칭** · 누가: Claude · 크기: M
   - 왜: 키워드 목록이나 분류 코드표를 바꾸거나 키워드 태거(로드맵 2) 결과를 반영하면, 이미 0이 아닌 마스크를 가진 해외 행과 새 Wikidata 행은 다시 계산되지 않습니다. 지금 만들고 있는 해외 수집기의 한국어 위키백과 설명은 '부산'의 '산' 같은 오탐을 그대로 겪습니다. 시작 비용 자체는 문제가 아닙니다.
   - 근거: DestinationKeywordMaskBackfill.java:25-30은 mask=(0,0) 행만 다시 읽습니다. TourDestinationSyncService.java:168-169 rebuildSummaries는 source='TOUR_API'만 순회합니다. 기존 해외 행의 source는 NULL입니다(DestinationInfo.java:49 주석). DestinationInfo.java:93-95는 TOUR_API가 아니면 KeywordMask.fromDescription(부분 문자열)을 쓰므로 '산','섬','성','탑','강' 같은 한 글자 키워드가 단어 속에서 켜집니다. 시작 비용 추정: 인덱스를 쓸 수 없는 쿼리 2개(마스크 컬럼과 category IN 181개 코드에 인덱스 없음)로 약 2만 행을 두 번 풀스캔하는 수십 ms 수준입니다. 설명은 있는데 키워드가 0인 행은 매번 다시 읽히고(설명이 하루 950건씩 늘면 이 집합도 커짐), 값이 같아서 UPDATE는 0건입니다. 해결(해외 수집기 작업이 끝난 뒤): keyword_mask_version 컬럼과 KeywordMask.VERSION 상수를 두고 백필 조건을 version < 현재로 바꿉니다. 한국어 매처 선택은 source==TOUR_API 대신 언어 기준으로 하고, 마스크 재계산을 전체 source로 넓힙니다.
+  - 상태: 처리함(2026-10-18, 실제 MySQL 실행 확인은 아직). `keyword_mask_version` 열과 `KeywordMaskVersion`(규칙 번호 + 키워드·조사·코드표 지문)을 두고, 시작 시 마스크 보정이 국내·위키데이터 행 중 판이 없거나 다른 행만 마스크·판 열 UPDATE로 다시 계산합니다(코드표를 고치면 다시 띄우기만 하면 됨). 위키데이터 한국어 설명은 이미 국내 규칙(`fromKoreanDescription`, '문화어' 제외)을 씁니다. 출처가 없는 기존 해외 행은 원래 데이터의 마스크를 덮지 않으려고 예전처럼 0인 마스크만 채우고, 언어 기준 매처 선택은 하지 않았습니다. [keyword-tagger-serving.md](keyword-tagger-serving.md#규칙-판과-시작-시-다시-계산)
 
 - **좋아요·게시글 엔드포인트 런타임 500: is-liked NPE, 댓글 있는 글 삭제 실패, /image 항상 실패** · 누가: Claude · 크기: S
   - 왜: 새로 쓴 글의 상세 화면에 들어가기만 해도 500이 나는 등 사용자가 바로 보는 오류입니다. 모두 몇 줄로 고칠 수 있습니다.
@@ -104,6 +106,7 @@
 - **국내 진입점과 국내/해외 구분 만들기 (지도 한국 클릭, 검색 scope, 카드 지역 배지)** · 누가: Claude · 크기: M
   - 왜: 개편 목표가 국내 확장인데 국내 여행지로 들어가는 입구가 없습니다. 결과 카드만 봐서는 국내인지 해외인지도 알 수 없습니다. 19,949개 국내 행과 기존 해외 행이 한 목록에 섞여서 나옵니다.
   - 근거: main.js:467 `<path //한국`에는 onClick/onMouseEnter가 없습니다. 클릭할 수 있는 나라는 일본(:253-255)·러시아(:333-335)·호주(:382-384)·이탈리아(:551-553)·캐나다(:618-620)·미국(:673-675) 6개뿐이고, 팝업도 여행지가 아니라 게시글 `/api/posts/${country}`를 보여줍니다(test/Popup.js:141). mbti.js:25-42는 16유형 모두 해외 도시를 하드코딩했습니다. keyword.js에는 국내/해외 선택이 없고, KeywordRequest.java:12는 keywords만 받으며, 쿼리(DestinationInfoRepository.java:47-55)에는 country 조건이 없습니다. 카드는 이름만 보여주고 country/location은 표시하지 않습니다(personal.js:192).
+  - 상태: 일부 처리함(백엔드, 2026-10-18). `/api/search`가 `scope`(all·domestic·overseas)를 받습니다([travel-api.md](travel-api.md)). 화면(keyword.js의 국내/해외 선택, 지도 한국 클릭, 카드 배지)은 아직입니다.
 
 - **localhost:8080 하드코딩을 API 클라이언트 하나로 모으기 (프록시와 SPA fallback 포함)** · 누가: Claude · 크기: M
   - 왜: 배포한 데모에서는 방문자 PC의 localhost로 요청이 가서 전부 실패합니다. 그렇다고 문자열만 바꾸면 /ws, /chat/*, 정적 이미지가 깨집니다.
@@ -112,28 +115,34 @@
 - **챗봇 UI 결함 정리와 4단계 에이전트용 대화 화면 설계 (REST+SSE, 도구 결과 카드)** · 누가: 함께 · 크기: M
   - 왜: 지금 챗봇은 여러 사용자가 동시에 쓰면 서로의 답을 보게 되고, 비로그인이면 멈춥니다. 4단계 LangGraph 에이전트로 바꿀 때 STOMP 브로드캐스트 구조를 그대로 고치기보다 새 전송 방식으로 가는 게 낫습니다.
   - 근거: ChatBotController.java:22,34의 @SendTo("/topic/public")과 chatbotset.js:172 구독 때문에, 접속한 모든 사용자에게 남의 질문에 대한 답이 보입니다. setLoading(false)(:173)도 남의 답이 오면 풀립니다. JOIN 메시지도 같은 토픽으로 와서 content 없는 빈 말풍선으로 그려집니다(:175, :239). username은 payload.name에서 읽는데(:151) JWT에는 id·userId·nickname·role만 있어서(JwtUtil.java:33-36) undefined가 됩니다. 토큰이 없으면 connected=false라 계속 '로딩 중...'입니다(:142-159, :225). handleAddUser의 cleanup(:188)을 useEffect가 반환하지 않아서 재방문할 때마다 STOMP 연결이 쌓입니다. ChatBotService.java:23은 매번 user 메시지 하나만 gpt-3.5-turbo로 보내서 대화 맥락이 없습니다.
+  - 상태: 처리함(2026-10-18). 기존 챗봇은 인가 정비 때 보낸 사람에게만 답하도록 바꿨고(`@SendToUser` → `/user/topic/chatbot`), 에이전트용 새 화면 `/assistant`는 REST + SSE(`/ai-api/v1`, 본인 대화만)로 결과 카드를 먼저, 답을 나중에 보여 줍니다([agent/README.md](../agent/README.md) 'M5').
 
 - **여행지 조회 엔드포인트를 UI와 에이전트 도구가 같이 쓰도록 만들기 (v2 학습 전에 도구 스키마 정리)** · 누가: 함께 · 크기: M
   - 왜: 학습한 도구 스키마에 대응하는 백엔드 API가 없습니다. UI 상세 페이지와 '주변 여행지'도 같은 API가 필요하므로 한 번에 만들면 됩니다. v2 학습 전에 정해야 다시 학습할 일이 없습니다.
   - 근거: training/tools/glople_tools.json에 search_destinations(region, category enum 관광지/문화시설/축제/레포츠/음식점/숙박, query, limit)와 get_destination_detail(name)이 정의되어 있고 data/tool_calling_v2에도 나옵니다. 하지만 백엔드 컨트롤러에서 여행지 관련 매핑은 /api/search, /api/info-recommend, /api/save-route, /api/get-routes뿐이고 지역·분류 검색이나 상세 조회는 없습니다. 수집 타입은 12·14·15·28뿐이라(TourDestinationSyncService.java:39-45, 55-56) enum의 음식점(39)·숙박(32)은 데이터가 0건입니다. get_destination_detail(name)은 위 중복 이름 문제 때문에 모호합니다. DB에는 regionCode/sigunguCode(DestinationInfo.java:58-59)가 있어서 지역 필터를 만들 수 있습니다.
+  - 상태: 처리함(S1, 2026-10-18). 공개 `GET /api/destinations`(region·category·query·limit·seed), `/api/destinations/lookup?name=`(같은 이름이면 여러 곳), `/api/destinations/{id}`([travel-api.md](travel-api.md#s1--여행지-읽기-apidestinations)). 음식점·숙박은 국내 수집 타입이 아니라 결과가 비고, 해외 분류는 키워드 마스크 근사입니다. 화면 연결과 실제 MySQL 실행 확인은 아직입니다.
 
 - **6단계 일정 UI 지도 경로: 국내에서는 Google 도보 경로가 나오지 않으니 대안 정하기** · 누가: 함께 · 크기: M
   - 왜: 기존 루트 화면을 재활용해 국내 일정을 그리면, 경로 요청 단계에서 결과가 나오지 않을 가능성이 큽니다. 지도·경로 제공자를 일정 UI 만들기 전에 정해야 합니다.
   - 근거: routeNavigationPage.js:299-305는 google.maps.DirectionsService에 TravelMode.WALKING을 씁니다. Google Directions는 대한민국 안에서 도보·자동차 경로를 제공하지 않는 것으로 알려져 있어서 ZERO_RESULTS가 예상됩니다(외부 호출 금지라 실측은 안 했습니다). routeNavigationPage.js:64-72는 오사카 좌표를 하드코딩한 데모입니다. 반면 국내 행에는 DestinationInfo.latitude/longitude(DestinationInfo.java:67-68)가 채워져 있어 지오코딩 없이 핀을 찍을 수 있습니다.
+  - 상태: 피해 감(2026-10-18). `/my/plans`는 지도 없이 일차별 카드 + AI 검토로 만들어 경로 요청을 하지 않습니다. 지도·경로 제공자는 아직 정하지 않았습니다.
 
 - **프론트를 개편 데이터로 실제 실행해서 데모 흐름 확인하기** · 누가: 함께 · 크기: S
   - 왜: 이 체크아웃에서는 프론트를 한 번도 설치하거나 실행한 흔적이 없습니다. 위 문제들이 실제 화면에서 어떻게 보이는지, Google 키가 아직 살아 있는지 확인된 적이 없습니다.
   - 근거: frontend/node_modules와 frontend/build가 없습니다(`ls` 결과 No such file or directory). git status에 frontend 변경이 0건이고, 프론트 테스트 파일은 setupTests.js뿐입니다. Google 키는 2024년 팀 키 3종(information.js:41 외 3곳 공통 1종, review/write/MapComponent.js:10, routeNavigationPage.js:19)이라 결제·제한 상태를 알 수 없습니다. 첫 번째 항목의 폴백이 없으면 데모 화면 대부분이 'Loading image...'로 남을 수 있습니다.
+  - 상태: 일부 처리함(2026-10-18). 개발 서버(3000)를 실제 Spring(8080)·에이전트 서비스(8095, 가짜 모델)·문장 검색 서버(8096)에 붙여 임시 계정으로 로그인 → `/assistant`(날씨·검색·추천·상세·일정 저장) → `/my/plans`(AI 검토) → `/search/semantic` → 여행지 상세(설명문·출처)까지 확인했습니다. Google 사진은 'Loading image...'로 남습니다(키 확인은 오너 몫).
 
 ### 데이터·AI
 
 - **태거가 test에서 키워드 17개만 예측함: 규칙과 섞는 하이브리드를 고르고 epoch를 늘려 다시 학습** · 누가: Claude · 크기: M
   - 왜: 모델은 학습 라벨 77개 중 17개만 내놓습니다. 그래서 macro F1이 0.170으로, 규칙(0.392)보다 크게 낮습니다. 섬·성·탑·강은 예측이 0건입니다. 학습도 끝까지 수렴하지 않았습니다.
   - 근거: 직접 오프라인 계산(outputs/roberta-base/test_predictions.jsonl + kt_common.korean_rule_predict, compare.md의 0.530/0.170, 0.409/0.392를 그대로 재현함). 모델 단독 micro 0.530 / macro 0.170, 규칙 0.409/0.392. '모델 ∪ 모델이 한 번도 안 내는 키워드는 규칙'은 micro P/R/F1 0.606/0.598/0.602, macro 0.467. 전부 합집합은 0.607/0.480. 단, 키워드 목록을 test에서 골랐으므로 valid에서 다시 골라야 합니다. outputs/auto_run.log를 보면 valid F1이 에폭 9→10에 0.6215→0.6368로 계속 오르고 best_epoch=10/10이며, LR은 선형으로 0까지 줄어듭니다. 고치는 방법: valid로 하이브리드 규칙 고르기(S, GPU 필요 없음), --epochs 25 --patience 3으로 다시 학습(MPS 약 40분), BCE pos_weight 검토.
+  - 상태: 처리함(2026-10-18). 1·2·3차 배치로 v3를 다시 학습했고(test macro F1 0.170 → 0.459, micro 0.530 → 0.733), 키워드마다 valid F1로 규칙/태거/합집합을 고르는 섞기(`scripts/hybrid_masks.py`: 태거 29·규칙 61·합집합 4)를 서버에 가져왔습니다. 드문 키워드는 규칙이 맡습니다.
 
 - **태거 예측을 DB에 반영할 경로 만들기: 지금은 써 넣어도 다음 저장 때 덮어씀** · 누가: Claude · 크기: M
   - 왜: README의 '다음 단계'는 '배치로 predict.py → 마스크 재계산'입니다. 하지만 @PrePersist/@PreUpdate가 저장할 때마다 info와 category로 마스크를 다시 계산합니다. 소개 재계산(summaries)도 마스크가 다르면 저장합니다. 그래서 SQL로 넣은 모델 마스크는 다음 목록 갱신이나 재계산 때 규칙 마스크로 되돌아갑니다.
   - 근거: DestinationInfo.java:86-95(refreshKeywordMask가 @PrePersist/@PreUpdate에서 실행), TourDestinationSyncService.java:163-205(rebuildSummaries → refreshSummaryAndMask:202 → 바뀌었으면 saveAll), keyword_tagger/README.md:203. 고치는 방법: predicted_keyword_mask_low/high(또는 predicted_keywords + 모델 버전) 컬럼을 따로 두고 refreshKeywordMask에서 합칩니다. predict.py 결과를 external_id 기준으로 그 컬럼에만 쓰는 배치를 만듭니다.
+  - 상태: 처리함(2026-10-18, 로컬 MySQL에 적용). 태거 열(`tagger_mask_low/high`, `tagger_model`, `tagger_info_crc32`, `tagger_updated_at`)을 규칙 마스크와 따로 두어 저장할 때 덮이지 않습니다. `scripts/predict_all.py` → `POST /api/admin/keyword-masks/import`(관리자, (source, external_id)로 태거 열만 씀) → 추천 쿼리가 `keyword.recommend.mask-mode`(기본 tagger = 태거 열, union, rule)로 고릅니다. 태거 열에는 키워드별 섞기 결과를 가져왔습니다(TOUR_API 1,797행, WIKIDATA 7,473행, 가져오기 전 DB 백업 있음). 설명문이 바뀌면 그 행의 예측은 저장할 때 지웁니다. [keyword-tagger-serving.md](keyword-tagger-serving.md)
 
 - **MySQL → 학습용 jsonl 내보내기 스크립트 만들기 (contentid 중복 제거, test 누수 방지)** · 누가: 함께 · 크기: S
   - 왜: docs에는 '학습 데이터는 이 DB에서 꺼내 씁니다'라고 되어 있지만 그런 스크립트가 없습니다. 지금 학습 원본 1,083개는 다른 프로젝트(neoulteo/docs/database/SSAFY_TRIP_Dump.sql) 덤프에서 뽑은 것인데, 뽑는 스크립트도 남아 있지 않습니다. 그래서 data/(gitignore)가 사라지면 다시 만들 수 없습니다. DB 행을 그냥 train에 더하면 test 항목이 섞여 들어갈 수 있습니다.
@@ -154,18 +163,22 @@
 - **모델이 빠진 인자를 지어냄: 에이전트에 근거 검사를 두고 평가 지표도 추가** · 누가: Claude · 크기: M
   - 왜: 필수 정보가 빠졌을 때 되묻지 않고 그럴듯한 값을 지어냅니다. create_travel_plan처럼 실제로 저장하는 도구에서는 바로 잘못된 데이터가 됩니다. 되묻기 정확도는 파인튜닝 뒤 오히려 기본 모델보다 낮아졌습니다.
   - 근거: results/finetuned_human.predictions.jsonl의 clarify 예: 'ENTP 남자임' → age 30을 지어냄, '28살 ISFJ' → gender '여성', '울진 일정' → days 3과 places ['울진해수욕장','울진국립공원','울진문화박물관'], '내일 나가는데 날씨' → region '나가'. results/report_human.md: clarify 50.0%→25.0%, direct 100%→66.7%. 난이도별(직접 계산): easy 18/19, medium 31/39, hard 17/32. 라벨 규칙은 region·query·name·places 값이 발화 안에 글자 그대로 있어야 한다고 정합니다(eval_sets/README.md '검증' 절). 고치는 방법: 같은 규칙을 에이전트 검증 단계(값이 대화에 없으면 도구를 부르지 않고 되묻기)와 evaluate.py의 'grounded_args' 지표로 구현합니다.
+  - 상태: 처리함(M1, 2026-10-18). validate의 근거 검사가 발화에 없는 나이·성별·지역·장소·일수를 되묻기로 바꾸고, 근거 없는 선택 인자는 뺍니다. 측정은 `glople_agent.cli grounding`(v3 + 근거 검사: v2 test 92.3%, 사람 말투 88.9%, 새 사람 말투 82.2%).
 
 - **도구 호출 학습 데이터가 전부 한 턴짜리: 에이전트의 최종 답변을 무엇이 만들지 정하기** · 누가: 함께 · 크기: M
   - 왜: 4단계 LangGraph 에이전트는 도구 결과를 받아 답을 쓰고 '거기 날씨는?' 같은 후속 질문을 처리해야 합니다. 그런데 LoRA는 첫 도구 선택만 배웠습니다. 이걸 정하지 않으면 에이전트를 만든 뒤에야 품질 문제를 발견합니다.
   - 근거: 직접 집계: data/tool_calling/train.jsonl, data/tool_calling_v2/train.jsonl(각 3,000), eval_sets/human_style.jsonl(90)의 메시지 구조가 100% (system, user, assistant)입니다. role=tool 메시지나 여러 턴 대화가 0건입니다. scripts/evaluate.py:91-92는 messages[:-1]만 넣어 첫 응답만 채점합니다. 선택지: (a) LoRA는 라우터로만 쓰고 답변은 기본 모델이나 다른 LLM이 씀, (b) v3 생성기에 도구 결과→답변, 이전 턴을 가리키는 표현이 있는 예시를 추가함.
+  - 상태: 처리함(2026-10-18). 답은 답변 전용 프롬프트(a3: 도구 없이 결과만 보고 2~4문장) + 코드 가드(결과에 없는 숫자·이름, 원문 20자 겹침 → 템플릿)가 만듭니다. v3를 일반 루프로 쓰면 결과를 근거로 답한 것이 65/85, 답변 전용은 80/85였습니다([m2-after-tools.md](../agent/docs/m2-after-tools.md)). 도구 결과 뒤 턴을 배운 v4(다턴 데이터)와 루프 모드(M7)를 실제 서버로 비교한 뒤, 권장 구성을 '첫 판단 v3 + 결과 뒤 v4 루프'로 정했습니다(M4 시나리오에서 첫 판단 98%, 가드 통과 92%, 모델이 답한 턴 33 → 56. [m7-ab-hybrid.md](../agent/docs/m7-ab-hybrid.md)). 서버 하나일 때의 기본은 답변 전용 경로(a3, 문구 v2)입니다.
 
 - **LoRA 모델을 OpenAI 호환 서버로 띄우는 스크립트와, 같은 결과가 나오는지 확인하는 평가 만들기** · 누가: Claude · 크기: M
   - 왜: 에이전트가 부를 모델 서버가 아직 없습니다. mlx_lm.server의 기본 포트가 Spring Boot와 같아서 그대로 띄우면 충돌합니다. 서버 경로(채팅 템플릿과 tool_calls 파싱)로 받은 결과가 evaluate.py 점수와 같은지도 확인한 적이 없습니다.
   - 근거: training/.venv/.../mlx_lm/server.py:1943 --port 기본값 8080이고, Spring도 8080입니다(application.properties에 server.port 설정 없음, docs 예시도 localhost:8080). models/qwen3-4b-instruct-2507-4bit/tokenizer_config.json의 tool_parser_type이 'json_tools'라서 /v1/chat/completions가 tool_calls를 돌려줄 수 있습니다. 하지만 --adapter-path를 준 실행 기록은 없습니다. ChatBotService.java:19,23은 https://api.openai.com/v1과 gpt-3.5-turbo를 하드코딩합니다. 고치는 방법: training/serve.sh(mlx_lm.server --model models/... --adapter-path adapters/... --port 8081)를 만들고, human_style을 HTTP로 다시 채점하는 serve_eval.py를 만듭니다. SYSTEM_PROMPT와 tools JSON은 파일 한 곳에 두고 학습 생성기와 에이전트가 같이 읽게 합니다.
+  - 상태: 처리함. `training/scripts/serve.sh`(127.0.0.1, 기본 8090)와 `scripts/check_server.py`(서버 응답을 evaluate.py 기준으로 채점), 에이전트 라우터 경로 확인 `agent/scripts/check_router.py`(v3에서 서버 채점과 같은 0.983 / 0.946).
 
 - **도구 8개와 실제 백엔드 API의 계약 불일치 정리 (에이전트 4단계 선행)** · 누가: 함께 · 크기: L
   - 왜: LoRA가 고른 도구를 실제로 실행할 API가 절반은 없거나 인자 형식이 다릅니다. 이걸 맞추기 전에는 에이전트가 끝까지 동작할 수 없습니다.
   - 근거: RecommendController.java:30-46에는 /api/search, /info-recommend, /save-route, /get-routes만 있습니다. search_destinations(region,category)용 지역 검색 API가 없습니다(destination_info에 region_code·content_type_id 컬럼은 있음). get_destination_detail(name)용 이름 조회 API가 없습니다. src/main/java에 weather·날씨가 0건이라 날씨 API 키는 소유자가 받아야 합니다. create_travel_plan(region,days,places) 대응 API도 없습니다(MyRouteDTO에는 userId·userInfoId만 있음, 6단계 일정 기능 필요). recommend_similar_traveler_routes는 age:int와 '남성'/'여성'을 내지만, UserInfoRecommendationService.java:124-128은 생년월일 yyyyMMdd/yyyy-MM-dd를 요구하고 성별은 'M'/'F'입니다(frontend/src/pages/recomendation/Similarity/similarity.js:141). search_gloplers는 /api/users/search-agents-by-hashtag로 연결됩니다.
+  - 상태: 처리함(2026-10-18). search_destinations·get_destination_detail은 S1(`/api/destinations`), create_travel_plan은 S2(`/api/travel-plans`, UNIQUE(user_id, client_request_id))로 만들었습니다. get_weather는 M6에서 Open-Meteo(키 없음, CC BY 4.0 출처 표시)로 붙였습니다. recommend_similar_traveler_routes의 나이·성별 형식 차이는 에이전트 어댑터가 변환합니다.
 
 - **재현성 고정: MLX 환경 requirements, HF 모델 revision, 의존성 lock, gitignore된 산출물 백업** · 누가: 함께 · 크기: S
   - 왜: 한 달 뒤나 다른 맥에서 같은 결과를 다시 내기 어렵습니다. mlx-lm은 버전에 따라 어댑터 형식과 학습 동작이 바뀔 수 있고, HF 저장소가 갱신되면 같은 모델 이름으로도 다른 가중치를 받게 됩니다.
@@ -174,20 +187,25 @@
 - **ML 문서 최신화: 낡은 상태 문구 고치고 v1·태거 결과와 AI 제작 표시 추가** · 누가: Claude · 크기: S
   - 왜: 지금 README만 보면 태거 본 학습을 안 한 것처럼 읽히고, 도구 호출 모델의 결과는 어디에도 정리되어 있지 않습니다. compare.md만 따로 인용하면 AI silver 라벨 기준이라는 사실이 빠집니다.
   - 근거: keyword_tagger/README.md:7 '본 학습(klue/roberta-base)은 아직 돌리지 않았습니다', 세션 임시 폴더의 kt_after_mlx.sh 언급. :215 roberta-base 결과 '아직 없음'(실제로는 14:04에 완료, results/roberta-base.json 있음). training/README.md에는 v1 결과(test 정확 일치 54.0%→89.3%, human_style 48.7%→78.9%, hard 17/32, reviews 94.4%→66.7% 하락)가 없습니다. results/roberta-base.compare.md:1 제목에 'AI 라벨 기준' 표시가 없습니다. 루트 README.md에는 개편과 ML 작업 언급이 0건입니다(grep lora/F1/TourAPI/학습 0건). training/README.md에는 생성기 템플릿과 eval 세트를 AI가 만들었다는 문장이 없습니다(eval_sets/README.md에는 있음).
+  - 상태: 처리함(2026-10-18). training/README(v1~v3 결과, 사람 말투 세트 두 개), keyword_tagger README(v3·섞기), embedding README(결과·서비스 연결)를 실제 결과로 고쳤고, AI silver 라벨·합성 질의 기준임을 표 옆에 적었습니다.
 
 - **임베딩 3단계 선행 작업: 검색 평가 하네스부터 만들고 벡터 저장 방식 정하기** · 누가: 함께 · 크기: M
   - 왜: 임베딩을 파인튜닝해도 지금 키워드 마스크 검색보다 나은지 잴 기준이 없습니다. 학습 데이터, 평가 데이터, 저장 방식 모두 아직 준비된 것이 없습니다.
   - 근거: training/, docs/, README 전체에서 embedding·임베딩 0건입니다. 서버 랭킹은 BIT_COUNT 내림차순, 같으면 id 오름차순(DestinationInfoRepository.java:40-55)이고, kt_common.keyword_mask로 파이썬에서 재현할 수 있습니다. 설명문이 있는 행은 최대 2,033개(덤프 1,083 + DB 950, 일부 중복)이고, 나머지 약 19,000행은 분류 틀 문장(summary)뿐이라 임베딩해도 분류 정보만 담깁니다. 로컬 DB는 mysql 8.4(docs:136)라 VECTOR 타입이 없습니다. 고치는 방법: labels/gold_labels.jsonl을 정답 관련도로 쓰는 retrieval_eval.py(태거 test 163 고정, nDCG@10과 Recall@20, 마스크 검색 기준선)를 만듭니다. 학습 쌍은 키워드 집합에서 AI가 합성한 선호 문장(AI 제작 표시)으로 만듭니다. 기본 모델(e5·bge-m3 등)과 저장 방식(FAISS/numpy 사이드카 vs DB 업그레이드)은 소유자가 정합니다.
+  - 상태 메모(2026-10-18): 서버 동점 정렬이 바뀌었습니다. 일치 수 → 설명문 → 이미지 → `CRC32(CONCAT(id, ':', seed))` → id 순이고 지역 상한(최대 max(2, ⌈limit/4⌉)곳)이 붙습니다. 마스크 검색 기준선을 재현할 때 이 순서를 씁니다([travel-api.md](travel-api.md#s0--키워드-추천-동점-정렬-post-apisearch)).
+  - 상태: 일부 처리함(2026-10-18). `training/embedding/`에 평가 하네스(합성 질의, AI silver 라벨 기준)와 e5-base 파인튜닝(test nDCG@10 0.802, 키워드 칩 0.484)을 만들었고, 저장은 numpy 사이드카로 했습니다. DB 추출본 9,407곳 색인 + 검색 서버(127.0.0.1:8096) + 화면 '문장으로 찾기'(`/search/semantic`)를 붙였습니다([README](../training/embedding/README.md#서비스에-연결)). 실제 사용자 질의 평가, 해외 지역 조건 학습, 키워드 검색과 섞기, Java 연동 방식은 남았습니다.
 
 ### 포트폴리오·라이선스
 
 - **포트폴리오 수치의 비교 기준과 한계를 정직하게 적기 (태거 기준선, LLM 사람 말투 세트 하락)** · 누가: Claude · 크기: S
   - 왜: F1 0.53을 0.357과 비교하면 개선폭이 실제보다 커 보입니다. 서버가 TOUR_API 행에 쓰는 규칙은 국내 규칙(0.409)입니다. LLM 쪽은 합성 test 점수만 보이고, 사람 말투 세트에서 떨어진 작업이 문서에 없습니다.
   - 근거: keyword_tagger/results/roberta-base.compare.md: micro F1 부분 문자열 0.357 / 국내 규칙 0.409 / roberta 0.530, macro F1 0.392 → 0.170으로 떨어짐(학습 예시가 0개인 키워드 17개는 아예 예측하지 않음). keyword_tagger/README.md:202에도 국내 규칙 열과 비교한다고 적혀 있습니다. training/README.md에는 결과 표가 없습니다. results/report_test.md 기준 완전 일치 54.0 → 89.3%(v1 test는 15%가 train과 겹침, README:38). results/finetuned_human.summary.json에서는 48.7 → 78.9%지만 clarify 4/8 → 2/8, direct 6/6 → 4/6로 떨어졌습니다(작업당 6~12개라 표본이 작음). 고칠 방법: 두 README와 루트 README에 비교 기준, 표본 크기, 하락한 작업, silver 라벨이라는 점을 함께 적습니다.
+  - 상태: 처리함(2026-10-18). 태거는 서버가 실제로 쓰는 규칙(국내 0.409, 해외 0.701)과 비교하고, LLM은 v2 test와 사람 말투 세트 두 개(설계 때 오답을 본 세트 / 새로 쓴 세트)를 함께 적습니다. 루트 README 요약표도 같은 기준입니다.
 
 - **루트 README에 개인 개편 내용이 없고 실행 방법도 현재 구성과 다름** · 누가: Claude · 크기: M
   - 왜: main 브랜치 README가 포트폴리오의 첫 화면입니다. 그런데 7인 팀 프로젝트와 2024년 사후 개선만 나옵니다. 2026년 개인 개편(TourAPI, 학습 파이프라인, 로드맵 6단계)은 보이지 않습니다. 실행 안내도 지금 로컬 구성과 맞지 않습니다.
   - 근거: README.md:4-12는 팀 프로젝트, 기간 2024.03~2024.11, 사후 개선만 다룹니다. :168 "저장소에는 시드 데이터가 없으므로"라고 하지만 이제 TourAPI 동기화로 채울 수 있습니다. :174-184 설정 예시에 spring.config.import, tour.api.service-key, .env가 없고 3306을 씁니다(실제 로컬은 3307, docs/domestic-tour-sync.md:136). :234-255 폴더 구조에 training/, docs/domestic-tour-sync.md, src/main/resources/tour/가 없습니다. 기술 스택에 Python, MLX, transformers도 없습니다. 고칠 방법: '개인 개편 (2026.10~, 1인)' 섹션에 로드맵 6단계 상태표, 문서 링크, 팀/본인/개편 구분을 넣고 실행 방법을 고칩니다.
+  - 상태: 일부 처리함(2026-10-18). '개인 개편 (2026.10~, 1인)' 절(로드맵 6단계 결과표·문서 링크)과 기술 스택 줄을 넣었습니다. 실행 방법의 DB 포트(3307)·.env·시드 데이터 설명은 아직 그대로입니다.
 
 - **application.properties.example과 .env.example 추가** · 누가: Claude · 크기: S
   - 왜: 설정 파일 두 개가 모두 gitignore 대상입니다. 저장소를 새로 받은 사람은 키 이름을 README, docs, 코드에서 따로 모아야 합니다. 지금 로컬 properties는 비밀값을 직접 쓰지 않고 자리표시자로 받으므로 그대로 예시 파일로 만들어도 됩니다.
@@ -204,6 +222,7 @@
 - **TourAPI 저작권 유형(Type1/Type3)과 원문/생성문 구분이 API 응답에 없음 (에이전트·AI 리뷰 단계 전에 필요)** · 누가: 함께 · 크기: M
   - 왜: Type3(변경금지) 설명문을 4단계 LangGraph 에이전트나 6단계 AI 리뷰가 요약·의역하면 공공누리 조건을 어깁니다. 지금은 응답만 보고 어떤 행이 Type3인지, info가 원문인지 Glople가 만든 소개인지 알 수 없습니다. 출처 표시도 할 수 없습니다.
   - 근거: copyright_type은 저장만 됩니다(DestinationInfo.java:75-76, TourDestinationSyncService.java:255). src/main과 frontend/src를 grep해도 읽는 곳이 없습니다. KeywordResultProjection에는 id, country, location, destName, info만 있습니다. DestinationInfoRepository.java:45 `COALESCE(d.info, d.summary) AS info`가 TourAPI 원문과 생성 소개를 한 필드로 합칩니다. imageUrl(firstimage)도 저장합니다. 고칠 방법: 응답에 source, copyrightType, infoKind(OVERVIEW/SUMMARY)를 추가합니다. 에이전트 규칙은 'Type3 원문은 그대로 인용 + 출처: 한국관광공사, 또는 사실 필드만 사용, 의역·요약 금지'로 정합니다. 오너가 할 일: TourAPI 활용매뉴얼에서 cpyrhtDivCd가 텍스트에 붙는지 대표이미지에 붙는지 확인합니다(docs:20은 항목 전체에 붙는다고 가정). 그리고 SELECT copyright_type, COUNT(*) ... GROUP BY 1로 Type3 비율을 확인합니다.
+  - 상태: 처리함(서버 응답, 2026-10-18). `/api/search`와 `/api/destinations` 응답에 source·copyrightType·infoKind(DESCRIPTION/SUMMARY)·license·sourceUrl이 있습니다. textPolicy는 서버가 따로 내려주지 않고 에이전트 판정표(design.md 11절) 하나로 둡니다(두 곳에서 판정하다 어긋나지 않게). 오너 확인 항목(cpyrhtDivCd가 붙는 대상, Type3 비율)은 그대로입니다.
 
 - **위키백과 CC BY-SA 출처 표기와 해외 수집기의 행별 라이선스 필드** · 누가: Claude · 크기: S
   - 왜: 기존 여행지 정보 화면이 한국어 위키백과 본문 전체를 출처 없이 보여줍니다. 곧 들어올 해외 수집기가 위키백과 본문을 DB에 저장하면 행마다 출처 URL, 판, 라이선스를 남겨야 출처 표시와 동일조건 의무를 지킬 수 있습니다.
@@ -224,6 +243,7 @@
 - **새 쿼리용 인덱스·제약 보강 (/api/search 비용 추정 포함)** · 누가: Claude · 크기: S
   - 왜: /api/search의 비트마스크 조건은 B-tree 인덱스를 쓸 수 없어 요청마다 전체 행을 읽습니다. 지금 규모에서는 감당할 만하지만 해외 행이 들어오면 선형으로 늘어납니다. 중복 방지 제약도 없습니다.
   - 근거: DestinationInfoRepository.java:40-55: (mask & :m) <> 0과 ORDER BY BIT_COUNT라 인덱스 사용이 불가능합니다. 약 2만 행 전체(COALESCE(info, summary) 때문에 TEXT 포함)를 읽은 뒤 LIMIT 21 우선순위 큐로 정렬합니다. 추정치는 warm buffer pool 기준 대략 10-30ms이고 행 수에 선형입니다(EXPLAIN ANALYZE로 측정 필요). 개선: (keyword_mask_low, keyword_mask_high) 커버링 인덱스와 deferred join(안쪽 SELECT id ... ORDER BY score LIMIT 21은 약 0.5MB 인덱스만 읽고 바깥에서 21행만 조회)을 적용하면 백필의 (0,0) 조회도 빨라집니다. 설명문 대기열(:28 source=? AND overview_synced_at IS NULL ORDER BY overview_failed_at, id)은 (source, overview_synced_at, overview_failed_at) 인덱스로 filesort를 없앨 수 있습니다. DestinationInfo.java:22 idx(source, external_id)는 UNIQUE가 아닙니다. TourDestinationSyncService.java:69 putIfAbsent가 중복 가능성을 전제로 합니다. ddl-auto=update는 이름이 같은 인덱스를 UNIQUE로 바꿔주지 않으므로 중복 확인 SQL 후 수동 DDL이 필요합니다. User.java:20, :27 user_id와 nickname도 인덱스·UNIQUE가 없습니다.
+  - 상태 메모(2026-10-18): `/api/search`는 후보 쿼리(순위 열만, limit×4·최대 200곳)와 고른 행 본문 조회(findAllById)로 나뉘었습니다. 마스크 조건은 여전히 전체 행을 읽고, 인덱스는 그대로입니다.
 
 - **ddl-auto=update 의존 탈피: Flyway 기준선과 validate** · 누가: Claude · 크기: M
   - 왜: update는 기존 컬럼 길이·타입 변경을 반영하지 않습니다. UNIQUE 추가 같은 ALTER가 실패해도 WARN만 남기고 기동을 계속합니다. 테스트도 같은 설정으로 실제 DB를 바꿉니다. 해외 수집기로 컬럼이 늘어나는 지금이 기준선을 잡기 좋은 시점입니다.
@@ -245,6 +265,7 @@
 - **챗봇 응답을 /topic/public으로 전체 브로드캐스트 (로드맵 4 에이전트의 접점)** · 누가: Claude · 크기: S
   - 왜: 한 사용자가 챗봇과 나눈 질문·답변이 접속 중인 모든 클라이언트에 전달됩니다. LangGraph 에이전트를 붙일 자리가 바로 이 핸들러라서, 붙이기 전에 사용자별 전송으로 바꿔야 합니다.
   - 근거: ChatBotController.java:21-22 @MessageMapping("/chat.sendMessage") @SendTo("/topic/public"), :34도 같습니다. ChatBotService는 gpt-3.5-turbo를 하드코딩하고, application.properties의 gpt_api.key 기본값은 'unused'입니다. 해결: @SendToUser나 세션별 destination으로 바꾸고(프론트 구독 경로도 수정), 챗봇 호출을 인터페이스 뒤로 빼서 로드맵 4의 에이전트 서비스로 교체할 수 있게 합니다.
+  - 상태: 처리함. `ChatBotController`가 `@SendToUser("/topic/chatbot")`로 보낸 사람에게만 답하고, 화면은 `/user/topic/chatbot`을 구독합니다.
 
 - **백엔드 Google Places 키 하드코딩과 인증 없는 프록시 (프론트 Maps 키와 별개)** · 누가: 함께 · 크기: S
   - 왜: 오너가 미뤄 두기로 한 것은 프론트의 Maps 키입니다. 백엔드 소스에도 Places 키가 따로 있고, 인증 없는 /api/search-place를 통해 누구나 서버를 거쳐 이 키의 쿼터를 쓸 수 있습니다.
@@ -287,6 +308,7 @@
 - **학습 README에 라이선스·재배포 섹션 추가 (klue CC BY-SA, Qwen Apache-2.0, TourAPI 학습 텍스트)** · 누가: Claude · 크기: S
   - 왜: 태거 모델이나 LoRA 어댑터를 Hugging Face에 올려 포트폴리오에 링크하려면 라이선스 의무가 생깁니다. 지금 학습 README 두 개에는 라이선스 언급이 전혀 없습니다.
   - 근거: training/README.md와 keyword_tagger/README.md를 license, Apache, CC BY로 grep하면 0건입니다. klue/roberta-base는 CC BY-SA 4.0이므로 이를 파인튜닝한 모델(outputs/roberta-base, 423M)을 공개하면 CC BY-SA 4.0과 출처 표시가 필요합니다. Qwen3-4B-Instruct-2507과 mlx-community 변환본은 Apache-2.0이라 어댑터를 공개할 때 LICENSE 사본과 변경 고지가 필요합니다. adapters/qwen3-4b-tool-calling에는 중간 체크포인트 8개(0000100~0000800, 합계 504M)가 있으니 adapters.safetensors와 adapter_config.json만 올립니다. 태거는 TourAPI 설명문(Type3 포함 가능)과 Claude가 만든 silver 라벨로 학습했으므로 데이터는 공개하지 않고 지표와 코드만 공개할 것을 권합니다. 공개할지는 오너가 정합니다.
+  - 상태: 일부 처리함(2026-10-18). Hub 업로드 준비([training/hf/](../training/hf/README.md))의 모델 카드에 기반 모델·학습 데이터 라이선스와 공개 범위(태거·임베딩은 기본 비공개)를 적었습니다. 학습 README 본문의 라이선스 절은 아직입니다.
 
 - **저장소에 LICENSE 파일 없음: 팀 코드라 오너 혼자 정할 수 없음** · 누가: 직접 · 크기: S
   - 왜: 공개 저장소에 라이선스가 없으면 기본적으로 모든 권리가 유보된 상태입니다. 그런데 코드 대부분을 다른 팀원이 썼기 때문에 오픈소스 라이선스를 붙이려면 팀원 동의가 필요합니다.
@@ -307,6 +329,7 @@
 - **LLM 도구 8개 중 3개는 백엔드 엔드포인트가 없다는 점 문서화 (도구 → API 매핑표)** · 누가: Claude · 크기: S
   - 왜: 모델은 도구 8개를 부르도록 학습됐지만 그중 일부는 서버에 대응하는 API가 없습니다. 이 점이 문서에 없으면 포트폴리오에서 과장으로 읽힐 수 있고, 4단계 에이전트 작업 범위도 흐려집니다.
   - 근거: training/tools/glople_tools.json의 search_destinations(region, category), get_weather, create_travel_plan에 맞는 @GetMapping/@PostMapping이 없습니다(grep). 대응하는 것: recommend_by_keywords → POST /api/search, recommend_similar_traveler_routes → POST /api/info-recommend, search_gloplers → GET /api/users/search-agents-by-hashtag, search_reviews → /api/posts 검색. 기존 save-route는 다른 여행자 id를 저장하는 기능이라 create_travel_plan과 다릅니다. training/README.md:11은 매핑 없이 도구 이름만 나열합니다. 고칠 방법: 매핑표에 '미구현(4단계에서 추가)' 표시를 넣습니다.
+  - 상태: search_destinations·get_destination_detail·create_travel_plan용 API가 생겨(2026-10-18, [travel-api.md](travel-api.md)) get_weather도 M6에서 Open-Meteo로 붙여 이제 8개 모두 실행할 곳이 있습니다. training/README.md의 매핑표는 고치지 않았습니다.
 
 - **관리자 초기 비밀번호가 코드에 고정돼 있는데, 이제 할당량을 쓰는 동기화 API를 보호함** · 누가: Claude · 크기: S
   - 왜: 예전에는 로컬 편의 설정이었습니다. 하지만 이제 /api/admin/tour-sync/*가 하루 1,000회인 TourAPI 할당량을 쓰고 DB 전체를 다시 계산합니다. 저장소가 공개라 초기 비밀번호를 누구나 압니다.
