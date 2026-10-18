@@ -1,0 +1,399 @@
+{
+  "note": "질의는 모두 합성(AI가 쓴 표현·문장 틀로 생성). 정답 키워드는 keyword_tagger 의 AI silver 라벨. 설명문 원문은 넣지 않음.",
+  "seed": 13,
+  "destinations": {
+    "total": 1934,
+    "skipped_overseas_labels": 800,
+    "by_split": {
+      "test": 163,
+      "test_new": 127,
+      "train": 1354,
+      "valid": 290
+    },
+    "text_source": {
+      "db": 1828,
+      "dump": 106
+    },
+    "with_description": 1934,
+    "copyright_type": {
+      "Type1": 849,
+      "Type3": 854,
+      "없음": 231
+    },
+    "with_category_path": 1828,
+    "empty_keywords": 58,
+    "sido": {
+      "서울": 836,
+      "인천": 219,
+      "경북": 177,
+      "경남": 136,
+      "전남광주": 126,
+      "강원": 122,
+      "경기": 94,
+      "충남": 68,
+      "전북": 58,
+      "제주": 33,
+      "충북": 22,
+      "부산": 15,
+      "울산": 12,
+      "대구": 9,
+      "대전": 3,
+      "세종": 2,
+      "모름": 2
+    },
+    "sigungu_names_usable": 172
+  },
+  "train_pairs": {
+    "queries": 5248,
+    "types": {
+      "kw": 3161,
+      "kw+region": 1668,
+      "kw+category": 257,
+      "kw+region+category": 162
+    },
+    "keywords_per_query": {
+      "1": 1837,
+      "2": 2619,
+      "3": 792
+    },
+    "paraphrased_keyword_ratio": 0.591,
+    "templates_used": 19,
+    "train_destinations_used": 1312,
+    "negative_kind": {
+      "few_shared": 4096,
+      "constraint": 925,
+      "random": 227
+    }
+  },
+  "query_sets": {
+    "valid": {
+      "queries": 285,
+      "types": {
+        "kw": 164,
+        "kw+region": 93,
+        "kw+category": 18,
+        "kw+region+category": 10
+      },
+      "keywords_per_query": {
+        "1": 101,
+        "2": 143,
+        "3": 41
+      },
+      "paraphrased_keyword_ratio": 0.606,
+      "templates_used": 18,
+      "relevant_per_query": {
+        "corpus": 290,
+        "mean": 16.11,
+        "buckets": {
+          "1": 79,
+          "2-5": 68,
+          "21+": 59,
+          "6-20": 79
+        }
+      }
+    },
+    "test": {
+      "queries": 279,
+      "types": {
+        "kw": 168,
+        "kw+region": 91,
+        "kw+region+category": 10,
+        "kw+category": 10
+      },
+      "keywords_per_query": {
+        "1": 108,
+        "2": 135,
+        "3": 36
+      },
+      "paraphrased_keyword_ratio": 0.49,
+      "templates_used": 8,
+      "relevant_per_query": {
+        "corpus": 290,
+        "mean": 12.48,
+        "buckets": {
+          "1": 75,
+          "2-5": 72,
+          "21+": 53,
+          "6-20": 79
+        }
+      }
+    },
+    "test_iid": {
+      "queries": 279,
+      "types": {
+        "kw": 169,
+        "kw+region": 85,
+        "kw+category": 15,
+        "kw+region+category": 10
+      },
+      "keywords_per_query": {
+        "1": 93,
+        "2": 137,
+        "3": 49
+      },
+      "paraphrased_keyword_ratio": 0.636,
+      "templates_used": 18,
+      "relevant_per_query": {
+        "corpus": 290,
+        "mean": 11.5,
+        "buckets": {
+          "1": 77,
+          "2-5": 76,
+          "21+": 51,
+          "6-20": 75
+        }
+      }
+    }
+  },
+  "exact_text_overlap_with_train": {
+    "valid": 6,
+    "test": 0,
+    "test_iid": 11
+  },
+  "files_sha256": {
+    "destinations.jsonl": "ba7564735c9f445b2c335ed1fa6625094ae4876c4f7b5bf7a3171e99018a9aea",
+    "train_pairs.jsonl": "5fec77b885adc757e04093037c03cd93c6c50dca1ad2f166d725f25e6944a1cc",
+    "queries_valid.jsonl": "6a5372609daecd9ae394b5845ca51b4e81c5d6c813e389e359288c233bc61059",
+    "queries_test.jsonl": "bd125e0449271fe481da4b60bd71c9737c08fd53de1c7aca717546d9a15ccadf",
+    "queries_test_iid.jsonl": "5277b0659c50f242a0d81bb4b13efaeec839fcb4b743aaf8fda37444c8c3b313"
+  },
+  "examples": {
+    "train": [
+      {
+        "text": "자연 풍경을 느낄 수 있는 평창에 있는 사람 적은 곳",
+        "keywords": [
+          "자연"
+        ],
+        "type": "kw+region",
+        "positive": "거문산",
+        "negative": "고렴산 수변공원",
+        "negative_kind": "few_shared"
+      },
+      {
+        "text": "역사를 느낄 수 있는 인천에 있는 가족이랑 가기 좋은 곳",
+        "keywords": [
+          "역사"
+        ],
+        "type": "kw+region",
+        "positive": "철종외가",
+        "negative": "경천대관광지",
+        "negative_kind": "few_shared"
+      },
+      {
+        "text": "운동이랑 놀거리 덕후인데 강릉에 있는 장소 하나만 골라줘",
+        "keywords": [
+          "스포츠",
+          "레크리에이션"
+        ],
+        "type": "kw+region",
+        "positive": "강남축구공원",
+        "negative": "경기도국민안전체험관",
+        "negative_kind": "few_shared"
+      },
+      {
+        "text": "자연 풍경이랑 바깥 활동 좋아하는데 갈 만한 주말에 가볍게 갈 만한 여행지 있을까?",
+        "keywords": [
+          "자연",
+          "야외 활동"
+        ],
+        "type": "kw",
+        "positive": "고덕수변공원",
+        "negative": "안양천가족정원",
+        "negative_kind": "few_shared"
+      },
+      {
+        "text": "고건축, 불교 하면 떠오르는 경북에 있는 데이트하기 좋은 곳 알려줄래?",
+        "keywords": [
+          "역사적 건축",
+          "불교"
+        ],
+        "type": "kw+region",
+        "positive": "개목사(안동)",
+        "negative": "개심사(서산)",
+        "negative_kind": "constraint"
+      },
+      {
+        "text": "전통과 고건축 덕후인데 곳 하나만 골라줘",
+        "keywords": [
+          "전통",
+          "역사적 건축"
+        ],
+        "type": "kw",
+        "positive": "양천향교",
+        "negative": "고령 지산동 고분군",
+        "negative_kind": "few_shared"
+      },
+      {
+        "text": "이번 주말에 역사적인 장소 보러 가고 싶은데 어디가 좋아?",
+        "keywords": [
+          "역사적인 장소"
+        ],
+        "type": "kw",
+        "positive": "서울 삼전도비",
+        "negative": "조선일보 뉴지엄",
+        "negative_kind": "few_shared"
+      },
+      {
+        "text": "도심, 건축물, 역사 좋아하는데 종로구에서 갈 만한 곳 있을까?",
+        "keywords": [
+          "도시",
+          "건축",
+          "역사"
+        ],
+        "type": "kw+region",
+        "positive": "세운상가",
+        "negative": "한국영화박물관",
+        "negative_kind": "few_shared"
+      },
+      {
+        "text": "조각 작품 하면 떠오르는 공원 알려줄래?",
+        "keywords": [
+          "조각"
+        ],
+        "type": "kw+category",
+        "positive": "동인천역 북광장",
+        "negative": "고산사 석조나한상",
+        "negative_kind": "constraint"
+      },
+      {
+        "text": "여행지 중에 조각, 역사 이야기, 역사적인 장소가 좋은 여행지 찾고 있어",
+        "keywords": [
+          "조각",
+          "역사",
+          "역사적인 장소"
+        ],
+        "type": "kw",
+        "positive": "경주 성덕왕릉",
+        "negative": "경극고택",
+        "negative_kind": "few_shared"
+      },
+      {
+        "text": "자연으로 유명한 명소 어디야?",
+        "keywords": [
+          "자연"
+        ],
+        "type": "kw",
+        "positive": "강천사 모과나무",
+        "negative": "고불암",
+        "negative_kind": "random"
+      },
+      {
+        "text": "관악구에서 역사 이야기랑 전통이 있는 명소 알려줘",
+        "keywords": [
+          "역사",
+          "전통"
+        ],
+        "type": "kw+region",
+        "positive": "안국사",
+        "negative": "북촌 8경",
+        "negative_kind": "constraint"
+      }
+    ],
+    "test": [
+      {
+        "text": "다음 여행은 사적지와 역사! 갈 만한 여행지 있나요?",
+        "keywords": [
+          "역사적인 장소",
+          "역사"
+        ],
+        "type": "kw",
+        "origin": "당고개순교성지"
+      },
+      {
+        "text": "유적 느낌 나는 혼자 가도 좋은 스폿에 가고 싶어요",
+        "keywords": [
+          "유적"
+        ],
+        "type": "kw",
+        "origin": "몽촌토성"
+      },
+      {
+        "text": "다음 여행은 즐길 거리! 갈 만한 스폿 있나요?",
+        "keywords": [
+          "레크리에이션"
+        ],
+        "type": "kw",
+        "origin": "마이랜드"
+      },
+      {
+        "text": "휴식 느낌 나는 곳에 가고 싶어요",
+        "keywords": [
+          "휴양지"
+        ],
+        "type": "kw",
+        "origin": "강동리조트 프라이빗콘도"
+      },
+      {
+        "text": "탑 실컷 보고 올 수 있는 곳 알려 주세요",
+        "keywords": [
+          "탑"
+        ],
+        "type": "kw",
+        "origin": "우면산 소망탑"
+      },
+      {
+        "text": "가 볼 여행지를 찾는 중인데 굴 탐방, 모래사장, 자연이 꼭 있었으면 해요",
+        "keywords": [
+          "동굴",
+          "해변",
+          "자연"
+        ],
+        "type": "kw",
+        "origin": "가사도"
+      },
+      {
+        "text": "다음 여행은 자연! 서울에서 갈 만한 스폿 있나요?",
+        "keywords": [
+          "자연"
+        ],
+        "type": "kw+region",
+        "origin": "학동근린공원"
+      },
+      {
+        "text": "야외 활동, 자연, 레저 스포츠가 끌리는데 붐비지 않는 스폿 좀 찾아 주세요",
+        "keywords": [
+          "야외 활동",
+          "자연",
+          "스포츠"
+        ],
+        "type": "kw",
+        "origin": "증산체육공원"
+      },
+      {
+        "text": "역사적인 장소, 기념물이랑 즐길 거리 좋아하는 친구랑 서울에서 가 볼 여행지 추천해 주세요",
+        "keywords": [
+          "역사적인 장소",
+          "기념물",
+          "레크리에이션"
+        ],
+        "type": "kw+region",
+        "origin": "금암문화공원"
+      },
+      {
+        "text": "정원 좋아하는 친구랑 가 볼 곳 추천해 주세요",
+        "keywords": [
+          "정원"
+        ],
+        "type": "kw",
+        "origin": "열린송현 녹지광장"
+      },
+      {
+        "text": "자연 좋아하는 친구랑 가 볼 여행지 추천해 주세요",
+        "keywords": [
+          "자연"
+        ],
+        "type": "kw",
+        "origin": "경기도청북부청사역 하부 맨발황톳길"
+      },
+      {
+        "text": "불상이랑 사원이 끌리는데 스폿 좀 찾아 주세요",
+        "keywords": [
+          "불상",
+          "사원"
+        ],
+        "type": "kw",
+        "origin": "개천사"
+      }
+    ]
+  }
+}

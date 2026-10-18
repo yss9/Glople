@@ -1,0 +1,7 @@
+# 직접 설치하는 패키지. 설치: .venv/bin/pip install --uploaded-prior-to 2026-10-03T00:00:00Z -r requirements.txt
+# 그 아래 의존성까지 고정한 목록은 requirements.lock (pip freeze). macOS 기본 torch 휠로 CPU/MPS 모두 동작.
+# mlx 는 쓰지 않습니다 (training/.venv 의 MLX 학습과 별도).
+sentence-transformers==6.1.0
+torch==2.14.1
+transformers==5.18.0
+numpy==2.5.3

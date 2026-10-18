@@ -1,0 +1,1183 @@
+{
+  "note": "정답은 합성 질의의 키워드와 keyword_tagger AI silver 라벨로 계산. 설명문 원문 없음.",
+  "created": "2026-10-18 13:06:23",
+  "versions": {
+    "python": "3.12.14",
+    "torch": "2.14.1",
+    "transformers": "5.18.0",
+    "sentence_transformers": "6.1.0",
+    "numpy": "2.5.3"
+  },
+  "data_sha256": {
+    "destinations.jsonl": "ba7564735c9f445b2c335ed1fa6625094ae4876c4f7b5bf7a3171e99018a9aea",
+    "queries_valid.jsonl": "6a5372609daecd9ae394b5845ca51b4e81c5d6c813e389e359288c233bc61059",
+    "queries_test.jsonl": "bd125e0449271fe481da4b60bd71c9737c08fd53de1c7aca717546d9a15ccadf",
+    "queries_test_iid.jsonl": "5277b0659c50f242a0d81bb4b13efaeec839fcb4b743aaf8fda37444c8c3b313"
+  },
+  "passage_tokens_all_policy": {
+    "count": 1934,
+    "mean": 277.6,
+    "p50": 256,
+    "p90": 428,
+    "max": 1706,
+    "over_256": 958
+  },
+  "query_tokens_train": {
+    "count": 5248,
+    "mean": 20.5,
+    "p50": 20,
+    "p90": 26,
+    "max": 38,
+    "over_64": 0
+  },
+  "model": {
+    "name": "intfloat/multilingual-e5-base",
+    "revision": "d128750597153bb5987e10b1c3493a34e5a4502a",
+    "device": "cpu",
+    "max_query_len": 64,
+    "max_passage_len": 256
+  },
+  "methods": {
+    "keyword_chips": {
+      "label": "키워드 검색: 질의 키워드를 칩으로 고름 (서버 마스크)",
+      "sets": {
+        "test": {
+          "overall": {
+            "queries": 279,
+            "ndcg@10": 0.4836,
+            "recall@20": 0.5549,
+            "mrr": 0.4935,
+            "avg_relevant": 12.48
+          },
+          "by_origin": {
+            "test": {
+              "queries": 153,
+              "ndcg@10": 0.4336,
+              "recall@20": 0.4924,
+              "mrr": 0.4555,
+              "avg_relevant": 13.25
+            },
+            "test_new": {
+              "queries": 126,
+              "ndcg@10": 0.5443,
+              "recall@20": 0.6308,
+              "mrr": 0.5397,
+              "avg_relevant": 11.55
+            }
+          },
+          "by_type": {
+            "kw": {
+              "queries": 168,
+              "ndcg@10": 0.6528,
+              "recall@20": 0.6062,
+              "mrr": 0.6539,
+              "avg_relevant": 17.88
+            },
+            "kw+category": {
+              "queries": 10,
+              "ndcg@10": 0.1868,
+              "recall@20": 0.4947,
+              "mrr": 0.182,
+              "avg_relevant": 5.0
+            },
+            "kw+region": {
+              "queries": 91,
+              "ndcg@10": 0.2245,
+              "recall@20": 0.4591,
+              "mrr": 0.2517,
+              "avg_relevant": 4.49
+            },
+            "kw+region+category": {
+              "queries": 10,
+              "ndcg@10": 0.2963,
+              "recall@20": 0.625,
+              "mrr": 0.3121,
+              "avg_relevant": 2.1
+            }
+          }
+        },
+        "test_iid": {
+          "overall": {
+            "queries": 279,
+            "ndcg@10": 0.4971,
+            "recall@20": 0.5574,
+            "mrr": 0.5119,
+            "avg_relevant": 11.5
+          },
+          "by_origin": {
+            "test": {
+              "queries": 153,
+              "ndcg@10": 0.4361,
+              "recall@20": 0.4746,
+              "mrr": 0.445,
+              "avg_relevant": 11.66
+            },
+            "test_new": {
+              "queries": 126,
+              "ndcg@10": 0.5711,
+              "recall@20": 0.658,
+              "mrr": 0.5931,
+              "avg_relevant": 11.31
+            }
+          },
+          "by_type": {
+            "kw": {
+              "queries": 169,
+              "ndcg@10": 0.6705,
+              "recall@20": 0.6141,
+              "mrr": 0.6666,
+              "avg_relevant": 15.69
+            },
+            "kw+category": {
+              "queries": 15,
+              "ndcg@10": 0.2393,
+              "recall@20": 0.4933,
+              "mrr": 0.22,
+              "avg_relevant": 5.07
+            },
+            "kw+region": {
+              "queries": 85,
+              "ndcg@10": 0.2134,
+              "recall@20": 0.4627,
+              "mrr": 0.2797,
+              "avg_relevant": 5.54
+            },
+            "kw+region+category": {
+              "queries": 10,
+              "ndcg@10": 0.3646,
+              "recall@20": 0.5,
+              "mrr": 0.3083,
+              "avg_relevant": 1.1
+            }
+          }
+        },
+        "valid": {
+          "overall": {
+            "queries": 285,
+            "ndcg@10": 0.561,
+            "recall@20": 0.6175,
+            "mrr": 0.571,
+            "avg_relevant": 16.11
+          },
+          "by_origin": {
+            "valid": {
+              "queries": 285,
+              "ndcg@10": 0.561,
+              "recall@20": 0.6175,
+              "mrr": 0.571,
+              "avg_relevant": 16.11
+            }
+          },
+          "by_type": {
+            "kw": {
+              "queries": 164,
+              "ndcg@10": 0.7558,
+              "recall@20": 0.6712,
+              "mrr": 0.7703,
+              "avg_relevant": 24.48
+            },
+            "kw+category": {
+              "queries": 18,
+              "ndcg@10": 0.4315,
+              "recall@20": 0.5854,
+              "mrr": 0.4376,
+              "avg_relevant": 4.78
+            },
+            "kw+region": {
+              "queries": 93,
+              "ndcg@10": 0.2813,
+              "recall@20": 0.5362,
+              "mrr": 0.2919,
+              "avg_relevant": 4.97
+            },
+            "kw+region+category": {
+              "queries": 10,
+              "ndcg@10": 0.1998,
+              "recall@20": 0.55,
+              "mrr": 0.136,
+              "avg_relevant": 2.8
+            }
+          }
+        }
+      }
+    },
+    "keyword_literal": {
+      "label": "키워드 검색: 문장에서 키워드 글자 추출 (서버 마스크)",
+      "sets": {
+        "test": {
+          "overall": {
+            "queries": 279,
+            "ndcg@10": 0.3899,
+            "recall@20": 0.417,
+            "mrr": 0.3647,
+            "avg_relevant": 12.48
+          },
+          "by_origin": {
+            "test": {
+              "queries": 153,
+              "ndcg@10": 0.3493,
+              "recall@20": 0.3634,
+              "mrr": 0.3383,
+              "avg_relevant": 13.25
+            },
+            "test_new": {
+              "queries": 126,
+              "ndcg@10": 0.4393,
+              "recall@20": 0.4821,
+              "mrr": 0.3968,
+              "avg_relevant": 11.55
+            }
+          },
+          "by_type": {
+            "kw": {
+              "queries": 168,
+              "ndcg@10": 0.5289,
+              "recall@20": 0.4624,
+              "mrr": 0.4862,
+              "avg_relevant": 17.88
+            },
+            "kw+category": {
+              "queries": 10,
+              "ndcg@10": 0.2042,
+              "recall@20": 0.4747,
+              "mrr": 0.1888,
+              "avg_relevant": 5.0
+            },
+            "kw+region": {
+              "queries": 91,
+              "ndcg@10": 0.1643,
+              "recall@20": 0.3123,
+              "mrr": 0.1704,
+              "avg_relevant": 4.49
+            },
+            "kw+region+category": {
+              "queries": 10,
+              "ndcg@10": 0.2932,
+              "recall@20": 0.55,
+              "mrr": 0.2678,
+              "avg_relevant": 2.1
+            }
+          }
+        },
+        "test_iid": {
+          "overall": {
+            "queries": 279,
+            "ndcg@10": 0.4028,
+            "recall@20": 0.4571,
+            "mrr": 0.349,
+            "avg_relevant": 11.5
+          },
+          "by_origin": {
+            "test": {
+              "queries": 153,
+              "ndcg@10": 0.3588,
+              "recall@20": 0.3743,
+              "mrr": 0.3093,
+              "avg_relevant": 11.66
+            },
+            "test_new": {
+              "queries": 126,
+              "ndcg@10": 0.4562,
+              "recall@20": 0.5576,
+              "mrr": 0.3972,
+              "avg_relevant": 11.31
+            }
+          },
+          "by_type": {
+            "kw": {
+              "queries": 169,
+              "ndcg@10": 0.5538,
+              "recall@20": 0.5084,
+              "mrr": 0.4592,
+              "avg_relevant": 15.69
+            },
+            "kw+category": {
+              "queries": 15,
+              "ndcg@10": 0.0867,
+              "recall@20": 0.4267,
+              "mrr": 0.0854,
+              "avg_relevant": 5.07
+            },
+            "kw+region": {
+              "queries": 85,
+              "ndcg@10": 0.1755,
+              "recall@20": 0.3672,
+              "mrr": 0.1938,
+              "avg_relevant": 5.54
+            },
+            "kw+region+category": {
+              "queries": 10,
+              "ndcg@10": 0.2563,
+              "recall@20": 0.4,
+              "mrr": 0.2,
+              "avg_relevant": 1.1
+            }
+          }
+        },
+        "valid": {
+          "overall": {
+            "queries": 285,
+            "ndcg@10": 0.4564,
+            "recall@20": 0.5192,
+            "mrr": 0.4369,
+            "avg_relevant": 16.11
+          },
+          "by_origin": {
+            "valid": {
+              "queries": 285,
+              "ndcg@10": 0.4564,
+              "recall@20": 0.5192,
+              "mrr": 0.4369,
+              "avg_relevant": 16.11
+            }
+          },
+          "by_type": {
+            "kw": {
+              "queries": 164,
+              "ndcg@10": 0.6101,
+              "recall@20": 0.5364,
+              "mrr": 0.5816,
+              "avg_relevant": 24.48
+            },
+            "kw+category": {
+              "queries": 18,
+              "ndcg@10": 0.3863,
+              "recall@20": 0.5924,
+              "mrr": 0.3742,
+              "avg_relevant": 4.78
+            },
+            "kw+region": {
+              "queries": 93,
+              "ndcg@10": 0.2279,
+              "recall@20": 0.4605,
+              "mrr": 0.2229,
+              "avg_relevant": 4.97
+            },
+            "kw+region+category": {
+              "queries": 10,
+              "ndcg@10": 0.1864,
+              "recall@20": 0.65,
+              "mrr": 0.1675,
+              "avg_relevant": 2.8
+            }
+          }
+        }
+      }
+    },
+    "keyword_chips_gold_mask": {
+      "label": "(참고) 키워드 칩 + 정답 라벨 마스크",
+      "sets": {
+        "test": {
+          "overall": {
+            "queries": 279,
+            "ndcg@10": 0.7804,
+            "recall@20": 0.9443,
+            "mrr": 0.7957,
+            "avg_relevant": 12.48
+          },
+          "by_origin": {
+            "test": {
+              "queries": 153,
+              "ndcg@10": 0.7407,
+              "recall@20": 0.9302,
+              "mrr": 0.7629,
+              "avg_relevant": 13.25
+            },
+            "test_new": {
+              "queries": 126,
+              "ndcg@10": 0.8287,
+              "recall@20": 0.9613,
+              "mrr": 0.8355,
+              "avg_relevant": 11.55
+            }
+          },
+          "by_type": {
+            "kw": {
+              "queries": 168,
+              "ndcg@10": 1.0,
+              "recall@20": 1.0,
+              "mrr": 1.0,
+              "avg_relevant": 17.88
+            },
+            "kw+category": {
+              "queries": 10,
+              "ndcg@10": 0.5317,
+              "recall@20": 0.925,
+              "mrr": 0.6993,
+              "avg_relevant": 5.0
+            },
+            "kw+region": {
+              "queries": 91,
+              "ndcg@10": 0.4275,
+              "recall@20": 0.8456,
+              "mrr": 0.4581,
+              "avg_relevant": 4.49
+            },
+            "kw+region+category": {
+              "queries": 10,
+              "ndcg@10": 0.5522,
+              "recall@20": 0.925,
+              "mrr": 0.5324,
+              "avg_relevant": 2.1
+            }
+          }
+        },
+        "test_iid": {
+          "overall": {
+            "queries": 279,
+            "ndcg@10": 0.7763,
+            "recall@20": 0.9343,
+            "mrr": 0.7902,
+            "avg_relevant": 11.5
+          },
+          "by_origin": {
+            "test": {
+              "queries": 153,
+              "ndcg@10": 0.7229,
+              "recall@20": 0.893,
+              "mrr": 0.7449,
+              "avg_relevant": 11.66
+            },
+            "test_new": {
+              "queries": 126,
+              "ndcg@10": 0.8411,
+              "recall@20": 0.9845,
+              "mrr": 0.8452,
+              "avg_relevant": 11.31
+            }
+          },
+          "by_type": {
+            "kw": {
+              "queries": 169,
+              "ndcg@10": 1.0,
+              "recall@20": 1.0,
+              "mrr": 1.0,
+              "avg_relevant": 15.69
+            },
+            "kw+category": {
+              "queries": 15,
+              "ndcg@10": 0.3985,
+              "recall@20": 0.8533,
+              "mrr": 0.4074,
+              "avg_relevant": 5.07
+            },
+            "kw+region": {
+              "queries": 85,
+              "ndcg@10": 0.4323,
+              "recall@20": 0.822,
+              "mrr": 0.4879,
+              "avg_relevant": 5.54
+            },
+            "kw+region+category": {
+              "queries": 10,
+              "ndcg@10": 0.486,
+              "recall@20": 0.9,
+              "mrr": 0.3871,
+              "avg_relevant": 1.1
+            }
+          }
+        },
+        "valid": {
+          "overall": {
+            "queries": 285,
+            "ndcg@10": 0.791,
+            "recall@20": 0.9549,
+            "mrr": 0.8105,
+            "avg_relevant": 16.11
+          },
+          "by_origin": {
+            "valid": {
+              "queries": 285,
+              "ndcg@10": 0.791,
+              "recall@20": 0.9549,
+              "mrr": 0.8105,
+              "avg_relevant": 16.11
+            }
+          },
+          "by_type": {
+            "kw": {
+              "queries": 164,
+              "ndcg@10": 1.0,
+              "recall@20": 1.0,
+              "mrr": 1.0,
+              "avg_relevant": 24.48
+            },
+            "kw+category": {
+              "queries": 18,
+              "ndcg@10": 0.6655,
+              "recall@20": 0.9453,
+              "mrr": 0.8302,
+              "avg_relevant": 4.78
+            },
+            "kw+region": {
+              "queries": 93,
+              "ndcg@10": 0.489,
+              "recall@20": 0.8832,
+              "mrr": 0.5194,
+              "avg_relevant": 4.97
+            },
+            "kw+region+category": {
+              "queries": 10,
+              "ndcg@10": 0.3993,
+              "recall@20": 0.9,
+              "mrr": 0.3729,
+              "avg_relevant": 2.8
+            }
+          }
+        }
+      }
+    },
+    "bm25_all": {
+      "label": "BM25 글자 2-gram (설명문 포함)",
+      "sets": {
+        "test": {
+          "overall": {
+            "queries": 279,
+            "ndcg@10": 0.3745,
+            "recall@20": 0.4673,
+            "mrr": 0.3916,
+            "avg_relevant": 12.48
+          },
+          "by_origin": {
+            "test": {
+              "queries": 153,
+              "ndcg@10": 0.3669,
+              "recall@20": 0.446,
+              "mrr": 0.4101,
+              "avg_relevant": 13.25
+            },
+            "test_new": {
+              "queries": 126,
+              "ndcg@10": 0.3836,
+              "recall@20": 0.4931,
+              "mrr": 0.369,
+              "avg_relevant": 11.55
+            }
+          },
+          "by_type": {
+            "kw": {
+              "queries": 168,
+              "ndcg@10": 0.3792,
+              "recall@20": 0.3584,
+              "mrr": 0.4005,
+              "avg_relevant": 17.88
+            },
+            "kw+category": {
+              "queries": 10,
+              "ndcg@10": 0.5177,
+              "recall@20": 0.6785,
+              "mrr": 0.6601,
+              "avg_relevant": 5.0
+            },
+            "kw+region": {
+              "queries": 91,
+              "ndcg@10": 0.3412,
+              "recall@20": 0.6012,
+              "mrr": 0.3433,
+              "avg_relevant": 4.49
+            },
+            "kw+region+category": {
+              "queries": 10,
+              "ndcg@10": 0.4537,
+              "recall@20": 0.8667,
+              "mrr": 0.4122,
+              "avg_relevant": 2.1
+            }
+          }
+        },
+        "test_iid": {
+          "overall": {
+            "queries": 279,
+            "ndcg@10": 0.3942,
+            "recall@20": 0.5043,
+            "mrr": 0.398,
+            "avg_relevant": 11.5
+          },
+          "by_origin": {
+            "test": {
+              "queries": 153,
+              "ndcg@10": 0.3242,
+              "recall@20": 0.4405,
+              "mrr": 0.3513,
+              "avg_relevant": 11.66
+            },
+            "test_new": {
+              "queries": 126,
+              "ndcg@10": 0.4792,
+              "recall@20": 0.5817,
+              "mrr": 0.4547,
+              "avg_relevant": 11.31
+            }
+          },
+          "by_type": {
+            "kw": {
+              "queries": 169,
+              "ndcg@10": 0.4012,
+              "recall@20": 0.4308,
+              "mrr": 0.3901,
+              "avg_relevant": 15.69
+            },
+            "kw+category": {
+              "queries": 15,
+              "ndcg@10": 0.3711,
+              "recall@20": 0.6567,
+              "mrr": 0.3728,
+              "avg_relevant": 5.07
+            },
+            "kw+region": {
+              "queries": 85,
+              "ndcg@10": 0.3533,
+              "recall@20": 0.5771,
+              "mrr": 0.398,
+              "avg_relevant": 5.54
+            },
+            "kw+region+category": {
+              "queries": 10,
+              "ndcg@10": 0.6586,
+              "recall@20": 0.9,
+              "mrr": 0.5692,
+              "avg_relevant": 1.1
+            }
+          }
+        },
+        "valid": {
+          "overall": {
+            "queries": 285,
+            "ndcg@10": 0.4205,
+            "recall@20": 0.5211,
+            "mrr": 0.4679,
+            "avg_relevant": 16.11
+          },
+          "by_origin": {
+            "valid": {
+              "queries": 285,
+              "ndcg@10": 0.4205,
+              "recall@20": 0.5211,
+              "mrr": 0.4679,
+              "avg_relevant": 16.11
+            }
+          },
+          "by_type": {
+            "kw": {
+              "queries": 164,
+              "ndcg@10": 0.4082,
+              "recall@20": 0.4028,
+              "mrr": 0.4763,
+              "avg_relevant": 24.48
+            },
+            "kw+category": {
+              "queries": 18,
+              "ndcg@10": 0.6123,
+              "recall@20": 0.7566,
+              "mrr": 0.6263,
+              "avg_relevant": 4.78
+            },
+            "kw+region": {
+              "queries": 93,
+              "ndcg@10": 0.4114,
+              "recall@20": 0.6717,
+              "mrr": 0.4383,
+              "avg_relevant": 4.97
+            },
+            "kw+region+category": {
+              "queries": 10,
+              "ndcg@10": 0.3618,
+              "recall@20": 0.6364,
+              "mrr": 0.3184,
+              "avg_relevant": 2.8
+            }
+          }
+        }
+      }
+    },
+    "bm25_none": {
+      "label": "BM25 글자 2-gram (이름·지역·분류만)",
+      "sets": {
+        "test": {
+          "overall": {
+            "queries": 279,
+            "ndcg@10": 0.4205,
+            "recall@20": 0.4385,
+            "mrr": 0.4147,
+            "avg_relevant": 12.48
+          },
+          "by_origin": {
+            "test": {
+              "queries": 153,
+              "ndcg@10": 0.4116,
+              "recall@20": 0.4104,
+              "mrr": 0.3964,
+              "avg_relevant": 13.25
+            },
+            "test_new": {
+              "queries": 126,
+              "ndcg@10": 0.4314,
+              "recall@20": 0.4726,
+              "mrr": 0.437,
+              "avg_relevant": 11.55
+            }
+          },
+          "by_type": {
+            "kw": {
+              "queries": 168,
+              "ndcg@10": 0.3774,
+              "recall@20": 0.2689,
+              "mrr": 0.3804,
+              "avg_relevant": 17.88
+            },
+            "kw+category": {
+              "queries": 10,
+              "ndcg@10": 0.377,
+              "recall@20": 0.5362,
+              "mrr": 0.3902,
+              "avg_relevant": 5.0
+            },
+            "kw+region": {
+              "queries": 91,
+              "ndcg@10": 0.4625,
+              "recall@20": 0.682,
+              "mrr": 0.442,
+              "avg_relevant": 4.49
+            },
+            "kw+region+category": {
+              "queries": 10,
+              "ndcg@10": 0.8063,
+              "recall@20": 0.975,
+              "mrr": 0.7674,
+              "avg_relevant": 2.1
+            }
+          }
+        },
+        "test_iid": {
+          "overall": {
+            "queries": 279,
+            "ndcg@10": 0.4509,
+            "recall@20": 0.4281,
+            "mrr": 0.4393,
+            "avg_relevant": 11.5
+          },
+          "by_origin": {
+            "test": {
+              "queries": 153,
+              "ndcg@10": 0.4166,
+              "recall@20": 0.3863,
+              "mrr": 0.4224,
+              "avg_relevant": 11.66
+            },
+            "test_new": {
+              "queries": 126,
+              "ndcg@10": 0.4926,
+              "recall@20": 0.4787,
+              "mrr": 0.4597,
+              "avg_relevant": 11.31
+            }
+          },
+          "by_type": {
+            "kw": {
+              "queries": 169,
+              "ndcg@10": 0.4228,
+              "recall@20": 0.2684,
+              "mrr": 0.411,
+              "avg_relevant": 15.69
+            },
+            "kw+category": {
+              "queries": 15,
+              "ndcg@10": 0.3483,
+              "recall@20": 0.6222,
+              "mrr": 0.3025,
+              "avg_relevant": 5.07
+            },
+            "kw+region": {
+              "queries": 85,
+              "ndcg@10": 0.4889,
+              "recall@20": 0.6557,
+              "mrr": 0.4837,
+              "avg_relevant": 5.54
+            },
+            "kw+region+category": {
+              "queries": 10,
+              "ndcg@10": 0.7571,
+              "recall@20": 0.9,
+              "mrr": 0.7435,
+              "avg_relevant": 1.1
+            }
+          }
+        },
+        "valid": {
+          "overall": {
+            "queries": 285,
+            "ndcg@10": 0.4863,
+            "recall@20": 0.5263,
+            "mrr": 0.4308,
+            "avg_relevant": 16.11
+          },
+          "by_origin": {
+            "valid": {
+              "queries": 285,
+              "ndcg@10": 0.4863,
+              "recall@20": 0.5263,
+              "mrr": 0.4308,
+              "avg_relevant": 16.11
+            }
+          },
+          "by_type": {
+            "kw": {
+              "queries": 164,
+              "ndcg@10": 0.4691,
+              "recall@20": 0.3605,
+              "mrr": 0.4251,
+              "avg_relevant": 24.48
+            },
+            "kw+category": {
+              "queries": 18,
+              "ndcg@10": 0.5835,
+              "recall@20": 0.9236,
+              "mrr": 0.4407,
+              "avg_relevant": 4.78
+            },
+            "kw+region": {
+              "queries": 93,
+              "ndcg@10": 0.4949,
+              "recall@20": 0.7014,
+              "mrr": 0.4471,
+              "avg_relevant": 4.97
+            },
+            "kw+region+category": {
+              "queries": 10,
+              "ndcg@10": 0.5141,
+              "recall@20": 0.9,
+              "mrr": 0.3538,
+              "avg_relevant": 2.8
+            }
+          }
+        }
+      }
+    },
+    "embedding_base_all": {
+      "label": "multilingual-e5-base 학습 전 (설명문 포함)",
+      "sets": {
+        "test": {
+          "overall": {
+            "queries": 279,
+            "ndcg@10": 0.4101,
+            "recall@20": 0.469,
+            "mrr": 0.4306,
+            "avg_relevant": 12.48
+          },
+          "by_origin": {
+            "test": {
+              "queries": 153,
+              "ndcg@10": 0.4049,
+              "recall@20": 0.4732,
+              "mrr": 0.4481,
+              "avg_relevant": 13.25
+            },
+            "test_new": {
+              "queries": 126,
+              "ndcg@10": 0.4163,
+              "recall@20": 0.4638,
+              "mrr": 0.4095,
+              "avg_relevant": 11.55
+            }
+          },
+          "by_type": {
+            "kw": {
+              "queries": 168,
+              "ndcg@10": 0.3973,
+              "recall@20": 0.3447,
+              "mrr": 0.4226,
+              "avg_relevant": 17.88
+            },
+            "kw+category": {
+              "queries": 10,
+              "ndcg@10": 0.4107,
+              "recall@20": 0.724,
+              "mrr": 0.3845,
+              "avg_relevant": 5.0
+            },
+            "kw+region": {
+              "queries": 91,
+              "ndcg@10": 0.4041,
+              "recall@20": 0.623,
+              "mrr": 0.4204,
+              "avg_relevant": 4.49
+            },
+            "kw+region+category": {
+              "queries": 10,
+              "ndcg@10": 0.6771,
+              "recall@20": 0.9,
+              "mrr": 0.7056,
+              "avg_relevant": 2.1
+            }
+          }
+        },
+        "test_iid": {
+          "overall": {
+            "queries": 279,
+            "ndcg@10": 0.4638,
+            "recall@20": 0.5011,
+            "mrr": 0.4873,
+            "avg_relevant": 11.5
+          },
+          "by_origin": {
+            "test": {
+              "queries": 153,
+              "ndcg@10": 0.445,
+              "recall@20": 0.4805,
+              "mrr": 0.4744,
+              "avg_relevant": 11.66
+            },
+            "test_new": {
+              "queries": 126,
+              "ndcg@10": 0.4866,
+              "recall@20": 0.5262,
+              "mrr": 0.503,
+              "avg_relevant": 11.31
+            }
+          },
+          "by_type": {
+            "kw": {
+              "queries": 169,
+              "ndcg@10": 0.4551,
+              "recall@20": 0.3888,
+              "mrr": 0.4748,
+              "avg_relevant": 15.69
+            },
+            "kw+category": {
+              "queries": 15,
+              "ndcg@10": 0.5059,
+              "recall@20": 0.7611,
+              "mrr": 0.6639,
+              "avg_relevant": 5.07
+            },
+            "kw+region": {
+              "queries": 85,
+              "ndcg@10": 0.4552,
+              "recall@20": 0.6316,
+              "mrr": 0.4773,
+              "avg_relevant": 5.54
+            },
+            "kw+region+category": {
+              "queries": 10,
+              "ndcg@10": 0.6197,
+              "recall@20": 0.9,
+              "mrr": 0.5198,
+              "avg_relevant": 1.1
+            }
+          }
+        },
+        "valid": {
+          "overall": {
+            "queries": 285,
+            "ndcg@10": 0.4535,
+            "recall@20": 0.5288,
+            "mrr": 0.5129,
+            "avg_relevant": 16.11
+          },
+          "by_origin": {
+            "valid": {
+              "queries": 285,
+              "ndcg@10": 0.4535,
+              "recall@20": 0.5288,
+              "mrr": 0.5129,
+              "avg_relevant": 16.11
+            }
+          },
+          "by_type": {
+            "kw": {
+              "queries": 164,
+              "ndcg@10": 0.4589,
+              "recall@20": 0.4014,
+              "mrr": 0.5604,
+              "avg_relevant": 24.48
+            },
+            "kw+category": {
+              "queries": 18,
+              "ndcg@10": 0.4624,
+              "recall@20": 0.6899,
+              "mrr": 0.4736,
+              "avg_relevant": 4.78
+            },
+            "kw+region": {
+              "queries": 93,
+              "ndcg@10": 0.432,
+              "recall@20": 0.6861,
+              "mrr": 0.4308,
+              "avg_relevant": 4.97
+            },
+            "kw+region+category": {
+              "queries": 10,
+              "ndcg@10": 0.5488,
+              "recall@20": 0.8652,
+              "mrr": 0.5675,
+              "avg_relevant": 2.8
+            }
+          }
+        }
+      }
+    },
+    "embedding_base_none": {
+      "label": "multilingual-e5-base 학습 전 (이름·지역·분류만)",
+      "sets": {
+        "test": {
+          "overall": {
+            "queries": 279,
+            "ndcg@10": 0.4662,
+            "recall@20": 0.4902,
+            "mrr": 0.4695,
+            "avg_relevant": 12.48
+          },
+          "by_origin": {
+            "test": {
+              "queries": 153,
+              "ndcg@10": 0.4621,
+              "recall@20": 0.4828,
+              "mrr": 0.4741,
+              "avg_relevant": 13.25
+            },
+            "test_new": {
+              "queries": 126,
+              "ndcg@10": 0.4711,
+              "recall@20": 0.4992,
+              "mrr": 0.4639,
+              "avg_relevant": 11.55
+            }
+          },
+          "by_type": {
+            "kw": {
+              "queries": 168,
+              "ndcg@10": 0.4311,
+              "recall@20": 0.3215,
+              "mrr": 0.4448,
+              "avg_relevant": 17.88
+            },
+            "kw+category": {
+              "queries": 10,
+              "ndcg@10": 0.376,
+              "recall@20": 0.5051,
+              "mrr": 0.2799,
+              "avg_relevant": 5.0
+            },
+            "kw+region": {
+              "queries": 91,
+              "ndcg@10": 0.4951,
+              "recall@20": 0.7522,
+              "mrr": 0.4859,
+              "avg_relevant": 4.49
+            },
+            "kw+region+category": {
+              "queries": 10,
+              "ndcg@10": 0.8833,
+              "recall@20": 0.925,
+              "mrr": 0.925,
+              "avg_relevant": 2.1
+            }
+          }
+        },
+        "test_iid": {
+          "overall": {
+            "queries": 279,
+            "ndcg@10": 0.4721,
+            "recall@20": 0.4962,
+            "mrr": 0.4584,
+            "avg_relevant": 11.5
+          },
+          "by_origin": {
+            "test": {
+              "queries": 153,
+              "ndcg@10": 0.4511,
+              "recall@20": 0.4668,
+              "mrr": 0.4636,
+              "avg_relevant": 11.66
+            },
+            "test_new": {
+              "queries": 126,
+              "ndcg@10": 0.4976,
+              "recall@20": 0.532,
+              "mrr": 0.4522,
+              "avg_relevant": 11.31
+            }
+          },
+          "by_type": {
+            "kw": {
+              "queries": 169,
+              "ndcg@10": 0.4157,
+              "recall@20": 0.3377,
+              "mrr": 0.3848,
+              "avg_relevant": 15.69
+            },
+            "kw+category": {
+              "queries": 15,
+              "ndcg@10": 0.6997,
+              "recall@20": 0.81,
+              "mrr": 0.7263,
+              "avg_relevant": 5.07
+            },
+            "kw+region": {
+              "queries": 85,
+              "ndcg@10": 0.5027,
+              "recall@20": 0.6967,
+              "mrr": 0.5196,
+              "avg_relevant": 5.54
+            },
+            "kw+region+category": {
+              "queries": 10,
+              "ndcg@10": 0.8239,
+              "recall@20": 1.0,
+              "mrr": 0.7806,
+              "avg_relevant": 1.1
+            }
+          }
+        },
+        "valid": {
+          "overall": {
+            "queries": 285,
+            "ndcg@10": 0.5498,
+            "recall@20": 0.5808,
+            "mrr": 0.5363,
+            "avg_relevant": 16.11
+          },
+          "by_origin": {
+            "valid": {
+              "queries": 285,
+              "ndcg@10": 0.5498,
+              "recall@20": 0.5808,
+              "mrr": 0.5363,
+              "avg_relevant": 16.11
+            }
+          },
+          "by_type": {
+            "kw": {
+              "queries": 164,
+              "ndcg@10": 0.5316,
+              "recall@20": 0.4273,
+              "mrr": 0.542,
+              "avg_relevant": 24.48
+            },
+            "kw+category": {
+              "queries": 18,
+              "ndcg@10": 0.5143,
+              "recall@20": 0.7957,
+              "mrr": 0.4102,
+              "avg_relevant": 4.78
+            },
+            "kw+region": {
+              "queries": 93,
+              "ndcg@10": 0.5645,
+              "recall@20": 0.7702,
+              "mrr": 0.5369,
+              "avg_relevant": 4.97
+            },
+            "kw+region+category": {
+              "queries": 10,
+              "ndcg@10": 0.776,
+              "recall@20": 0.95,
+              "mrr": 0.6642,
+              "avg_relevant": 2.8
+            }
+          }
+        }
+      }
+    }
+  }
+}
