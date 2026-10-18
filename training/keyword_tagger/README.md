@@ -4,7 +4,20 @@
 서버의 [`KeywordMask.fromDescription`](../../src/main/java/proj/travien/service/KeywordMask.java)은 설명문에 키워드 글자가 들어 있으면(`description.contains(keyword)`) 그 키워드를 붙입니다. 그래서 '성'은 '성당'·'조성된'에도, '산'은 '산책로'에도, '강'은 '강화군'에도 붙습니다. 반대로 '역사적인 장소'·'경치'처럼 설명문에 그 글자가 그대로 나오지 않는 키워드는 거의 붙지 않습니다.
 그래서 국내(TourAPI) 여행지에는 규칙을 하나 더 두었습니다. `DestinationInfo.refreshKeywordMask`는 `source=TOUR_API`인 행에 `KeywordMask.fromKoreanDescription`을 씁니다. 한 글자 키워드(산, 섬, 성, 탑, 강)는 독립된 단어이거나 정해진 조사만 붙었을 때만 붙이고, 나머지 키워드는 `fromDescription`과 같습니다. 이 폴더는 두 규칙을 학습한 모델로 바꾸기 위한 데이터, 기준선, 학습 스크립트를 담습니다.
 
-> 현재 상태 (2026-10-17): 1차 배치(1,083개)로 `klue/roberta-base` 본 학습을 마쳤습니다(MPS, 10에폭, 약 20분, 로그 `outputs/auto_run.log`). test 163개에서 micro F1은 0.530으로 국내 규칙(0.409)보다 높지만, macro F1은 0.170으로 국내 규칙(0.392)보다 낮습니다([`results/roberta-base.compare.md`](results/roberta-base.compare.md), [아래](#1차-배치로-학습한-결과-roberta-base)). 그 뒤 여러 지역의 2차 배치 851개를 라벨에 합쳤고, 분할·기준선·학습 스크립트·비교표를 2차 배치에 맞게 고친 뒤 CPU 스모크 테스트를 했습니다. **2차 배치를 넣은 재학습(`roberta-base-v2`)은 아직 돌리지 않았습니다.** 지금은 `training/run_v2.sh`의 MLX LoRA 학습이 GPU를 쓰고 있으므로, 그 학습이 끝난 뒤 [실행](#실행)의 4), 5)를 돌리면 됩니다. 모델을 서버(Java)에 연동하는 작업도 아직입니다.
+> 현재 상태 (2026-10-18): 1차 배치(1,083개)와 여러 지역의 2차 배치(851개)를 합쳐 `klue/roberta-base`를 다시 학습했습니다(`roberta-base-v2`, MPS, 15에폭, 약 38분, 로그 `outputs/auto_run_v2_retry.log`, 비교표 [`results/roberta-base-v2.compare.md`](results/roberta-base-v2.compare.md)).
+>
+> | 지표 | 국내 규칙 | 1차 모델 `roberta-base` | 2차 모델 `roberta-base-v2` |
+> | :-- | --: | --: | --: |
+> | test 163 micro F1 | 0.409 | 0.530 | **0.709** |
+> | test 163 macro F1 | 0.392 | 0.170 | 0.381 |
+> | test_new 127 micro F1 | 0.442 | - | **0.708** |
+> | test_new 127 macro F1 | 0.439 | - | 0.322 |
+>
+> - micro F1은 자주 나오는 키워드를 잘 맞히는지를 봅니다. 두 시험지 모두 국내 규칙보다 크게 높습니다.
+> - macro F1은 키워드마다 똑같이 쳐서 드문 키워드 실력까지 봅니다. 1차 모델의 약점(0.170)이 국내 규칙 수준(0.381)까지 올라왔습니다. 다만 새 지역 시험지(test_new)에서는 아직 규칙보다 낮습니다.
+> - 한 글자 키워드 '산'의 정밀도는 부분 문자열 0.18에서 0.65가 됐습니다. 예를 들어 '부산'의 '산'에 키워드를 붙이던 오탐이 크게 줄었습니다.
+> - 첫 실행(2026-10-18 01:40)은 MPS 캐시가 23GB까지 커져 스왑 때문에 거의 멈췄습니다. 그래서 04:30에 멈추고, 패딩 길이를 64 단위로 맞추고 에폭마다 MPS 캐시를 비우도록 `train_keyword_tagger.py`를 고쳐 다시 돌렸습니다. 진행 줄(`--log-every`)도 이제 실시간으로 로그에 남습니다.
+> - 모델을 서버(Java)에 연동하는 작업은 아직입니다.
 
 ## 데이터
 
@@ -278,7 +291,7 @@ python3 -I scripts/compare.py results/roberta-base-v2.json results/roberta-base.
 ```
 
 - 본 학습은 첫 실행 때 `klue/roberta-base`(약 450MB)를 Hugging Face 캐시(`~/.cache/huggingface`)로 받습니다. 지금은 캐시에 있습니다.
-- 학습 시간: 1차 `roberta-base`는 480 step(758개 × 10에폭)에 1,231초 걸렸습니다(에폭마다 valid 평가 포함). `roberta-base-v2`는 1,275 step(1,354개 × 15에폭)이고 valid도 290개라 MPS에서 1시간 안팎으로 예상합니다(아직 재지 않음). MPS 메모리가 부족하면 `--batch-size 8`로 줄입니다.
+- 학습 시간: 1차 `roberta-base`는 480 step(758개 × 10에폭)에 1,231초 걸렸습니다(에폭마다 valid 평가 포함). `roberta-base-v2`는 1,275 step(1,354개 × 15에폭)에 2,276초(약 38분) 걸렸습니다(valid 290개 평가 포함). MPS 메모리가 부족하면 `--batch-size 8`로 줄입니다.
 - `compare.py` 표의 열은 학습 전 (부분 문자열), 학습 전 (국내 규칙), 그리고 인자로 준 모델 순서입니다. 기본(`--split both`)은 test와 test_new마다 지표 표, 자주 나오는 키워드 15개의 F1 표, 한 글자 키워드(산, 섬, 성, 탑, 강)의 정밀도·재현율 표를 냅니다. `--split test` 또는 `--split test_new`로 하나만 낼 수 있습니다. 자주 나오는 15개는 이제 전체 1,934개 기준(`top_keywords`)입니다. 모델 결과 파일에 없는 키워드(예전 실행의 바다·해안·야외 활동, 한 글자 키워드)는 `outputs/<run_name>/test_predictions.jsonl`, `test_new_predictions.jsonl`로 다시 계산하고, 그 파일이 없거나 결과 파일과 micro 지표가 다르면 '-'로 둡니다. 그 평가 집합의 결과가 없는 실행(예: 2차 전의 `roberta-base`의 test_new)도 '-'입니다.
 - 예전 형식도 그대로 읽습니다. `test_new`가 없는 `splits.json`이면 학습 스크립트는 test만 평가하고, `test_new`·`korean_rule`이 없는 예전 `baseline.json`을 `--baseline`으로 주면 그 열·표 없이 냅니다(예전 `baseline.json`으로 돌리면 `results/roberta-base.compare.md`와 숫자가 같음).
 - MLX 학습 중에 꼭 돌려야 하면 `--device cpu --num-threads 4`로 돌릴 수 있지만 roberta-base는 CPU에서 오래 걸립니다.

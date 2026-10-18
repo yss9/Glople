@@ -70,6 +70,7 @@ def parse_args():
     p.add_argument("--num-threads", type=int, default=4,
                    help="torch CPU 스레드 수 (다른 작업과 CPU 를 나눠 쓸 때 낮게)")
     p.add_argument("--max-steps", type=int, default=0, help="0 이면 제한 없음. 스모크 테스트용")
+    p.add_argument("--log-every", type=int, default=20, help="에폭 안에서 n 스텝마다 진행 줄 출력 (0=끔)")
     p.add_argument("--patience", type=int, default=0, help="valid micro F1 이 n 에폭 동안 안 오르면 중단 (0=끔)")
     p.add_argument("--min-valid-pos", type=int, default=3,
                    help="키워드별 임계값을 쓰려면 valid 양성이 이 수 이상이어야 함 (아니면 전역 임계값)")
@@ -156,6 +157,9 @@ def to_keyword_sets(probs, thresholds, label_space):
 
 def main():
     args = parse_args()
+    # 출력을 파일로 보낼 때도(자동 실행 로그) 줄마다 바로 써서 tail -f 로 진행을 볼 수 있게 한다
+    sys.stdout.reconfigure(line_buffering=True)
+    sys.stderr.reconfigure(line_buffering=True)
     os.environ.setdefault("TOKENIZERS_PARALLELISM", "false")
 
     import numpy as np
@@ -218,11 +222,13 @@ def main():
         label2id=label_index,
     )
     model.to(device)
+    # 배치 길이를 64 단위로 맞춰 텐서 모양 가짓수를 줄인다 (모양마다 MPS 캐시 버퍼가 따로 생김)
+    PAD_MULTIPLE = 64
 
     def batches(ids_list, y, batch_size, order):
         for start in range(0, len(order), batch_size):
             idx = order[start:start + batch_size]
-            padded = tokenizer.pad({"input_ids": [ids_list[i] for i in idx]}, return_tensors="pt")
+            padded = tokenizer.pad({"input_ids": [ids_list[i] for i in idx]}, return_tensors="pt", pad_to_multiple_of=PAD_MULTIPLE)
             batch = {k: v.to(device) for k, v in padded.items()}
             batch["labels"] = torch.from_numpy(y[idx]).to(device)
             yield batch
@@ -236,10 +242,16 @@ def main():
         probs = np.zeros_like(y)
         for start in range(0, len(order), args.eval_batch_size):
             idx = order[start:start + args.eval_batch_size]
-            padded = tokenizer.pad({"input_ids": [ids_list[i] for i in idx]}, return_tensors="pt")
+            padded = tokenizer.pad({"input_ids": [ids_list[i] for i in idx]}, return_tensors="pt", pad_to_multiple_of=PAD_MULTIPLE)
             logits = model(**{k: v.to(device) for k, v in padded.items()}).logits
             probs[idx] = torch.sigmoid(logits.float()).cpu().numpy()
+        release_cache()
         return probs, y > 0.5
+
+    def release_cache():
+        # MPS는 크기가 다른 버퍼를 캐시에 쌓아 두고 돌려주지 않는다. 2026-10-18 v2 학습에서 프로세스가 23GB까지 커져 스왑이 났다.
+        if device.type == "mps":
+            torch.mps.empty_cache()
 
     no_decay = ("bias", "LayerNorm.weight", "layer_norm.weight", "LayerNorm.bias")
     params = [
@@ -281,6 +293,12 @@ def main():
             optimizer.zero_grad(set_to_none=True)
             losses.append(float(loss.detach().cpu()))
             global_step += 1
+            if args.log_every and global_step % args.log_every == 0:
+                elapsed = time.time() - t0
+                left = elapsed / global_step * (total_steps - global_step)  # 검증 시간은 빼고 어림
+                print(f"  [에폭 {epoch}/{args.epochs}] step {global_step}/{total_steps} "
+                      f"({global_step / total_steps:.0%}) loss {np.mean(losses[-args.log_every:]):.4f} "
+                      f"경과 {elapsed / 60:.1f}분, 남은 예상 {left / 60:.1f}분")
             if args.max_steps and global_step >= args.max_steps:
                 break
 
@@ -289,7 +307,8 @@ def main():
         history.append({"epoch": epoch, "steps": global_step, "train_loss": round(float(np.mean(losses)), 5),
                         "valid_micro_f1_at_best_global_threshold": round(f, 4), "threshold": t,
                         "elapsed_sec": round(time.time() - t0, 1)})
-        print(f"[에폭 {epoch}] step {global_step} loss {np.mean(losses):.4f} valid micro F1 {f:.4f} (t={t})")
+        print(f"[에폭 {epoch}] step {global_step} loss {np.mean(losses):.4f} valid micro F1 {f:.4f} (t={t}) "
+              f"경과 {(time.time() - t0) / 60:.1f}분")
         if f > best["valid_micro_f1"]:
             best = {"valid_micro_f1": f, "epoch": epoch,
                     "state": {k: v.detach().cpu().clone() for k, v in model.state_dict().items()}}
