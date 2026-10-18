@@ -1,4 +1,18 @@
-"""Glople 여행 에이전트용 tool-calling 학습 데이터를 만든다 (v2).
+"""Glople 여행 에이전트용 tool-calling 학습 데이터를 만든다 (v3).
+
+v2(data/tool_calling_v2, 보관본 scripts/build_tool_dataset_v2.py)에서 바뀐 점 — v2 오답 분석(2026-10-18)을 반영
+- 조건(query) 문구: train 8개 → 수십 개. v2는 처음 보는 조건을 외운 8개 중 비슷한 것으로 바꿔 썼다
+  ('반려견과 갈 수 있는' → '반려견과 가기 좋은'). 문구 풀을 크게 늘려 사용자 말을 그대로 옮기게 한다.
+  test 쪽 조건 주제(혼자·반려견·부모님·뷰·초보·늦은 밤·무료)는 train에 쓰지 않는다.
+- 장소 유형 말(category)을 늘린다. test 전용 말은 그대로 test에만 둔다.
+- '몇 군데만'처럼 막연한 개수에는 limit을 붙이지 않는다. 후기 검색(search_reviews)에는 limit 칸이 없다.
+- 비슷한 여행자 루트: 나이·성별·MBTI가 모두 있는 짧은 말투면 되묻지 않고 바로 부른다.
+- 키워드: 목록에 없는 꾸밈말(조용한, 예쁜 …)은 빼고, 비슷한 말(바닷가 → 바다)은 목록의 키워드로 바꾼다.
+- '○○에 사는데'처럼 사는 곳을 말해도 목적지가 아니면 키워드 추천으로 간다.
+- 여행지 이름이 들어간 무관한 요청(번역·환율 …)은 거절한다.
+- 사람 말투 평가 세트(human_style.jsonl)의 문장은 쓰지 않는다. 같은 유형의 다른 말투만 늘렸다.
+
+이하 v2 설명.
 
 사용자 발화 한 턴에 대한 정답(도구 호출 / 되묻기 / 바로 답변)을 템플릿과 슬롯 값으로 합성한다.
 test 세트는 train에 쓰지 않은 문장 템플릿과 지역·장소·조건·카테고리 말·해시태그·일정 이름으로만 만들어서,
@@ -15,7 +29,7 @@ v1(data/tool_calling, 2026-10-17 밤샘 학습에 쓴 버전)에서 바뀐 점
 - 바로 답변·되묻기·거절 문장 풀과 여행지 정보·글로플러 문장 풀을 크게 늘리고, 어색한 템플릿을 고쳤다.
 - 같은 발화에 정답이 두 가지로 붙으면 실행을 멈춘다. 사람 말투 평가 세트(eval_sets/human_style.jsonl) 발화는 만들지 않는다.
 
-출력: data/tool_calling_v2/{train,valid,test}.jsonl  (mlx-lm chat 형식: messages + tools)
+출력: data/tool_calling_v3/{train,valid,test}.jsonl  (mlx-lm chat 형식: messages + tools)
 """
 import argparse
 import json
@@ -136,12 +150,12 @@ PLACES = {
 
 # 장소 유형: 사용자가 쓰는 말 → category
 CATEGORY_WORDS = {
-    "관광지": ["가볼 만한 곳", "관광지", "명소", "볼거리"],
-    "문화시설": ["박물관", "미술관", "전시관"],
-    "축제": ["축제", "행사", "공연"],
-    "레포츠": ["액티비티", "레포츠", "체험 활동"],
-    "음식점": ["맛집", "식당", "먹을 곳"],
-    "숙박": ["숙소", "호텔", "잘 곳"],
+    "관광지": ["가볼 만한 곳", "관광지", "명소", "볼거리", "갈 만한 데", "놀러 갈 곳", "관광 명소"],
+    "문화시설": ["박물관", "미술관", "전시관", "역사관", "문화센터", "전시장"],
+    "축제": ["축제", "행사", "공연", "이벤트", "지역 축제"],
+    "레포츠": ["액티비티", "레포츠", "체험 활동", "즐길 거리", "야외 체험"],
+    "음식점": ["맛집", "식당", "먹을 곳", "맛있는 집", "먹을 데", "레스토랑"],
+    "숙박": ["숙소", "호텔", "잘 곳", "머물 곳", "묵을 곳", "리조트"],
 }
 # test 전용 카테고리 말. 여섯 카테고리 모두 train과 다른 말만 쓴다.
 CATEGORY_WORDS_TEST = {
@@ -172,6 +186,48 @@ DESCRIPTORS = {
         "데이트하기 좋은": _ALL,
         "사진 찍기 좋은": ["관광지", "문화시설", "축제", "음식점", "숙박"],
         "비 오는 날 가기 좋은": ["관광지", "문화시설", "음식점"],
+        # v3: 조건 문구를 크게 늘린다 (test 쪽 주제인 혼자·반려견·부모님·뷰·초보·늦은 밤·무료는 쓰지 않음)
+        "주차하기 편한": ["관광지", "문화시설", "음식점", "숙박"],
+        "역에서 가까운": ["관광지", "문화시설", "음식점", "숙박"],
+        "단체로 가기 좋은": _ALL,
+        "친구들이랑 가기 좋은": _ALL,
+        "분위기 좋은": ["관광지", "음식점", "숙박"],
+        "새로 생긴": ["문화시설", "음식점", "숙박"],
+        "예약 없이 갈 수 있는": ["관광지", "문화시설", "음식점"],
+        "줄 안 서도 되는": ["관광지", "음식점"],
+        "깔끔한": ["음식점", "숙박"],
+        "한적한": ["관광지", "음식점", "숙박"],
+        "유명한": _ALL,
+        "인스타 감성인": ["관광지", "음식점", "숙박"],
+        "실내에서 즐길 수 있는": ["관광지", "문화시설", "레포츠"],
+        "더운 날 가기 좋은": ["관광지", "문화시설", "레포츠"],
+        "걷기 편한": ["관광지"],
+        "휠체어로 다니기 편한": ["관광지", "문화시설", "숙박"],
+        "외국어 안내가 되는": ["관광지", "문화시설", "레포츠"],
+        "바다 가까운": ["관광지", "음식점", "숙박"],
+        "시내 중심에 있는": ["관광지", "음식점", "숙박"],
+        "공항에서 가까운": ["숙박", "음식점"],
+        "조식 나오는": ["숙박"],
+        "수영장 있는": ["숙박"],
+        "오래 머물기 좋은": ["숙박"],
+        "해산물 맛있는": ["음식점"],
+        "채식 메뉴가 있는": ["음식점"],
+        "디저트 맛있는": ["음식점"],
+        "브런치 먹기 좋은": ["음식점"],
+        "역사 공부하기 좋은": ["관광지", "문화시설"],
+        "아이들이 좋아하는": ["관광지", "문화시설", "축제", "레포츠"],
+        "기념품 사기 좋은": ["관광지"],
+        "산책하기 좋은": ["관광지"],
+        "단풍 예쁜": ["관광지"],
+        "벚꽃 구경하기 좋은": ["관광지", "축제"],
+        "주말에도 덜 붐비는": ["관광지", "문화시설", "음식점"],
+        "전통적인": ["관광지", "축제", "음식점", "숙박"],
+        "규모가 큰": ["문화시설", "축제"],
+        "가볍게 즐길 수 있는": ["레포츠", "축제"],
+        "스릴 있는": ["레포츠"],
+        "물놀이할 수 있는": ["레포츠", "관광지"],
+        "커플이 하기 좋은": ["레포츠"],
+        "반나절이면 되는": ["레포츠", "관광지"],
     },
     "test": {
         "혼자 가기 좋은": _ALL,
@@ -182,6 +238,17 @@ DESCRIPTORS = {
         "밤늦게까지 하는": ["축제", "음식점"],
         "무료로 즐길 수 있는": ["관광지", "문화시설", "축제"],
     },
+}
+
+# v3: 개수를 정하지 않은 말. 검색·후기 모두 limit을 붙이지 않는다.
+VAGUE_COUNTS = [" 몇 군데", " 몇 곳만", " 조금만", " 두어 군데", " 여러 곳"]
+
+# v3: 키워드 목록에 없는 꾸밈말. 키워드 추천 인자에는 넣지 않는다.
+NON_KEYWORD_ADJECTIVES = ["예쁜", "멋진", "한적한", "유명한", "사람 적은", "분위기 있는", "힐링되는", "가까운"]
+# v3: 사용자가 흔히 쓰는 비슷한 말 → 목록의 키워드 (human_style에 나온 말은 쓰지 않는다)
+KEYWORD_SYNONYMS = {
+    "바닷가": "바다", "해수욕장": "해변", "절": "사찰", "온천탕": "온천", "밤 풍경": "야경",
+    "스쿠버 다이빙": "다이빙", "캠핑장": "캠핑", "서핑 스팟": "서핑", "꽃 정원": "정원", "옛날 성": "성",
 }
 
 MBTIS = [a + b + c + d for a in "EI" for b in "SN" for c in "TF" for d in "JP"]
@@ -366,6 +433,11 @@ ROUTES_TEMPLATES = {
         "나 {gw}, {age}, {mbti}. 성향 비슷한 사람 루트 추천해줘",
         "{age} {mbti} {gw}한테 맞는 여행 루트 있을까?",
         "MBTI {mbti}이고 {age} {gw}입니다. 비슷한 여행자 코스 추천 부탁드려요",
+        # v3: 세 가지가 다 있는 짧은 말투 → 되묻지 않고 바로 부른다
+        "{mbti} {gw} {age}인데 비슷한 사람들 여행 루트 보여줘",
+        "{age} / {gw} / {mbti} 비슷한 여행자들 어디 갔어?",
+        "나이 {age}, {gw}, {mbti} 기준으로 비슷한 사람 루트 궁금해요",
+        "{gw} {mbti} {age} 나랑 성향 비슷한 여행자 코스 ㄱㄱ",
     ],
     "test": [
         "{gw}이고 {age}, 엠비티아이는 {mbti_ya}. 나 같은 사람들 여행 루트 궁금해",
@@ -389,6 +461,8 @@ REVIEWS_TEMPLATES = {
     "train": [
         "{s} 후기 보여줘", "{s} 다녀온 사람들 리뷰 있어?", "{s} 리뷰 찾아줘", "사람들이 {s} 어땠다고 해?",
         "{s} 여행 후기 검색해줘", "{s} 후기 좀 찾아 주세요", "{s} 갔다 온 사람들 후기 궁금해", "{s} 리뷰 어때?",
+        # v3: 막연한 개수를 말해도 search_reviews에는 limit 칸이 없다
+        "{s} 후기 조금만 찾아줘", "{s} 다녀온 사람들 글 몇 개 보여줘", "{s} 리뷰 두어 개만 찾아줄래?",
     ],
     "test": [
         "{s} 실제로 가본 사람들 얘기 듣고 싶어", "{s} 후기 몇 개만 보여줄래?",
@@ -675,6 +749,11 @@ def keyword_kind(keyword):
 
 
 KEYWORD_KINDS = [("category", 12), ("taste", 88)]
+# v3: 사는 곳을 말하는 앞말. 목적지가 아니라서 지역 검색이 아니라 키워드 추천이다.
+RESIDENCE_LEADS = {
+    "train": ["{r}에 사는데 ", "{r}에 살고 있는데 ", "평소엔 {r}에서 지내는데 ", "{r} 토박이인데 "],
+    "test": [],
+}
 
 
 def gen_keywords(rng, split, kind=None):
@@ -685,12 +764,31 @@ def gen_keywords(rng, split, kind=None):
         return text, [call("recommend_by_keywords", keywords=keywords)]
 
     keywords = rng.sample(KEYWORDS, rng.choice([1, 2, 2, 3]))
+    shown = list(keywords)
+    if split == "train":
+        # v3: 비슷한 말로 말해도 인자는 목록의 키워드
+        synonyms = {canon: word for word, canon in KEYWORD_SYNONYMS.items()}
+        if rng.random() < 0.2:
+            for i, k in enumerate(keywords):
+                if k in synonyms:
+                    shown[i] = synonyms[k]
+                    break
+            else:
+                word, canon = rng.choice(list(KEYWORD_SYNONYMS.items()))
+                if canon not in keywords:
+                    keywords[0], shown[0] = canon, word
     kinds = {keyword_kind(k) for k in keywords}
     pools = KEYWORD_TEMPLATES[split]
     templates = list(pools["any"])
     if len(kinds) == 1 and kinds != {"theme"}:
         templates += pools[kinds.pop()]
-    text = rng.choice(templates).format(**josa_slots("kws", join_words(rng, keywords)))
+    words = join_words(rng, shown)
+    if split == "train" and rng.random() < 0.2:
+        # v3: 목록에 없는 꾸밈말은 인자에 넣지 않는다
+        words = f"{rng.choice(NON_KEYWORD_ADJECTIVES)} {words}"
+    text = rng.choice(templates).format(**josa_slots("kws", words))
+    if split == "train" and rng.random() < 0.08:
+        text = rng.choice(RESIDENCE_LEADS[split]).format(r=rng.choice(REGIONS[split])) + text
     return text, [call("recommend_by_keywords", keywords=keywords)]
 
 
@@ -704,12 +802,15 @@ def gen_search(rng, split):
     category = rng.choice(list(CATEGORY_WORDS))
     cat = category_word(rng, split, category)
     fitting = [d for d, categories in DESCRIPTORS[split].items() if category in categories]
-    desc = rng.choice(fitting) if rng.random() < 0.4 else None
+    desc = rng.choice(fitting) if rng.random() < 0.55 else None
     limit = rng.choice([3, 5, 10]) if rng.random() < 0.2 else None
 
     phrase = f"{desc} {cat}" if desc else cat
     if limit:
         phrase += rng.choice([f" {limit}곳", f" {limit}개", f" {limit}군데"])
+    elif split == "train" and rng.random() < 0.15:
+        # v3: 막연한 개수는 limit도 query도 아니다
+        phrase += rng.choice(VAGUE_COUNTS)
     text = rng.choice(SEARCH_TEMPLATES[split]).format(region=region, phrase=phrase)
 
     arguments = {"region": region, "category": category}
@@ -847,11 +948,25 @@ def gen_clarify(rng, split, kind=None):
     return text, f"어느 지역의 {josa(cat, '을', '를')} 찾아드릴까요?"
 
 
-DIRECT_KINDS = [("greeting", 20), ("thanks", 25), ("ability", 15), ("decline", 40)]
+DIRECT_KINDS = [("greeting", 20), ("thanks", 25), ("ability", 15), ("decline", 32), ("decline_place", 8)]
+# v3: 여행지 이름이 들어 있어도 도구로 할 수 없는 요청은 거절한다
+OFF_TOPIC_PLACE_REQUESTS = {
+    "train": [
+        "{r} 가서 쓸 영어 문장 몇 개 만들어줘", "{r} 여행 가는데 환율 계산 좀 해줘", "{r} 가는 친구한테 보낼 편지 써줘",
+        "{r} 출장 보고서 대신 써줘", "{r} 여행 브이로그 대본 써줘", "{r} 사진 보정해 줄 수 있어?",
+    ],
+    "test": [],
+}
 
 
 def gen_direct(rng, split, kind=None):
     kind = pick_kind(rng, DIRECT_KINDS, kind)
+    if kind == "decline_place":
+        if not OFF_TOPIC_PLACE_REQUESTS[split]:  # test에는 이 종류를 만들지 않는다
+            kind = "decline"
+        else:
+            region = rng.choice(REGIONS[split])
+            return rng.choice(OFF_TOPIC_PLACE_REQUESTS[split]).format(r=region), DECLINE_ANSWER
     if kind == "greeting":
         return rng.choice(GREETINGS[split]), GREETING_ANSWER
     if kind == "thanks":
@@ -1123,7 +1238,7 @@ def print_report(splits, redraw, pool_sizes):
 def main():
     parser = argparse.ArgumentParser()
     # v1 데이터(data/tool_calling)는 이 스크립트로 다시 만들 수 없으므로 기본 출력 폴더를 v2로 둔다.
-    parser.add_argument("--out", default=str(ROOT / "data" / "tool_calling_v2"))
+    parser.add_argument("--out", default=str(ROOT / "data" / "tool_calling_v3"))
     parser.add_argument("--train", type=int, default=3000)
     parser.add_argument("--valid", type=int, default=200)
     parser.add_argument("--test", type=int, default=300)
