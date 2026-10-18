@@ -28,6 +28,7 @@
 - **키워드 태거 비교 기준선을 지금 서버 규칙(설명문 규칙 ∪ 분류 코드표)으로 다시 재기** · 누가: 함께 · 크기: S
   - 왜: 'F1 0.53 vs 0.357/0.409'는 이미 바뀐 서버 규칙과 비교한 숫자입니다. 지금 국내 마스크는 fromKoreanDescription(info) ∪ TourCategories.keywordMask(category)입니다. 분류 코드표가 역사·자연·사찰처럼 자주 나오는 키워드를 이미 상당히 맞힐 수 있어서, 모델의 실제 개선 폭은 아직 모릅니다. 포트폴리오에 적을 숫자이고 태거를 연동할 가치가 있는지도 이 숫자로 정해집니다.
   - 근거: results/roberta-base.compare.md:17은 국내 규칙을 '서버가 지금 쓰는 fromKoreanDescription'이라고 적었습니다. 그런데 DestinationInfo.java:93-95는 TOUR_API 행에 .union(TourCategories.keywordMask(category))를 씁니다. data/descriptions.jsonl의 필드는 id,title,content_type_id,address,overview뿐이고 lclsSystm3 분류 코드가 없습니다. id는 TourAPI contentid(예: 125452)이므로 DB external_id로 이으면 분류 코드를 얻을 수 있습니다.
+  - 상태: 처리함(2026-10-18). [keyword-tagger-serving.md](keyword-tagger-serving.md) '어떤 마스크를 쓸까'에서 서버 실제 규칙으로 다시 쟀습니다(micro F1 국내 test 146 0.580, test_new 127 0.639, 해외 120 0.701). 루트 README와 자소서 수치도 이 기준입니다.
 
 ### 포트폴리오·라이선스
 
@@ -200,7 +201,7 @@
 - **포트폴리오 수치의 비교 기준과 한계를 정직하게 적기 (태거 기준선, LLM 사람 말투 세트 하락)** · 누가: Claude · 크기: S
   - 왜: F1 0.53을 0.357과 비교하면 개선폭이 실제보다 커 보입니다. 서버가 TOUR_API 행에 쓰는 규칙은 국내 규칙(0.409)입니다. LLM 쪽은 합성 test 점수만 보이고, 사람 말투 세트에서 떨어진 작업이 문서에 없습니다.
   - 근거: keyword_tagger/results/roberta-base.compare.md: micro F1 부분 문자열 0.357 / 국내 규칙 0.409 / roberta 0.530, macro F1 0.392 → 0.170으로 떨어짐(학습 예시가 0개인 키워드 17개는 아예 예측하지 않음). keyword_tagger/README.md:202에도 국내 규칙 열과 비교한다고 적혀 있습니다. training/README.md에는 결과 표가 없습니다. results/report_test.md 기준 완전 일치 54.0 → 89.3%(v1 test는 15%가 train과 겹침, README:38). results/finetuned_human.summary.json에서는 48.7 → 78.9%지만 clarify 4/8 → 2/8, direct 6/6 → 4/6로 떨어졌습니다(작업당 6~12개라 표본이 작음). 고칠 방법: 두 README와 루트 README에 비교 기준, 표본 크기, 하락한 작업, silver 라벨이라는 점을 함께 적습니다.
-  - 상태: 처리함(2026-10-18). 태거는 서버가 실제로 쓰는 규칙(국내 0.409, 해외 0.701)과 비교하고, LLM은 v2 test와 사람 말투 세트 두 개(설계 때 오답을 본 세트 / 새로 쓴 세트)를 함께 적습니다. 루트 README 요약표도 같은 기준입니다.
+  - 상태: 처리함(2026-10-18). 태거는 서버가 실제로 쓰는 규칙(국내 설명문 규칙 ∪ 분류 코드표, 해외 한국어 규칙 ∪ 유형 코드표)과 비교하고(micro F1 국내 test 146 0.580 → 0.745, test_new 0.639 → 0.777, 해외 0.701 → 0.774, 키워드별 섞기), LLM은 v2 test와 사람 말투 세트 두 개(설계 때 오답을 본 세트 / 새로 쓴 세트)를 함께 적습니다. 루트 README 요약표도 같은 기준입니다.
 
 - **루트 README에 개인 개편 내용이 없고 실행 방법도 현재 구성과 다름** · 누가: Claude · 크기: M
   - 왜: main 브랜치 README가 포트폴리오의 첫 화면입니다. 그런데 7인 팀 프로젝트와 2024년 사후 개선만 나옵니다. 2026년 개인 개편(TourAPI, 학습 파이프라인, 로드맵 6단계)은 보이지 않습니다. 실행 안내도 지금 로컬 구성과 맞지 않습니다.

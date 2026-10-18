@@ -6,15 +6,16 @@
 
 > 현재 상태 (2026-10-18 오후): 1·2·3차 배치(국내 1,934개 + 해외 800개)로 학습한 `roberta-base-v3`가 최신 모델이고, 로컬 서버에 적용했습니다(MPS, 로그 `outputs/auto_run_v3.log`, 비교표 [`results/roberta-base-v3.compare.md`](results/roberta-base-v3.compare.md)).
 >
-> | 지표 (AI silver 라벨 기준) | 서버 규칙 | `roberta-base-v2` | **`roberta-base-v3`** | 서비스에 쓴 키워드별 섞기 |
+> | 지표 (AI silver 라벨 기준) | 규칙 | `roberta-base-v2` | **`roberta-base-v3`** | 서비스에 쓴 키워드별 섞기 |
 > | :-- | --: | --: | --: | --: |
-> | test 163 micro F1 | 0.409 (국내 규칙) | 0.709 | **0.733** | 0.745 (DB에 남아 있는 146개) |
+> | test 163 micro F1 | 0.409 (국내 설명문 규칙, 코드표 없음) | 0.709 | **0.733** | 0.745 (DB에 남아 있는 146개) |
 > | test 163 macro F1 | 0.392 | 0.381 | **0.459** | - |
-> | test_new 127 micro F1 | 0.442 (국내 규칙) | 0.708 | **0.742** | 0.777 |
+> | test_new 127 micro F1 | 0.442 (국내 설명문 규칙, 코드표 없음) | 0.708 | **0.742** | 0.777 |
 > | test_new 127 macro F1 | 0.439 | 0.322 | 0.436 | - |
 > | test_overseas 120 micro F1 | 0.701 (해외 규칙) | - | **0.728** | 0.774 |
 > | test_overseas 120 macro F1 | 0.547 | - | 0.360 | - |
 >
+> - 국내 '규칙' 열은 분류 코드표를 뺀 설명문 규칙입니다. 서버가 실제로 쓰던 규칙(설명문 규칙 ∪ 분류 코드표)과 비교하면 micro F1이 국내 test(DB에 남은 146개) 0.580 → 0.745, test_new 0.639 → 0.777, 해외 0.701 → 0.774(키워드별 섞기)입니다([docs/keyword-tagger-serving.md](../../docs/keyword-tagger-serving.md)). 포트폴리오에는 이 기준을 씁니다.
 > - 3차(해외)를 넣었어도 국내 시험지 두 개의 micro F1이 v2보다 올랐습니다(0.709 → 0.733, 0.708 → 0.742). 해외 시험지에서는 해외 규칙(유형 코드표 포함)보다 조금 높습니다.
 > - macro F1은 여전히 규칙보다 낮거나 비슷합니다. 학습 예가 적은 드문 키워드(모스크, 유네스코, 박물관 등)를 거의 내지 않기 때문입니다. 그래서 서버에는 태거만 쓰지 않고, **키워드마다 valid F1로 규칙/태거/합집합 중 하나를 고른 섞기**(`scripts/hybrid_masks.py`: 태거 29개, 규칙 61개, 합집합 4개)를 가져왔습니다. 위 표 마지막 열이 그 결과입니다(고를 때 시험지는 보지 않음).
 > - 서버 추천 기본값은 `keyword.recommend.mask-mode=tagger`입니다(태거 열에 섞기 결과가 들어 있음). 이유와 되돌리는 법은 [docs/keyword-tagger-serving.md](../../docs/keyword-tagger-serving.md).

@@ -20,8 +20,8 @@
 | 로드맵 | 한 일 | 결과 (학습에 쓰지 않은 시험지) | 자세히 |
 | :-- | :-- | :-- | :-- |
 | 1. 여행지 데이터 | 국내 한국관광공사 TourAPI, 해외 위키데이터·한국어 위키백과를 DB로 수집. 출처·이용 조건(공공누리 유형, CC BY-SA)을 행마다 저장 | 국내 1,828곳 · 해외 7,579곳 | [국내](docs/domestic-tour-sync.md) · [해외](docs/overseas-wiki-sync.md) |
-| 2. 키워드 태거 | 설명문 글자 포함 규칙 대신 `klue/roberta-base` 다중 라벨 분류기. 서비스에는 키워드마다 규칙/모델 중 나은 쪽을 고른 결과를 씀 | micro F1 국내 0.409 → 0.733, 해외 0.701 → 0.728 | [training/keyword_tagger](training/keyword_tagger/README.md) · [서버 적용](docs/keyword-tagger-serving.md) |
-| 3. 임베딩 파인튜닝 | `multilingual-e5-base`를 여행지 데이터로 파인튜닝(sentence-transformers, 어려운 음성 예). 여행지 9,407곳을 색인해 '문장으로 찾기' 화면(`/search/semantic`)에 붙임 | 문장 검색 nDCG@10 0.466 → 0.802 (합성 질의, 국내) | [training/embedding](training/embedding/README.md) |
+| 2. 키워드 태거 | 설명문 글자 포함 규칙 대신 `klue/roberta-base` 다중 라벨 분류기. 서비스에는 키워드마다 규칙/모델 중 나은 쪽을 고른 결과를 씀 | 서버가 쓰던 규칙 대비 micro F1 국내 0.580 → 0.745, 새 지역 0.639 → 0.777, 해외 0.701 → 0.774 | [training/keyword_tagger](training/keyword_tagger/README.md) · [서버 적용](docs/keyword-tagger-serving.md) |
+| 3. 임베딩 파인튜닝 | `multilingual-e5-base`를 여행지 데이터로 파인튜닝(sentence-transformers, 어려운 음성 예). 여행지 9,407곳을 색인해 '문장으로 찾기' 화면(`/search/semantic`)에 붙임 | 문장 검색 nDCG@10 키워드 검색 0.484 → 0.802 (합성 질의, 국내) | [training/embedding](training/embedding/README.md) |
 | 4. LangGraph 에이전트 | 라우터 모델이 고른 호출을 코드가 다시 검사(인자 근거, 공공누리 제3유형 원문은 모델에 안 보냄, 저장 전 확인 카드). FastAPI SSE 서비스로 감쌈 | 정답 재생 390건 예외 0 · 테스트 1,209개 · 권장 구성(첫 판단 v3 + 결과 뒤 v4)에서 가드 통과 92% | [agent/](agent/README.md) |
 | 5. LLM tool calling LoRA | `Qwen3-4B-Instruct-2507` 4bit 위 LoRA(QLoRA 구성), 합성 대화 데이터 v1~v4. v4는 도구 결과를 받은 뒤의 턴(답하기·한 번 더 부르기·빈 결과 알리기)을 더 배움 | 첫 판단 전체 정답률 58.7% → 91.0% (v3, 300문제). 도구 결과 뒤 근거로 답함 128 → 159/161 (v3 → v4) | [training/](training/README.md) · [Hub 업로드 준비](training/hf/README.md) |
 | 6. 일정 화면 + AI 검토 | `/assistant`에서 대화로 일정 초안 → 확인 카드에서 저장·고치기 → `/my/plans` 일차별 일정과 AI 검토 | 실제 서버에서 저장·검토 확인 | [agent/README.md 'M5'](agent/README.md) |
