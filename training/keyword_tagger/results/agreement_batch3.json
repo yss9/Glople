@@ -1,0 +1,268 @@
+{
+  "reference": "primary (data/labels_v3/part_*.jsonl)",
+  "compared": "cross_check (data/labels_v3/cross_check.jsonl)",
+  "cross_check_items": 80,
+  "overlap_items": 80,
+  "micro_vs_primary": {
+    "precision": 0.951,
+    "recall": 0.9137,
+    "f1": 0.932,
+    "tp": 233,
+    "fp": 12,
+    "fn": 22
+  },
+  "macro_f1_vs_primary": 0.8603,
+  "mean_item_jaccard": 0.8855,
+  "exact_set_match_rate": 0.6625,
+  "avg_keywords": {
+    "primary": 3.188,
+    "cross_check": 3.062
+  },
+  "most_disagreed_keywords": [
+    {
+      "keyword": "자연",
+      "disagreements": 4,
+      "only_primary": 1,
+      "only_cross": 3,
+      "both": 27
+    },
+    {
+      "keyword": "경치",
+      "disagreements": 3,
+      "only_primary": 2,
+      "only_cross": 1,
+      "both": 14
+    },
+    {
+      "keyword": "랜드마크",
+      "disagreements": 3,
+      "only_primary": 1,
+      "only_cross": 2,
+      "both": 7
+    },
+    {
+      "keyword": "역사적인 장소",
+      "disagreements": 3,
+      "only_primary": 3,
+      "only_cross": 0,
+      "both": 12
+    },
+    {
+      "keyword": "문화",
+      "disagreements": 2,
+      "only_primary": 2,
+      "only_cross": 0,
+      "both": 7
+    },
+    {
+      "keyword": "동물",
+      "disagreements": 2,
+      "only_primary": 0,
+      "only_cross": 2,
+      "both": 2
+    },
+    {
+      "keyword": "사파리",
+      "disagreements": 2,
+      "only_primary": 2,
+      "only_cross": 0,
+      "both": 0
+    },
+    {
+      "keyword": "수영",
+      "disagreements": 1,
+      "only_primary": 1,
+      "only_cross": 0,
+      "both": 2
+    },
+    {
+      "keyword": "역사",
+      "disagreements": 1,
+      "only_primary": 1,
+      "only_cross": 0,
+      "both": 20
+    },
+    {
+      "keyword": "해변",
+      "disagreements": 1,
+      "only_primary": 1,
+      "only_cross": 0,
+      "both": 0
+    },
+    {
+      "keyword": "성당",
+      "disagreements": 1,
+      "only_primary": 1,
+      "only_cross": 0,
+      "both": 1
+    },
+    {
+      "keyword": "스노클링",
+      "disagreements": 1,
+      "only_primary": 1,
+      "only_cross": 0,
+      "both": 0
+    },
+    {
+      "keyword": "협곡",
+      "disagreements": 1,
+      "only_primary": 1,
+      "only_cross": 0,
+      "both": 2
+    },
+    {
+      "keyword": "스포츠",
+      "disagreements": 1,
+      "only_primary": 0,
+      "only_cross": 1,
+      "both": 10
+    },
+    {
+      "keyword": "레크리에이션",
+      "disagreements": 1,
+      "only_primary": 0,
+      "only_cross": 1,
+      "both": 1
+    }
+  ],
+  "lowest_jaccard_items": [
+    {
+      "id": "Q56063673",
+      "jaccard": 0.0,
+      "only_primary": [],
+      "only_cross": [
+        "스포츠"
+      ]
+    },
+    {
+      "id": "Q6617188",
+      "jaccard": 0.333,
+      "only_primary": [
+        "야외 활동"
+      ],
+      "only_cross": [
+        "레크리에이션"
+      ]
+    },
+    {
+      "id": "Q1541665",
+      "jaccard": 0.5,
+      "only_primary": [
+        "해변",
+        "스노클링"
+      ],
+      "only_cross": [
+        "자연",
+        "해양"
+      ]
+    },
+    {
+      "id": "Q1672840",
+      "jaccard": 0.5,
+      "only_primary": [
+        "역사"
+      ],
+      "only_cross": []
+    },
+    {
+      "id": "Q1899552",
+      "jaccard": 0.5,
+      "only_primary": [],
+      "only_cross": [
+        "자연"
+      ]
+    },
+    {
+      "id": "Q48733142",
+      "jaccard": 0.5,
+      "only_primary": [
+        "강"
+      ],
+      "only_cross": []
+    },
+    {
+      "id": "Q764547",
+      "jaccard": 0.5,
+      "only_primary": [
+        "자연",
+        "경치"
+      ],
+      "only_cross": []
+    },
+    {
+      "id": "Q859471",
+      "jaccard": 0.5,
+      "only_primary": [
+        "음식"
+      ],
+      "only_cross": []
+    },
+    {
+      "id": "Q47721",
+      "jaccard": 0.625,
+      "only_primary": [
+        "역사적인 장소",
+        "고대 유적"
+      ],
+      "only_cross": [
+        "역사적 건축"
+      ]
+    },
+    {
+      "id": "Q1587234",
+      "jaccard": 0.667,
+      "only_primary": [
+        "협곡"
+      ],
+      "only_cross": []
+    }
+  ],
+  "gold_summary": {
+    "items": 800,
+    "label_files": [
+      "part_00.jsonl",
+      "part_01.jsonl",
+      "part_02.jsonl",
+      "part_03.jsonl",
+      "part_04.jsonl"
+    ],
+    "empty_label_items": 16,
+    "keywords_per_item": {
+      "0": 16,
+      "1": 99,
+      "2": 219,
+      "3": 147,
+      "4": 134,
+      "5": 90,
+      "6": 68,
+      "7": 20,
+      "8": 6,
+      "9": 1
+    },
+    "avg_keywords_per_item": 3.211,
+    "keywords_never_used": [
+      "열기구",
+      "다문화",
+      "미로",
+      "아치",
+      "호랑이",
+      "낙타",
+      "서핑",
+      "빙벽"
+    ],
+    "manifest_check": {
+      "path": "data/chunks_v3/all_new.jsonl",
+      "items": 800,
+      "text_mismatch": 0,
+      "compared_fields": [
+        "title",
+        "overview",
+        "country",
+        "country_code",
+        "location",
+        "category"
+      ],
+      "meta_mismatch": 0
+    }
+  }
+}

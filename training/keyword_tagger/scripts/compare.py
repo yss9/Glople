@@ -1,13 +1,16 @@
-"""학습 전 기준선 두 개(부분 문자열, 국내 규칙)와 학습한 모델의 평가 결과를 한국어 마크다운 표로 출력한다.
+"""학습 전 기준선(부분 문자열, 국내 규칙, 해외 규칙)과 학습한 모델의 평가 결과를 한국어 마크다운 표로 출력한다.
 
-- 학습 전 (부분 문자열): KeywordMask.fromDescription (results/baseline.json 의 test / test_new)
+- 학습 전 (부분 문자열): KeywordMask.fromDescription (results/baseline.json 의 test / test_new / test_overseas)
 - 학습 전 (국내 규칙):   KeywordMask.fromKoreanDescription, 서버가 TourAPI 여행지에 지금 쓰는 규칙
-                         (results/baseline.json 의 korean_rule.test / test_new, 없으면 열을 뺀다)
-- 모델: 인자로 준 results/<run_name>.json (주지 않으면 기준선 두 개만)
+                         (results/baseline.json 의 korean_rule.<split>, 없으면 열을 뺀다)
+- 학습 전 (해외 규칙):   서버가 위키데이터 여행지에 지금 쓰는 규칙(국내 규칙 ∪ 유형 코드표, 세계유산 플래그 제외).
+                         results/baseline.json 의 overseas_rule.test_overseas 가 있을 때 test_overseas 표에만 넣는다
+- 모델: 인자로 준 results/<run_name>.json (주지 않으면 기준선만)
 
 평가 집합
-  test      1차 배치 test 163개 (2차 배치를 넣기 전과 같은 목록이라 예전 결과와 그대로 비교된다)
-  test_new  2차 배치 test (여러 지역). 2차 배치 전에 학습한 모델(예: roberta-base)은 이 결과가 없어 '-' 로 나온다
+  test           1차 배치 test 163개 (2차 배치를 넣기 전과 같은 목록이라 예전 결과와 그대로 비교된다)
+  test_new       2차 배치 test (여러 지역). 2차 배치 전에 학습한 모델(예: roberta-base)은 이 결과가 없어 '-' 로 나온다
+  test_overseas  3차 배치 test (해외 위키백과). 3차 배치 전에 학습한 모델(예: roberta-base-v2)은 '-' 로 나온다
 기본(--split both)은 baseline.json 에 있는 평가 집합을 모두 차례로 출력한다.
 
 실행: python3 -I scripts/compare.py results/roberta-base-v2.json [results/다른실행.json ...]
@@ -38,9 +41,16 @@ ROWS = [
 ]
 SUBSTRING_COL = "학습 전 (부분 문자열)"
 KOREAN_COL = "학습 전 (국내 규칙)"
+OVERSEAS_COL = "학습 전 (해외 규칙)"
 SPLIT_TITLES = {
     "test": "test 분할 (1차 배치)",
     "test_new": "test_new 분할 (2차 배치, 여러 지역)",
+    "test_overseas": "test_overseas 분할 (3차 배치, 해외 위키백과)",
+}
+# 평가 집합의 결과가 없는 실행에 붙이는 설명
+NO_RESULT_REASON = {
+    "test_new": "2차 배치를 넣기 전에 학습한 실행",
+    "test_overseas": "3차 배치를 넣기 전에 학습한 실행",
 }
 
 
@@ -90,9 +100,12 @@ def model_keyword_stats(run, wanted, split):
 
 def print_split(split, base, runs):
     korean = base.get("korean_rule")
+    overseas = base.get("overseas_rule")
     cols = [(SUBSTRING_COL, base[split])]
     if korean and split in korean:
         cols.append((KOREAN_COL, korean[split]))
+    if overseas and split in overseas:
+        cols.append((OVERSEAS_COL, overseas[split]))
     for r in runs:
         mode = r.get("thresholds", {}).get("selected_mode", "")
         cols.append((f"{r['name']} ({mode} 임계값)", r.get(split)))
@@ -107,9 +120,11 @@ def print_split(split, base, runs):
     print(f"\n정답(라벨) 항목당 키워드 수 평균: {gold_avg:.3f}\n")
     no_result = [r["name"] for r in runs if split not in r]
     if no_result:
-        print(f"{', '.join(no_result)}: 이 평가 집합의 결과가 없습니다 (2차 배치를 넣기 전에 학습한 실행).\n")
+        reason = NO_RESULT_REASON.get(split, "이 평가 집합을 만들기 전에 학습한 실행")
+        print(f"{', '.join(no_result)}: 이 평가 집합의 결과가 없습니다 ({reason}).\n")
 
-    top = base["top_keywords"]
+    # 평가 집합별 상위 15개 (test·test_new 는 국내 기준, test_overseas 는 해외 기준). 예전 baseline.json 은 top_keywords 하나
+    top = base.get("top_keywords_by_split", {}).get(split) or base["top_keywords"]
     model_top = [model_keyword_stats(r, top, split) for r in runs]
     print(f"#### 자주 나오는 키워드 {len(top)}개의 F1 ({split})\n")
     print(f"| 키워드 | {split} 정답 수 | " + " | ".join(c[0] for c in cols) + " |")
@@ -136,6 +151,7 @@ def print_split(split, base, runs):
         for k in single:
             e = effect[k]
             cells = [e["substring"]] + ([e["korean_rule"]] if korean and split in korean else [])
+            cells += [e.get("overseas_rule")] if overseas and split in overseas else []
             cells += [s.get(k) for s in model_stats]
             vals = [f"{fmt(c['precision'])} / {fmt(c['recall'])} ({c.get('predicted', '-')})" if c else "-"
                     for c in cells]
@@ -148,7 +164,7 @@ def main():
     p.add_argument("runs", nargs="*", help="results/<run_name>.json (없으면 기준선만)")
     p.add_argument("--baseline", default=str(RESULTS_DIR / "baseline.json"))
     p.add_argument("--split", default="both", choices=["both", *EVAL_SPLITS],
-                   help="both(기본)는 baseline.json 에 있는 test, test_new 를 모두 출력")
+                   help="both(기본)는 baseline.json 에 있는 test, test_new, test_overseas 를 모두 출력")
     args = p.parse_args()
 
     base = load(args.baseline)
@@ -163,6 +179,11 @@ def main():
         print(f"'{KOREAN_COL}'은 서버가 TourAPI 여행지(source=TOUR_API)에 지금 쓰는 "
               "`KeywordMask.fromKoreanDescription`입니다. 한 글자 키워드(산, 섬, 성, 탑, 강)는 "
               "독립된 단어이거나 조사만 붙었을 때만 붙이고, 나머지 키워드는 부분 문자열 규칙과 같습니다.")
+    if base.get("overseas_rule") and any(s in base["overseas_rule"] for s in splits):
+        print(f"\n'{OVERSEAS_COL}'은 서버가 위키데이터 해외 여행지(source=WIKIDATA)에 지금 쓰는 규칙입니다. "
+              "설명문에서 '문화어'를 빼고 국내 규칙을 적용한 결과에, 유형 코드표(`wiki/type-keywords.csv`)가 "
+              "그 여행지의 위키데이터 유형(P31)에 정해 둔 키워드를 더합니다. 세계유산 플래그로 '유네스코'를 더하는 부분은 "
+              "추출본에 그 값이 없어 빠져 있습니다.")
 
     for r in runs:
         ex = r.get("excluded_keywords_zero_train_examples", [])

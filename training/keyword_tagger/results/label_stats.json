@@ -1,816 +1,974 @@
 {
   "split_sizes": {
-    "train": 1354,
-    "valid": 290,
+    "train": 1914,
+    "valid": 410,
     "test": 163,
-    "test_new": 127
+    "test_new": 127,
+    "test_overseas": 120
   },
   "split_sizes_by_batch": {
     "train": {
       "1": 758,
-      "2": 596
+      "2": 596,
+      "3": 560
     },
     "valid": {
       "1": 162,
-      "2": 128
+      "2": 128,
+      "3": 120
     },
     "test": {
       "1": 163
     },
     "test_new": {
       "2": 127
+    },
+    "test_overseas": {
+      "3": 120
     }
   },
   "empty_label_items": {
-    "train": 42,
-    "valid": 5,
+    "train": 50,
+    "valid": 9,
     "test": 10,
-    "test_new": 1
+    "test_new": 1,
+    "test_overseas": 4
   },
   "keywords_with_zero_train_examples": [
-    "모스크",
-    "원숭이",
-    "사막",
-    "사파리",
     "열기구",
-    "지열",
-    "빙하",
-    "설산",
     "호랑이",
-    "낙타",
-    "열대우림",
-    "산호"
+    "낙타"
   ],
   "keywords_with_fewer_than_5_train_examples": [
     {
-      "keyword": "보트",
-      "train": 4,
+      "keyword": "설산",
+      "train": 3,
       "valid": 1,
-      "test": 1,
-      "test_new": 2
+      "test": 0,
+      "test_new": 0,
+      "test_overseas": 4
     },
     {
-      "keyword": "운하",
+      "keyword": "와인",
       "train": 4,
-      "valid": 3,
+      "valid": 2,
       "test": 1,
-      "test_new": 0
+      "test_new": 0,
+      "test_overseas": 0
     },
     {
       "keyword": "아치",
       "train": 4,
       "valid": 1,
       "test": 0,
-      "test_new": 1
+      "test_new": 1,
+      "test_overseas": 0
     },
     {
-      "keyword": "협곡",
-      "train": 1,
+      "keyword": "사파리",
+      "train": 4,
+      "valid": 0,
+      "test": 0,
+      "test_new": 0,
+      "test_overseas": 1
+    },
+    {
+      "keyword": "원숭이",
+      "train": 2,
       "valid": 1,
       "test": 0,
-      "test_new": 1
+      "test_new": 0,
+      "test_overseas": 0
+    },
+    {
+      "keyword": "카누",
+      "train": 1,
+      "valid": 2,
+      "test": 0,
+      "test_new": 0,
+      "test_overseas": 0
     },
     {
       "keyword": "미로",
       "train": 1,
       "valid": 2,
       "test": 0,
-      "test_new": 0
-    },
-    {
-      "keyword": "대성당",
-      "train": 2,
-      "valid": 1,
-      "test": 0,
-      "test_new": 0
-    },
-    {
-      "keyword": "와인",
-      "train": 1,
-      "valid": 0,
-      "test": 1,
-      "test_new": 0
-    },
-    {
-      "keyword": "카누",
-      "train": 1,
-      "valid": 1,
-      "test": 0,
-      "test_new": 0
-    },
-    {
-      "keyword": "스노클링",
-      "train": 2,
-      "valid": 0,
-      "test": 0,
-      "test_new": 0
-    },
-    {
-      "keyword": "모스크",
-      "train": 0,
-      "valid": 2,
-      "test": 0,
-      "test_new": 0
-    },
-    {
-      "keyword": "원숭이",
-      "train": 0,
-      "valid": 1,
-      "test": 0,
-      "test_new": 0
+      "test_new": 0,
+      "test_overseas": 0
     },
     {
       "keyword": "탐험",
-      "train": 1,
+      "train": 2,
       "valid": 0,
       "test": 0,
-      "test_new": 0
+      "test_new": 0,
+      "test_overseas": 0
+    },
+    {
+      "keyword": "지열",
+      "train": 2,
+      "valid": 0,
+      "test": 0,
+      "test_new": 0,
+      "test_overseas": 0
     },
     {
       "keyword": "서핑",
       "train": 1,
       "valid": 0,
       "test": 0,
-      "test_new": 0
+      "test_new": 0,
+      "test_overseas": 0
     },
     {
       "keyword": "빙벽",
       "train": 1,
       "valid": 0,
       "test": 0,
-      "test_new": 0
-    },
-    {
-      "keyword": "사막",
-      "train": 0,
-      "valid": 0,
-      "test": 0,
-      "test_new": 0
-    },
-    {
-      "keyword": "사파리",
-      "train": 0,
-      "valid": 0,
-      "test": 0,
-      "test_new": 0
+      "test_new": 0,
+      "test_overseas": 0
     },
     {
       "keyword": "열기구",
       "train": 0,
       "valid": 0,
       "test": 0,
-      "test_new": 0
-    },
-    {
-      "keyword": "지열",
-      "train": 0,
-      "valid": 0,
-      "test": 0,
-      "test_new": 0
-    },
-    {
-      "keyword": "빙하",
-      "train": 0,
-      "valid": 0,
-      "test": 0,
-      "test_new": 0
-    },
-    {
-      "keyword": "설산",
-      "train": 0,
-      "valid": 0,
-      "test": 0,
-      "test_new": 0
+      "test_new": 0,
+      "test_overseas": 0
     },
     {
       "keyword": "호랑이",
       "train": 0,
       "valid": 0,
       "test": 0,
-      "test_new": 0
+      "test_new": 0,
+      "test_overseas": 0
     },
     {
       "keyword": "낙타",
       "train": 0,
       "valid": 0,
       "test": 0,
-      "test_new": 0
-    },
-    {
-      "keyword": "열대우림",
-      "train": 0,
-      "valid": 0,
-      "test": 0,
-      "test_new": 0
-    },
-    {
-      "keyword": "산호",
-      "train": 0,
-      "valid": 0,
-      "test": 0,
-      "test_new": 0
+      "test_new": 0,
+      "test_overseas": 0
     }
   ],
   "frequency": [
     {
       "keyword": "역사",
-      "total": 748,
-      "train": 532,
-      "valid": 120,
+      "total": 946,
+      "train": 670,
+      "valid": 150,
       "test": 46,
       "test_new": 50,
+      "test_overseas": 30,
       "batch1": 403,
-      "batch2": 345
+      "batch2": 345,
+      "batch3": 198
     },
     {
       "keyword": "자연",
-      "total": 579,
-      "train": 400,
-      "valid": 82,
+      "total": 864,
+      "train": 606,
+      "valid": 126,
       "test": 44,
       "test_new": 53,
+      "test_overseas": 35,
       "batch1": 253,
-      "batch2": 326
+      "batch2": 326,
+      "batch3": 285
     },
     {
       "keyword": "역사적인 장소",
-      "total": 516,
-      "train": 353,
-      "valid": 97,
+      "total": 657,
+      "train": 455,
+      "valid": 114,
       "test": 35,
       "test_new": 31,
+      "test_overseas": 22,
       "batch1": 278,
-      "batch2": 238
+      "batch2": 238,
+      "batch3": 141
     },
     {
       "keyword": "경치",
-      "total": 512,
-      "train": 350,
-      "valid": 86,
+      "total": 643,
+      "train": 449,
+      "valid": 103,
       "test": 30,
       "test_new": 46,
+      "test_overseas": 15,
       "batch1": 207,
-      "batch2": 305
-    },
-    {
-      "keyword": "전통",
-      "total": 290,
-      "train": 209,
-      "valid": 40,
-      "test": 19,
-      "test_new": 22,
-      "batch1": 140,
-      "batch2": 150
+      "batch2": 305,
+      "batch3": 131
     },
     {
       "keyword": "건축",
-      "total": 271,
-      "train": 198,
-      "valid": 33,
+      "total": 385,
+      "train": 272,
+      "valid": 52,
       "test": 18,
       "test_new": 22,
+      "test_overseas": 21,
       "batch1": 139,
-      "batch2": 132
-    },
-    {
-      "keyword": "산",
-      "total": 258,
-      "train": 187,
-      "valid": 39,
-      "test": 16,
-      "test_new": 16,
-      "batch1": 129,
-      "batch2": 129
-    },
-    {
-      "keyword": "역사적 건축",
-      "total": 234,
-      "train": 171,
-      "valid": 32,
-      "test": 14,
-      "test_new": 17,
-      "batch1": 120,
-      "batch2": 114
+      "batch2": 132,
+      "batch3": 114
     },
     {
       "keyword": "바다",
-      "total": 232,
-      "train": 163,
-      "valid": 33,
+      "total": 372,
+      "train": 266,
+      "valid": 47,
       "test": 16,
       "test_new": 20,
+      "test_overseas": 23,
       "batch1": 76,
-      "batch2": 156
+      "batch2": 156,
+      "batch3": 140
+    },
+    {
+      "keyword": "산",
+      "total": 353,
+      "train": 258,
+      "valid": 51,
+      "test": 16,
+      "test_new": 16,
+      "test_overseas": 12,
+      "batch1": 129,
+      "batch2": 129,
+      "batch3": 95
+    },
+    {
+      "keyword": "역사적 건축",
+      "total": 337,
+      "train": 242,
+      "valid": 50,
+      "test": 14,
+      "test_new": 17,
+      "test_overseas": 14,
+      "batch1": 120,
+      "batch2": 114,
+      "batch3": 103
+    },
+    {
+      "keyword": "전통",
+      "total": 296,
+      "train": 213,
+      "valid": 41,
+      "test": 19,
+      "test_new": 22,
+      "test_overseas": 1,
+      "batch1": 140,
+      "batch2": 150,
+      "batch3": 6
     },
     {
       "keyword": "유적",
-      "total": 208,
-      "train": 135,
-      "valid": 45,
+      "total": 260,
+      "train": 174,
+      "valid": 50,
       "test": 8,
       "test_new": 20,
+      "test_overseas": 8,
       "batch1": 83,
-      "batch2": 125
+      "batch2": 125,
+      "batch3": 52
     },
     {
       "keyword": "문화",
-      "total": 201,
-      "train": 143,
-      "valid": 32,
+      "total": 237,
+      "train": 165,
+      "valid": 39,
       "test": 17,
       "test_new": 9,
+      "test_overseas": 7,
       "batch1": 147,
-      "batch2": 54
-    },
-    {
-      "keyword": "불교",
-      "total": 167,
-      "train": 118,
-      "valid": 23,
-      "test": 12,
-      "test_new": 14,
-      "batch1": 91,
-      "batch2": 76
-    },
-    {
-      "keyword": "해안",
-      "total": 157,
-      "train": 109,
-      "valid": 24,
-      "test": 11,
-      "test_new": 13,
-      "batch1": 54,
-      "batch2": 103
-    },
-    {
-      "keyword": "야외 활동",
-      "total": 151,
-      "train": 101,
-      "valid": 19,
-      "test": 12,
-      "test_new": 19,
-      "batch1": 64,
-      "batch2": 87
-    },
-    {
-      "keyword": "사찰",
-      "total": 135,
-      "train": 99,
-      "valid": 19,
-      "test": 11,
-      "test_new": 6,
-      "batch1": 84,
-      "batch2": 51
-    },
-    {
-      "keyword": "레크리에이션",
-      "total": 129,
-      "train": 88,
-      "valid": 10,
-      "test": 21,
-      "test_new": 10,
-      "batch1": 80,
-      "batch2": 49
-    },
-    {
-      "keyword": "사원",
-      "total": 127,
-      "train": 91,
-      "valid": 20,
-      "test": 11,
-      "test_new": 5,
-      "batch1": 84,
-      "batch2": 43
-    },
-    {
-      "keyword": "도시",
-      "total": 119,
-      "train": 88,
-      "valid": 14,
-      "test": 15,
-      "test_new": 2,
-      "batch1": 112,
-      "batch2": 7
-    },
-    {
-      "keyword": "음식",
-      "total": 110,
-      "train": 75,
-      "valid": 20,
-      "test": 10,
-      "test_new": 5,
-      "batch1": 75,
-      "batch2": 35
-    },
-    {
-      "keyword": "예술",
-      "total": 108,
-      "train": 79,
-      "valid": 16,
-      "test": 7,
-      "test_new": 6,
-      "batch1": 80,
-      "batch2": 28
-    },
-    {
-      "keyword": "기념물",
-      "total": 104,
-      "train": 72,
-      "valid": 19,
-      "test": 11,
-      "test_new": 2,
-      "batch1": 83,
-      "batch2": 21
-    },
-    {
-      "keyword": "강",
-      "total": 103,
-      "train": 68,
-      "valid": 20,
-      "test": 7,
-      "test_new": 8,
-      "batch1": 55,
-      "batch2": 48
+      "batch2": 54,
+      "batch3": 36
     },
     {
       "keyword": "섬",
-      "total": 94,
-      "train": 63,
-      "valid": 12,
+      "total": 230,
+      "train": 160,
+      "valid": 27,
       "test": 12,
       "test_new": 7,
+      "test_overseas": 24,
       "batch1": 46,
-      "batch2": 48
+      "batch2": 48,
+      "batch3": 136
     },
     {
-      "keyword": "고대 유적",
-      "total": 93,
-      "train": 59,
-      "valid": 20,
-      "test": 2,
-      "test_new": 12,
-      "batch1": 16,
-      "batch2": 77
+      "keyword": "강",
+      "total": 197,
+      "train": 130,
+      "valid": 41,
+      "test": 7,
+      "test_new": 8,
+      "test_overseas": 11,
+      "batch1": 55,
+      "batch2": 48,
+      "batch3": 94
     },
     {
-      "keyword": "바위",
-      "total": 91,
-      "train": 60,
-      "valid": 12,
-      "test": 9,
-      "test_new": 10,
-      "batch1": 29,
-      "batch2": 62
+      "keyword": "불교",
+      "total": 176,
+      "train": 126,
+      "valid": 24,
+      "test": 12,
+      "test_new": 14,
+      "test_overseas": 0,
+      "batch1": 91,
+      "batch2": 76,
+      "batch3": 9
+    },
+    {
+      "keyword": "해안",
+      "total": 171,
+      "train": 119,
+      "valid": 26,
+      "test": 11,
+      "test_new": 13,
+      "test_overseas": 2,
+      "batch1": 54,
+      "batch2": 103,
+      "batch3": 14
     },
     {
       "keyword": "스포츠",
-      "total": 87,
-      "train": 55,
-      "valid": 11,
+      "total": 168,
+      "train": 111,
+      "valid": 23,
       "test": 13,
       "test_new": 8,
+      "test_overseas": 13,
       "batch1": 52,
-      "batch2": 35
+      "batch2": 35,
+      "batch3": 81
     },
     {
-      "keyword": "정원",
-      "total": 83,
-      "train": 55,
-      "valid": 7,
+      "keyword": "야외 활동",
+      "total": 159,
+      "train": 108,
+      "valid": 20,
       "test": 12,
-      "test_new": 9,
-      "batch1": 48,
-      "batch2": 35
+      "test_new": 19,
+      "test_overseas": 0,
+      "batch1": 64,
+      "batch2": 87,
+      "batch3": 8
     },
     {
-      "keyword": "등산",
-      "total": 79,
-      "train": 57,
-      "valid": 13,
-      "test": 4,
-      "test_new": 5,
-      "batch1": 38,
-      "batch2": 41
-    },
-    {
-      "keyword": "전망대",
-      "total": 69,
-      "train": 50,
-      "valid": 9,
-      "test": 4,
-      "test_new": 6,
-      "batch1": 39,
-      "batch2": 30
-    },
-    {
-      "keyword": "야경",
-      "total": 66,
-      "train": 46,
-      "valid": 11,
-      "test": 6,
-      "test_new": 3,
-      "batch1": 45,
-      "batch2": 21
-    },
-    {
-      "keyword": "해변",
-      "total": 59,
-      "train": 45,
-      "valid": 7,
-      "test": 5,
+      "keyword": "도시",
+      "total": 150,
+      "train": 110,
+      "valid": 19,
+      "test": 15,
       "test_new": 2,
-      "batch1": 25,
-      "batch2": 34
+      "test_overseas": 4,
+      "batch1": 112,
+      "batch2": 7,
+      "batch3": 31
     },
     {
-      "keyword": "불상",
-      "total": 57,
-      "train": 41,
-      "valid": 6,
+      "keyword": "예술",
+      "total": 150,
+      "train": 102,
+      "valid": 24,
+      "test": 7,
+      "test_new": 6,
+      "test_overseas": 11,
+      "batch1": 80,
+      "batch2": 28,
+      "batch3": 42
+    },
+    {
+      "keyword": "사원",
+      "total": 146,
+      "train": 108,
+      "valid": 21,
+      "test": 11,
+      "test_new": 5,
+      "test_overseas": 1,
+      "batch1": 84,
+      "batch2": 43,
+      "batch3": 19
+    },
+    {
+      "keyword": "사찰",
+      "total": 142,
+      "train": 105,
+      "valid": 20,
+      "test": 11,
+      "test_new": 6,
+      "test_overseas": 0,
+      "batch1": 84,
+      "batch2": 51,
+      "batch3": 7
+    },
+    {
+      "keyword": "고대 유적",
+      "total": 139,
+      "train": 93,
+      "valid": 25,
       "test": 2,
-      "test_new": 8,
-      "batch1": 22,
-      "batch2": 35
+      "test_new": 12,
+      "test_overseas": 7,
+      "batch1": 16,
+      "batch2": 77,
+      "batch3": 46
     },
     {
-      "keyword": "박물관",
-      "total": 56,
-      "train": 41,
-      "valid": 6,
-      "test": 4,
-      "test_new": 5,
-      "batch1": 31,
-      "batch2": 25
+      "keyword": "레크리에이션",
+      "total": 138,
+      "train": 96,
+      "valid": 11,
+      "test": 21,
+      "test_new": 10,
+      "test_overseas": 0,
+      "batch1": 80,
+      "batch2": 49,
+      "batch3": 9
     },
     {
-      "keyword": "수영",
-      "total": 55,
-      "train": 43,
-      "valid": 6,
-      "test": 4,
+      "keyword": "기념물",
+      "total": 126,
+      "train": 87,
+      "valid": 22,
+      "test": 11,
       "test_new": 2,
-      "batch1": 19,
-      "batch2": 36
-    },
-    {
-      "keyword": "조각",
-      "total": 55,
-      "train": 35,
-      "valid": 9,
-      "test": 3,
-      "test_new": 8,
-      "batch1": 23,
-      "batch2": 32
-    },
-    {
-      "keyword": "성벽",
-      "total": 55,
-      "train": 35,
-      "valid": 13,
-      "test": 4,
-      "test_new": 3,
-      "batch1": 32,
-      "batch2": 23
-    },
-    {
-      "keyword": "성",
-      "total": 54,
-      "train": 31,
-      "valid": 14,
-      "test": 4,
-      "test_new": 5,
-      "batch1": 26,
-      "batch2": 28
-    },
-    {
-      "keyword": "호수",
-      "total": 50,
-      "train": 32,
-      "valid": 10,
-      "test": 1,
-      "test_new": 7,
-      "batch1": 14,
-      "batch2": 36
-    },
-    {
-      "keyword": "캠핑",
-      "total": 48,
-      "train": 31,
-      "valid": 7,
-      "test": 4,
-      "test_new": 6,
-      "batch1": 14,
-      "batch2": 34
+      "test_overseas": 4,
+      "batch1": 83,
+      "batch2": 21,
+      "batch3": 22
     },
     {
       "keyword": "랜드마크",
-      "total": 43,
-      "train": 35,
-      "valid": 3,
+      "total": 115,
+      "train": 86,
+      "valid": 14,
       "test": 5,
       "test_new": 0,
+      "test_overseas": 10,
       "batch1": 32,
-      "batch2": 11
+      "batch2": 11,
+      "batch3": 72
     },
     {
-      "keyword": "휴양지",
-      "total": 42,
-      "train": 30,
-      "valid": 4,
-      "test": 4,
-      "test_new": 4,
-      "batch1": 8,
-      "batch2": 34
-    },
-    {
-      "keyword": "공연",
-      "total": 40,
-      "train": 27,
-      "valid": 8,
-      "test": 3,
-      "test_new": 2,
-      "batch1": 33,
-      "batch2": 7
-    },
-    {
-      "keyword": "트레킹",
-      "total": 34,
-      "train": 21,
-      "valid": 3,
-      "test": 2,
-      "test_new": 8,
-      "batch1": 9,
-      "batch2": 25
-    },
-    {
-      "keyword": "하이킹",
-      "total": 34,
-      "train": 21,
-      "valid": 5,
-      "test": 3,
+      "keyword": "음식",
+      "total": 114,
+      "train": 78,
+      "valid": 20,
+      "test": 10,
       "test_new": 5,
-      "batch1": 15,
-      "batch2": 19
+      "test_overseas": 1,
+      "batch1": 75,
+      "batch2": 35,
+      "batch3": 4
     },
     {
-      "keyword": "축제",
-      "total": 34,
-      "train": 21,
-      "valid": 5,
-      "test": 5,
-      "test_new": 3,
-      "batch1": 15,
-      "batch2": 19
+      "keyword": "박물관",
+      "total": 112,
+      "train": 71,
+      "valid": 19,
+      "test": 4,
+      "test_new": 5,
+      "test_overseas": 13,
+      "batch1": 31,
+      "batch2": 25,
+      "batch3": 56
     },
     {
-      "keyword": "식물원",
-      "total": 33,
-      "train": 28,
-      "valid": 2,
-      "test": 2,
-      "test_new": 1,
-      "batch1": 16,
-      "batch2": 17
-    },
-    {
-      "keyword": "하이킹 코스",
-      "total": 29,
-      "train": 16,
-      "valid": 6,
-      "test": 3,
-      "test_new": 4,
-      "batch1": 15,
-      "batch2": 14
-    },
-    {
-      "keyword": "동물",
-      "total": 27,
-      "train": 20,
-      "valid": 3,
-      "test": 2,
-      "test_new": 2,
-      "batch1": 10,
-      "batch2": 17
-    },
-    {
-      "keyword": "탑",
-      "total": 27,
-      "train": 20,
-      "valid": 5,
-      "test": 1,
-      "test_new": 1,
-      "batch1": 14,
-      "batch2": 13
-    },
-    {
-      "keyword": "성당",
-      "total": 25,
-      "train": 21,
-      "valid": 2,
-      "test": 1,
-      "test_new": 1,
-      "batch1": 20,
-      "batch2": 5
+      "keyword": "바위",
+      "total": 102,
+      "train": 67,
+      "valid": 15,
+      "test": 9,
+      "test_new": 10,
+      "test_overseas": 1,
+      "batch1": 29,
+      "batch2": 62,
+      "batch3": 11
     },
     {
       "keyword": "유네스코",
-      "total": 24,
-      "train": 19,
-      "valid": 2,
+      "total": 95,
+      "train": 65,
+      "valid": 21,
       "test": 0,
       "test_new": 3,
+      "test_overseas": 6,
       "batch1": 9,
-      "batch2": 15
+      "batch2": 15,
+      "batch3": 71
     },
     {
-      "keyword": "해양",
-      "total": 23,
-      "train": 18,
-      "valid": 2,
-      "test": 0,
+      "keyword": "호수",
+      "total": 93,
+      "train": 69,
+      "valid": 12,
+      "test": 1,
+      "test_new": 7,
+      "test_overseas": 4,
+      "batch1": 14,
+      "batch2": 36,
+      "batch3": 43
+    },
+    {
+      "keyword": "정원",
+      "total": 93,
+      "train": 62,
+      "valid": 9,
+      "test": 12,
+      "test_new": 9,
+      "test_overseas": 1,
+      "batch1": 48,
+      "batch2": 35,
+      "batch3": 10
+    },
+    {
+      "keyword": "등산",
+      "total": 88,
+      "train": 61,
+      "valid": 15,
+      "test": 4,
+      "test_new": 5,
+      "test_overseas": 3,
+      "batch1": 38,
+      "batch2": 41,
+      "batch3": 9
+    },
+    {
+      "keyword": "성",
+      "total": 76,
+      "train": 48,
+      "valid": 16,
+      "test": 4,
+      "test_new": 5,
+      "test_overseas": 3,
+      "batch1": 26,
+      "batch2": 28,
+      "batch3": 22
+    },
+    {
+      "keyword": "전망대",
+      "total": 76,
+      "train": 55,
+      "valid": 10,
+      "test": 4,
+      "test_new": 6,
+      "test_overseas": 1,
+      "batch1": 39,
+      "batch2": 30,
+      "batch3": 7
+    },
+    {
+      "keyword": "조각",
+      "total": 74,
+      "train": 49,
+      "valid": 10,
+      "test": 3,
+      "test_new": 8,
+      "test_overseas": 4,
+      "batch1": 23,
+      "batch2": 32,
+      "batch3": 19
+    },
+    {
+      "keyword": "해변",
+      "total": 73,
+      "train": 56,
+      "valid": 8,
+      "test": 5,
+      "test_new": 2,
+      "test_overseas": 2,
+      "batch1": 25,
+      "batch2": 34,
+      "batch3": 14
+    },
+    {
+      "keyword": "야경",
+      "total": 68,
+      "train": 48,
+      "valid": 11,
+      "test": 6,
       "test_new": 3,
-      "batch1": 7,
-      "batch2": 16
+      "test_overseas": 0,
+      "batch1": 45,
+      "batch2": 21,
+      "batch3": 2
     },
     {
       "keyword": "국립공원",
-      "total": 23,
-      "train": 19,
-      "valid": 2,
+      "total": 67,
+      "train": 52,
+      "valid": 9,
       "test": 0,
       "test_new": 2,
+      "test_overseas": 4,
       "batch1": 6,
-      "batch2": 17
+      "batch2": 17,
+      "batch3": 44
     },
     {
-      "keyword": "전통 마을",
-      "total": 23,
-      "train": 16,
-      "valid": 2,
-      "test": 3,
-      "test_new": 2,
-      "batch1": 8,
-      "batch2": 15
-    },
-    {
-      "keyword": "폭포",
-      "total": 21,
-      "train": 14,
-      "valid": 2,
-      "test": 2,
-      "test_new": 3,
-      "batch1": 7,
-      "batch2": 14
-    },
-    {
-      "keyword": "시장",
-      "total": 20,
-      "train": 13,
-      "valid": 3,
+      "keyword": "성벽",
+      "total": 64,
+      "train": 42,
+      "valid": 15,
       "test": 4,
-      "test_new": 0,
-      "batch1": 15,
-      "batch2": 5
+      "test_new": 3,
+      "test_overseas": 0,
+      "batch1": 32,
+      "batch2": 23,
+      "batch3": 9
+    },
+    {
+      "keyword": "수영",
+      "total": 62,
+      "train": 49,
+      "valid": 7,
+      "test": 4,
+      "test_new": 2,
+      "test_overseas": 0,
+      "batch1": 19,
+      "batch2": 36,
+      "batch3": 7
     },
     {
       "keyword": "화산",
-      "total": 20,
-      "train": 15,
-      "valid": 3,
+      "total": 62,
+      "train": 46,
+      "valid": 8,
       "test": 0,
       "test_new": 2,
+      "test_overseas": 6,
       "batch1": 1,
-      "batch2": 19
+      "batch2": 19,
+      "batch3": 42
     },
     {
-      "keyword": "철새",
-      "total": 18,
-      "train": 12,
-      "valid": 2,
+      "keyword": "공연",
+      "total": 58,
+      "train": 39,
+      "valid": 12,
+      "test": 3,
+      "test_new": 2,
+      "test_overseas": 2,
+      "batch1": 33,
+      "batch2": 7,
+      "batch3": 18
+    },
+    {
+      "keyword": "불상",
+      "total": 58,
+      "train": 42,
+      "valid": 6,
+      "test": 2,
+      "test_new": 8,
+      "test_overseas": 0,
+      "batch1": 22,
+      "batch2": 35,
+      "batch3": 1
+    },
+    {
+      "keyword": "휴양지",
+      "total": 54,
+      "train": 37,
+      "valid": 4,
+      "test": 4,
+      "test_new": 4,
+      "test_overseas": 5,
+      "batch1": 8,
+      "batch2": 34,
+      "batch3": 12
+    },
+    {
+      "keyword": "성당",
+      "total": 53,
+      "train": 40,
+      "valid": 10,
       "test": 1,
-      "test_new": 3,
-      "batch1": 6,
-      "batch2": 12
+      "test_new": 1,
+      "test_overseas": 1,
+      "batch1": 20,
+      "batch2": 5,
+      "batch3": 28
+    },
+    {
+      "keyword": "캠핑",
+      "total": 50,
+      "train": 33,
+      "valid": 7,
+      "test": 4,
+      "test_new": 6,
+      "test_overseas": 0,
+      "batch1": 14,
+      "batch2": 34,
+      "batch3": 2
+    },
+    {
+      "keyword": "동물",
+      "total": 47,
+      "train": 34,
+      "valid": 7,
+      "test": 2,
+      "test_new": 2,
+      "test_overseas": 2,
+      "batch1": 10,
+      "batch2": 17,
+      "batch3": 20
+    },
+    {
+      "keyword": "하이킹",
+      "total": 38,
+      "train": 24,
+      "valid": 6,
+      "test": 3,
+      "test_new": 5,
+      "test_overseas": 0,
+      "batch1": 15,
+      "batch2": 19,
+      "batch3": 4
     },
     {
       "keyword": "미술관",
-      "total": 16,
-      "train": 12,
-      "valid": 3,
+      "total": 37,
+      "train": 26,
+      "valid": 8,
       "test": 0,
       "test_new": 1,
+      "test_overseas": 2,
       "batch1": 11,
-      "batch2": 5
+      "batch2": 5,
+      "batch3": 21
+    },
+    {
+      "keyword": "트레킹",
+      "total": 37,
+      "train": 23,
+      "valid": 3,
+      "test": 2,
+      "test_new": 8,
+      "test_overseas": 1,
+      "batch1": 9,
+      "batch2": 25,
+      "batch3": 3
+    },
+    {
+      "keyword": "식물원",
+      "total": 37,
+      "train": 31,
+      "valid": 3,
+      "test": 2,
+      "test_new": 1,
+      "test_overseas": 0,
+      "batch1": 16,
+      "batch2": 17,
+      "batch3": 4
+    },
+    {
+      "keyword": "탑",
+      "total": 36,
+      "train": 25,
+      "valid": 6,
+      "test": 1,
+      "test_new": 1,
+      "test_overseas": 3,
+      "batch1": 14,
+      "batch2": 13,
+      "batch3": 9
+    },
+    {
+      "keyword": "축제",
+      "total": 36,
+      "train": 22,
+      "valid": 5,
+      "test": 5,
+      "test_new": 3,
+      "test_overseas": 1,
+      "batch1": 15,
+      "batch2": 19,
+      "batch3": 2
+    },
+    {
+      "keyword": "폭포",
+      "total": 33,
+      "train": 22,
+      "valid": 4,
+      "test": 2,
+      "test_new": 3,
+      "test_overseas": 2,
+      "batch1": 7,
+      "batch2": 14,
+      "batch3": 12
+    },
+    {
+      "keyword": "하이킹 코스",
+      "total": 33,
+      "train": 19,
+      "valid": 7,
+      "test": 3,
+      "test_new": 4,
+      "test_overseas": 0,
+      "batch1": 15,
+      "batch2": 14,
+      "batch3": 4
+    },
+    {
+      "keyword": "야생동물",
+      "total": 32,
+      "train": 22,
+      "valid": 6,
+      "test": 1,
+      "test_new": 0,
+      "test_overseas": 3,
+      "batch1": 3,
+      "batch2": 4,
+      "batch3": 25
+    },
+    {
+      "keyword": "해양",
+      "total": 28,
+      "train": 20,
+      "valid": 4,
+      "test": 0,
+      "test_new": 3,
+      "test_overseas": 1,
+      "batch1": 7,
+      "batch2": 16,
+      "batch3": 5
+    },
+    {
+      "keyword": "시장",
+      "total": 26,
+      "train": 16,
+      "valid": 5,
+      "test": 4,
+      "test_new": 0,
+      "test_overseas": 1,
+      "batch1": 15,
+      "batch2": 5,
+      "batch3": 6
+    },
+    {
+      "keyword": "전통 마을",
+      "total": 25,
+      "train": 17,
+      "valid": 2,
+      "test": 3,
+      "test_new": 2,
+      "test_overseas": 1,
+      "batch1": 8,
+      "batch2": 15,
+      "batch3": 2
+    },
+    {
+      "keyword": "철새",
+      "total": 23,
+      "train": 16,
+      "valid": 3,
+      "test": 1,
+      "test_new": 3,
+      "test_overseas": 0,
+      "batch1": 6,
+      "batch2": 12,
+      "batch3": 5
+    },
+    {
+      "keyword": "대성당",
+      "total": 16,
+      "train": 12,
+      "valid": 4,
+      "test": 0,
+      "test_new": 0,
+      "test_overseas": 0,
+      "batch1": 2,
+      "batch2": 1,
+      "batch3": 13
     },
     {
       "keyword": "기차",
-      "total": 11,
-      "train": 8,
+      "total": 13,
+      "train": 10,
       "valid": 2,
       "test": 1,
       "test_new": 0,
+      "test_overseas": 0,
       "batch1": 6,
-      "batch2": 5
+      "batch2": 5,
+      "batch3": 2
+    },
+    {
+      "keyword": "보트",
+      "total": 13,
+      "train": 8,
+      "valid": 1,
+      "test": 1,
+      "test_new": 2,
+      "test_overseas": 1,
+      "batch1": 4,
+      "batch2": 4,
+      "batch3": 5
+    },
+    {
+      "keyword": "동굴",
+      "total": 13,
+      "train": 10,
+      "valid": 1,
+      "test": 0,
+      "test_new": 1,
+      "test_overseas": 1,
+      "batch1": 2,
+      "batch2": 7,
+      "batch3": 4
+    },
+    {
+      "keyword": "산호",
+      "total": 12,
+      "train": 11,
+      "valid": 1,
+      "test": 0,
+      "test_new": 0,
+      "test_overseas": 0,
+      "batch1": 0,
+      "batch2": 0,
+      "batch3": 12
+    },
+    {
+      "keyword": "하늘",
+      "total": 12,
+      "train": 7,
+      "valid": 2,
+      "test": 0,
+      "test_new": 3,
+      "test_overseas": 0,
+      "batch1": 2,
+      "batch2": 8,
+      "batch3": 2
+    },
+    {
+      "keyword": "사막",
+      "total": 11,
+      "train": 9,
+      "valid": 1,
+      "test": 0,
+      "test_new": 0,
+      "test_overseas": 1,
+      "batch1": 0,
+      "batch2": 0,
+      "batch3": 11
+    },
+    {
+      "keyword": "다이빙",
+      "total": 11,
+      "train": 11,
+      "valid": 0,
+      "test": 0,
+      "test_new": 0,
+      "test_overseas": 0,
+      "batch1": 1,
+      "batch2": 4,
+      "batch3": 6
     },
     {
       "keyword": "다문화",
@@ -819,98 +977,166 @@
       "valid": 4,
       "test": 1,
       "test_new": 0,
+      "test_overseas": 0,
       "batch1": 11,
-      "batch2": 0
+      "batch2": 0,
+      "batch3": 0
     },
     {
-      "keyword": "하늘",
-      "total": 10,
-      "train": 5,
+      "keyword": "협곡",
+      "total": 11,
+      "train": 7,
       "valid": 2,
       "test": 0,
-      "test_new": 3,
+      "test_new": 1,
+      "test_overseas": 1,
+      "batch1": 0,
+      "batch2": 3,
+      "batch3": 8
+    },
+    {
+      "keyword": "모스크",
+      "total": 11,
+      "train": 6,
+      "valid": 3,
+      "test": 0,
+      "test_new": 0,
+      "test_overseas": 2,
       "batch1": 2,
-      "batch2": 8
+      "batch2": 0,
+      "batch3": 9
     },
     {
       "keyword": "온천욕",
-      "total": 9,
+      "total": 10,
       "train": 8,
       "valid": 0,
       "test": 1,
       "test_new": 0,
+      "test_overseas": 1,
       "batch1": 4,
-      "batch2": 5
-    },
-    {
-      "keyword": "동굴",
-      "total": 9,
-      "train": 7,
-      "valid": 1,
-      "test": 0,
-      "test_new": 1,
-      "batch1": 2,
-      "batch2": 7
-    },
-    {
-      "keyword": "보트",
-      "total": 8,
-      "train": 4,
-      "valid": 1,
-      "test": 1,
-      "test_new": 2,
-      "batch1": 4,
-      "batch2": 4
+      "batch2": 5,
+      "batch3": 1
     },
     {
       "keyword": "운하",
-      "total": 8,
-      "train": 4,
+      "total": 10,
+      "train": 5,
       "valid": 3,
       "test": 1,
       "test_new": 0,
+      "test_overseas": 1,
       "batch1": 8,
-      "batch2": 0
+      "batch2": 0,
+      "batch3": 2
     },
     {
       "keyword": "보트 투어",
-      "total": 8,
-      "train": 5,
+      "total": 9,
+      "train": 6,
       "valid": 1,
       "test": 0,
       "test_new": 2,
+      "test_overseas": 0,
       "batch1": 1,
-      "batch2": 7
-    },
-    {
-      "keyword": "야생동물",
-      "total": 7,
-      "train": 5,
-      "valid": 1,
-      "test": 1,
-      "test_new": 0,
-      "batch1": 3,
-      "batch2": 4
+      "batch2": 7,
+      "batch3": 1
     },
     {
       "keyword": "철도 여행",
+      "total": 9,
+      "train": 8,
+      "valid": 1,
+      "test": 0,
+      "test_new": 0,
+      "test_overseas": 0,
+      "batch1": 3,
+      "batch2": 4,
+      "batch3": 2
+    },
+    {
+      "keyword": "온천",
+      "total": 8,
+      "train": 7,
+      "valid": 0,
+      "test": 0,
+      "test_new": 0,
+      "test_overseas": 1,
+      "batch1": 1,
+      "batch2": 5,
+      "batch3": 2
+    },
+    {
+      "keyword": "설산",
+      "total": 8,
+      "train": 3,
+      "valid": 1,
+      "test": 0,
+      "test_new": 0,
+      "test_overseas": 4,
+      "batch1": 0,
+      "batch2": 0,
+      "batch3": 8
+    },
+    {
+      "keyword": "열대우림",
+      "total": 8,
+      "train": 5,
+      "valid": 2,
+      "test": 0,
+      "test_new": 0,
+      "test_overseas": 1,
+      "batch1": 0,
+      "batch2": 0,
+      "batch3": 8
+    },
+    {
+      "keyword": "와인",
+      "total": 7,
+      "train": 4,
+      "valid": 2,
+      "test": 1,
+      "test_new": 0,
+      "test_overseas": 0,
+      "batch1": 2,
+      "batch2": 0,
+      "batch3": 5
+    },
+    {
+      "keyword": "스노클링",
       "total": 7,
       "train": 6,
       "valid": 1,
       "test": 0,
       "test_new": 0,
-      "batch1": 3,
-      "batch2": 4
+      "test_overseas": 0,
+      "batch1": 1,
+      "batch2": 1,
+      "batch3": 5
     },
     {
-      "keyword": "온천",
-      "total": 6,
-      "train": 6,
+      "keyword": "빙하",
+      "total": 7,
+      "train": 5,
       "valid": 0,
       "test": 0,
       "test_new": 0,
-      "batch1": 1,
-      "batch2": 5
+      "test_overseas": 2,
+      "batch1": 0,
+      "batch2": 0,
+      "batch3": 7
+    },
+    {
+      "keyword": "설경",
+      "total": 7,
+      "train": 6,
+      "valid": 0,
+      "test": 0,
+      "test_new": 1,
+      "test_overseas": 0,
+      "batch1": 0,
+      "batch2": 6,
+      "batch3": 1
     },
     {
       "keyword": "아치",
@@ -919,38 +1145,46 @@
       "valid": 1,
       "test": 0,
       "test_new": 1,
+      "test_overseas": 0,
       "batch1": 3,
-      "batch2": 3
+      "batch2": 3,
+      "batch3": 0
     },
     {
-      "keyword": "설경",
-      "total": 6,
-      "train": 5,
-      "valid": 0,
-      "test": 0,
-      "test_new": 1,
-      "batch1": 0,
-      "batch2": 6
-    },
-    {
-      "keyword": "다이빙",
+      "keyword": "사파리",
       "total": 5,
-      "train": 5,
+      "train": 4,
       "valid": 0,
       "test": 0,
       "test_new": 0,
-      "batch1": 1,
-      "batch2": 4
+      "test_overseas": 1,
+      "batch1": 0,
+      "batch2": 0,
+      "batch3": 5
     },
     {
-      "keyword": "협곡",
+      "keyword": "원숭이",
       "total": 3,
-      "train": 1,
+      "train": 2,
       "valid": 1,
       "test": 0,
-      "test_new": 1,
+      "test_new": 0,
+      "test_overseas": 0,
       "batch1": 0,
-      "batch2": 3
+      "batch2": 1,
+      "batch3": 2
+    },
+    {
+      "keyword": "카누",
+      "total": 3,
+      "train": 1,
+      "valid": 2,
+      "test": 0,
+      "test_new": 0,
+      "test_overseas": 0,
+      "batch1": 1,
+      "batch2": 1,
+      "batch3": 1
     },
     {
       "keyword": "미로",
@@ -959,78 +1193,34 @@
       "valid": 2,
       "test": 0,
       "test_new": 0,
+      "test_overseas": 0,
       "batch1": 2,
-      "batch2": 1
-    },
-    {
-      "keyword": "대성당",
-      "total": 3,
-      "train": 2,
-      "valid": 1,
-      "test": 0,
-      "test_new": 0,
-      "batch1": 2,
-      "batch2": 1
-    },
-    {
-      "keyword": "와인",
-      "total": 2,
-      "train": 1,
-      "valid": 0,
-      "test": 1,
-      "test_new": 0,
-      "batch1": 2,
-      "batch2": 0
-    },
-    {
-      "keyword": "카누",
-      "total": 2,
-      "train": 1,
-      "valid": 1,
-      "test": 0,
-      "test_new": 0,
-      "batch1": 1,
-      "batch2": 1
-    },
-    {
-      "keyword": "스노클링",
-      "total": 2,
-      "train": 2,
-      "valid": 0,
-      "test": 0,
-      "test_new": 0,
-      "batch1": 1,
-      "batch2": 1
-    },
-    {
-      "keyword": "모스크",
-      "total": 2,
-      "train": 0,
-      "valid": 2,
-      "test": 0,
-      "test_new": 0,
-      "batch1": 2,
-      "batch2": 0
-    },
-    {
-      "keyword": "원숭이",
-      "total": 1,
-      "train": 0,
-      "valid": 1,
-      "test": 0,
-      "test_new": 0,
-      "batch1": 0,
-      "batch2": 1
+      "batch2": 1,
+      "batch3": 0
     },
     {
       "keyword": "탐험",
-      "total": 1,
-      "train": 1,
+      "total": 2,
+      "train": 2,
       "valid": 0,
       "test": 0,
       "test_new": 0,
+      "test_overseas": 0,
       "batch1": 0,
-      "batch2": 1
+      "batch2": 1,
+      "batch3": 1
+    },
+    {
+      "keyword": "지열",
+      "total": 2,
+      "train": 2,
+      "valid": 0,
+      "test": 0,
+      "test_new": 0,
+      "test_overseas": 0,
+      "batch1": 0,
+      "batch2": 0,
+      "batch3": 2
     },
     {
       "keyword": "서핑",
@@ -1039,8 +1229,10 @@
       "valid": 0,
       "test": 0,
       "test_new": 0,
+      "test_overseas": 0,
       "batch1": 0,
-      "batch2": 1
+      "batch2": 1,
+      "batch3": 0
     },
     {
       "keyword": "빙벽",
@@ -1049,28 +1241,10 @@
       "valid": 0,
       "test": 0,
       "test_new": 0,
+      "test_overseas": 0,
       "batch1": 1,
-      "batch2": 0
-    },
-    {
-      "keyword": "사막",
-      "total": 0,
-      "train": 0,
-      "valid": 0,
-      "test": 0,
-      "test_new": 0,
-      "batch1": 0,
-      "batch2": 0
-    },
-    {
-      "keyword": "사파리",
-      "total": 0,
-      "train": 0,
-      "valid": 0,
-      "test": 0,
-      "test_new": 0,
-      "batch1": 0,
-      "batch2": 0
+      "batch2": 0,
+      "batch3": 0
     },
     {
       "keyword": "열기구",
@@ -1079,38 +1253,10 @@
       "valid": 0,
       "test": 0,
       "test_new": 0,
+      "test_overseas": 0,
       "batch1": 0,
-      "batch2": 0
-    },
-    {
-      "keyword": "지열",
-      "total": 0,
-      "train": 0,
-      "valid": 0,
-      "test": 0,
-      "test_new": 0,
-      "batch1": 0,
-      "batch2": 0
-    },
-    {
-      "keyword": "빙하",
-      "total": 0,
-      "train": 0,
-      "valid": 0,
-      "test": 0,
-      "test_new": 0,
-      "batch1": 0,
-      "batch2": 0
-    },
-    {
-      "keyword": "설산",
-      "total": 0,
-      "train": 0,
-      "valid": 0,
-      "test": 0,
-      "test_new": 0,
-      "batch1": 0,
-      "batch2": 0
+      "batch2": 0,
+      "batch3": 0
     },
     {
       "keyword": "호랑이",
@@ -1119,8 +1265,10 @@
       "valid": 0,
       "test": 0,
       "test_new": 0,
+      "test_overseas": 0,
       "batch1": 0,
-      "batch2": 0
+      "batch2": 0,
+      "batch3": 0
     },
     {
       "keyword": "낙타",
@@ -1129,34 +1277,17 @@
       "valid": 0,
       "test": 0,
       "test_new": 0,
+      "test_overseas": 0,
       "batch1": 0,
-      "batch2": 0
-    },
-    {
-      "keyword": "열대우림",
-      "total": 0,
-      "train": 0,
-      "valid": 0,
-      "test": 0,
-      "test_new": 0,
-      "batch1": 0,
-      "batch2": 0
-    },
-    {
-      "keyword": "산호",
-      "total": 0,
-      "train": 0,
-      "valid": 0,
-      "test": 0,
-      "test_new": 0,
-      "batch1": 0,
-      "batch2": 0
+      "batch2": 0,
+      "batch3": 0
     }
   ],
   "cross_check_ids_by_split": {
-    "train": 122,
-    "valid": 30,
+    "train": 177,
+    "valid": 40,
     "test": 14,
-    "test_new": 11
+    "test_new": 11,
+    "test_overseas": 15
   }
 }

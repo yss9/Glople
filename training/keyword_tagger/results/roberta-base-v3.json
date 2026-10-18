@@ -1,0 +1,1519 @@
+{
+  "name": "roberta-base-v3",
+  "description": "klue/roberta-base 다중 라벨 분류 (title+overview, BCE)",
+  "config": {
+    "model": "klue/roberta-base",
+    "epochs": 15,
+    "batch_size": 16,
+    "eval_batch_size": 32,
+    "lr": 5e-05,
+    "weight_decay": 0.01,
+    "warmup_ratio": 0.1,
+    "max_length": 512,
+    "device": "mps",
+    "num_threads": 4,
+    "max_steps": 0,
+    "log_every": 20,
+    "patience": 0,
+    "min_valid_pos": 3,
+    "per_label_thresholds": false,
+    "seed": 13,
+    "run_name": "roberta-base-v3",
+    "no_save_model": false,
+    "device_used": "mps",
+    "torch": "2.14.1",
+    "transformers": "5.20.1",
+    "python": "3.12.14"
+  },
+  "split_sizes": {
+    "train": 1914,
+    "valid": 410,
+    "test": 163,
+    "test_new": 127,
+    "test_overseas": 120
+  },
+  "split_sizes_by_batch": {
+    "train": {
+      "1": 758,
+      "2": 596,
+      "3": 560
+    },
+    "valid": {
+      "1": 162,
+      "2": 128,
+      "3": 120
+    },
+    "test": {
+      "1": 163
+    },
+    "test_new": {
+      "2": 127
+    },
+    "test_overseas": {
+      "3": 120
+    }
+  },
+  "label_space_size": 91,
+  "excluded_keywords_zero_train_examples": [
+    "열기구",
+    "호랑이",
+    "낙타"
+  ],
+  "best_epoch": 15,
+  "steps": 1800,
+  "train_seconds": 4096.1,
+  "history": [
+    {
+      "epoch": 1,
+      "steps": 120,
+      "train_loss": 0.47317,
+      "valid_micro_f1_at_best_global_threshold": 0.2899,
+      "threshold": 0.22,
+      "elapsed_sec": 174.8
+    },
+    {
+      "epoch": 2,
+      "steps": 240,
+      "train_loss": 0.15882,
+      "valid_micro_f1_at_best_global_threshold": 0.4302,
+      "threshold": 0.22,
+      "elapsed_sec": 560.2
+    },
+    {
+      "epoch": 3,
+      "steps": 360,
+      "train_loss": 0.12354,
+      "valid_micro_f1_at_best_global_threshold": 0.5004,
+      "threshold": 0.23,
+      "elapsed_sec": 788.8
+    },
+    {
+      "epoch": 4,
+      "steps": 480,
+      "train_loss": 0.10911,
+      "valid_micro_f1_at_best_global_threshold": 0.5858,
+      "threshold": 0.27,
+      "elapsed_sec": 950.6
+    },
+    {
+      "epoch": 5,
+      "steps": 600,
+      "train_loss": 0.09725,
+      "valid_micro_f1_at_best_global_threshold": 0.6405,
+      "threshold": 0.23,
+      "elapsed_sec": 1129.1
+    },
+    {
+      "epoch": 6,
+      "steps": 720,
+      "train_loss": 0.08793,
+      "valid_micro_f1_at_best_global_threshold": 0.6648,
+      "threshold": 0.21,
+      "elapsed_sec": 1356.1
+    },
+    {
+      "epoch": 7,
+      "steps": 840,
+      "train_loss": 0.07972,
+      "valid_micro_f1_at_best_global_threshold": 0.71,
+      "threshold": 0.25,
+      "elapsed_sec": 1948.0
+    },
+    {
+      "epoch": 8,
+      "steps": 960,
+      "train_loss": 0.07313,
+      "valid_micro_f1_at_best_global_threshold": 0.716,
+      "threshold": 0.21,
+      "elapsed_sec": 2449.7
+    },
+    {
+      "epoch": 9,
+      "steps": 1080,
+      "train_loss": 0.06776,
+      "valid_micro_f1_at_best_global_threshold": 0.7386,
+      "threshold": 0.22,
+      "elapsed_sec": 2636.0
+    },
+    {
+      "epoch": 10,
+      "steps": 1200,
+      "train_loss": 0.06321,
+      "valid_micro_f1_at_best_global_threshold": 0.7517,
+      "threshold": 0.22,
+      "elapsed_sec": 3022.6
+    },
+    {
+      "epoch": 11,
+      "steps": 1320,
+      "train_loss": 0.05966,
+      "valid_micro_f1_at_best_global_threshold": 0.7558,
+      "threshold": 0.29,
+      "elapsed_sec": 3318.2
+    },
+    {
+      "epoch": 12,
+      "steps": 1440,
+      "train_loss": 0.057,
+      "valid_micro_f1_at_best_global_threshold": 0.7624,
+      "threshold": 0.24,
+      "elapsed_sec": 3491.2
+    },
+    {
+      "epoch": 13,
+      "steps": 1560,
+      "train_loss": 0.05481,
+      "valid_micro_f1_at_best_global_threshold": 0.7682,
+      "threshold": 0.25,
+      "elapsed_sec": 3689.8
+    },
+    {
+      "epoch": 14,
+      "steps": 1680,
+      "train_loss": 0.05329,
+      "valid_micro_f1_at_best_global_threshold": 0.7701,
+      "threshold": 0.21,
+      "elapsed_sec": 3861.5
+    },
+    {
+      "epoch": 15,
+      "steps": 1800,
+      "train_loss": 0.0524,
+      "valid_micro_f1_at_best_global_threshold": 0.7721,
+      "threshold": 0.22,
+      "elapsed_sec": 4085.7
+    }
+  ],
+  "thresholds": {
+    "selected_mode": "global",
+    "global": 0.22,
+    "global_valid_micro_f1": 0.7721,
+    "per_label": {
+      "해안": 0.27,
+      "수영": 0.26,
+      "조각": 0.08,
+      "사원": 0.59,
+      "문화": 0.35,
+      "역사": 0.41,
+      "건축": 0.27,
+      "산": 0.37,
+      "등산": 0.15,
+      "호수": 0.21,
+      "폭포": 0.05,
+      "사막": 0.22,
+      "박물관": 0.21,
+      "미술관": 0.1,
+      "자연": 0.53,
+      "경치": 0.18,
+      "도시": 0.33,
+      "해변": 0.42,
+      "섬": 0.5,
+      "온천": 0.22,
+      "다이빙": 0.22,
+      "트레킹": 0.06,
+      "동물": 0.18,
+      "사파리": 0.22,
+      "야경": 0.13,
+      "시장": 0.05,
+      "불교": 0.29,
+      "기차": 0.22,
+      "성당": 0.17,
+      "성": 0.21,
+      "원숭이": 0.22,
+      "온천욕": 0.22,
+      "탐험": 0.22,
+      "보트": 0.22,
+      "운하": 0.22,
+      "와인": 0.22,
+      "카누": 0.22,
+      "바다": 0.23,
+      "스노클링": 0.22,
+      "다문화": 0.22,
+      "협곡": 0.22,
+      "지열": 0.22,
+      "동굴": 0.22,
+      "사찰": 0.39,
+      "모스크": 0.22,
+      "탑": 0.1,
+      "성벽": 0.16,
+      "화산": 0.16,
+      "빙하": 0.22,
+      "설산": 0.22,
+      "캠핑": 0.09,
+      "하이킹": 0.07,
+      "스포츠": 0.22,
+      "레크리에이션": 0.22,
+      "축제": 0.06,
+      "음식": 0.18,
+      "전통": 0.43,
+      "공연": 0.12,
+      "예술": 0.38,
+      "유적": 0.18,
+      "랜드마크": 0.13,
+      "식물원": 0.06,
+      "미로": 0.22,
+      "정원": 0.16,
+      "유네스코": 0.12,
+      "해양": 0.09,
+      "아치": 0.22,
+      "철새": 0.07,
+      "열대우림": 0.22,
+      "바위": 0.09,
+      "서핑": 0.22,
+      "산호": 0.22,
+      "빙벽": 0.22,
+      "하늘": 0.22,
+      "설경": 0.22,
+      "강": 0.2,
+      "대성당": 0.05,
+      "불상": 0.23,
+      "기념물": 0.22,
+      "전망대": 0.17,
+      "국립공원": 0.17,
+      "야생동물": 0.08,
+      "보트 투어": 0.22,
+      "역사적인 장소": 0.48,
+      "하이킹 코스": 0.22,
+      "전통 마을": 0.22,
+      "고대 유적": 0.38,
+      "야외 활동": 0.14,
+      "휴양지": 0.11,
+      "역사적 건축": 0.29,
+      "철도 여행": 0.22
+    },
+    "per_label_source": {
+      "tuned": 59,
+      "fallback_few_valid_positives": 28,
+      "fallback_zero_f1": 4
+    },
+    "min_valid_pos": 3
+  },
+  "top_keywords": [
+    "역사",
+    "자연",
+    "역사적인 장소",
+    "경치",
+    "전통",
+    "건축",
+    "산",
+    "역사적 건축",
+    "바다",
+    "유적",
+    "문화",
+    "불교",
+    "해안",
+    "야외 활동",
+    "사찰"
+  ],
+  "top_keywords_by_split": {
+    "test": [
+      "역사",
+      "자연",
+      "역사적인 장소",
+      "경치",
+      "전통",
+      "건축",
+      "산",
+      "역사적 건축",
+      "바다",
+      "유적",
+      "문화",
+      "불교",
+      "해안",
+      "야외 활동",
+      "사찰"
+    ],
+    "test_new": [
+      "역사",
+      "자연",
+      "역사적인 장소",
+      "경치",
+      "전통",
+      "건축",
+      "산",
+      "역사적 건축",
+      "바다",
+      "유적",
+      "문화",
+      "불교",
+      "해안",
+      "야외 활동",
+      "사찰"
+    ],
+    "test_overseas": [
+      "자연",
+      "역사",
+      "역사적인 장소",
+      "바다",
+      "섬",
+      "경치",
+      "건축",
+      "역사적 건축",
+      "산",
+      "강",
+      "스포츠",
+      "랜드마크",
+      "유네스코",
+      "박물관",
+      "유적"
+    ]
+  },
+  "eval_splits": [
+    "test",
+    "test_new",
+    "test_overseas"
+  ],
+  "valid": {
+    "micro": {
+      "precision": 0.7716,
+      "recall": 0.7726,
+      "f1": 0.7721,
+      "tp": 1152,
+      "fp": 341,
+      "fn": 339
+    },
+    "macro": {
+      "precision": 0.4371,
+      "recall": 0.3971,
+      "f1": 0.3884,
+      "labels": 81
+    },
+    "samples": {
+      "items": 410,
+      "exact_match": 0.2976,
+      "mean_jaccard": 0.663,
+      "avg_gold_keywords": 3.637,
+      "avg_pred_keywords": 3.641
+    },
+    "per_keyword": {
+      "역사": {
+        "precision": 0.8409,
+        "recall": 0.9867,
+        "f1": 0.908,
+        "support": 150,
+        "predicted": 176
+      },
+      "자연": {
+        "precision": 0.7547,
+        "recall": 0.9524,
+        "f1": 0.8421,
+        "support": 126,
+        "predicted": 159
+      },
+      "역사적인 장소": {
+        "precision": 0.845,
+        "recall": 0.9561,
+        "f1": 0.8971,
+        "support": 114,
+        "predicted": 129
+      },
+      "경치": {
+        "precision": 0.7419,
+        "recall": 0.8932,
+        "f1": 0.8106,
+        "support": 103,
+        "predicted": 124
+      },
+      "전통": {
+        "precision": 0.7222,
+        "recall": 0.9512,
+        "f1": 0.8211,
+        "support": 41,
+        "predicted": 54
+      },
+      "건축": {
+        "precision": 0.7778,
+        "recall": 0.9423,
+        "f1": 0.8522,
+        "support": 52,
+        "predicted": 63
+      },
+      "산": {
+        "precision": 0.7143,
+        "recall": 0.8824,
+        "f1": 0.7895,
+        "support": 51,
+        "predicted": 63
+      },
+      "역사적 건축": {
+        "precision": 0.7458,
+        "recall": 0.88,
+        "f1": 0.8073,
+        "support": 50,
+        "predicted": 59
+      },
+      "바다": {
+        "precision": 0.902,
+        "recall": 0.9787,
+        "f1": 0.9388,
+        "support": 47,
+        "predicted": 51
+      },
+      "유적": {
+        "precision": 0.9111,
+        "recall": 0.82,
+        "f1": 0.8632,
+        "support": 50,
+        "predicted": 45
+      },
+      "문화": {
+        "precision": 0.5769,
+        "recall": 0.7692,
+        "f1": 0.6593,
+        "support": 39,
+        "predicted": 52
+      },
+      "불교": {
+        "precision": 0.8889,
+        "recall": 1.0,
+        "f1": 0.9412,
+        "support": 24,
+        "predicted": 27
+      },
+      "해안": {
+        "precision": 0.7667,
+        "recall": 0.8846,
+        "f1": 0.8214,
+        "support": 26,
+        "predicted": 30
+      },
+      "야외 활동": {
+        "precision": 0.6667,
+        "recall": 0.7,
+        "f1": 0.6829,
+        "support": 20,
+        "predicted": 21
+      },
+      "사찰": {
+        "precision": 0.8333,
+        "recall": 1.0,
+        "f1": 0.9091,
+        "support": 20,
+        "predicted": 24
+      },
+      "도시": {
+        "precision": 0.5172,
+        "recall": 0.7895,
+        "f1": 0.625,
+        "support": 19,
+        "predicted": 29
+      },
+      "사원": {
+        "precision": 0.8,
+        "recall": 0.9524,
+        "f1": 0.8696,
+        "support": 21,
+        "predicted": 25
+      },
+      "기념물": {
+        "precision": 0.9,
+        "recall": 0.8182,
+        "f1": 0.8571,
+        "support": 22,
+        "predicted": 20
+      },
+      "섬": {
+        "precision": 0.641,
+        "recall": 0.9259,
+        "f1": 0.7576,
+        "support": 27,
+        "predicted": 39
+      },
+      "강": {
+        "precision": 0.9444,
+        "recall": 0.8293,
+        "f1": 0.8831,
+        "support": 41,
+        "predicted": 36
+      },
+      "스포츠": {
+        "precision": 0.8636,
+        "recall": 0.8261,
+        "f1": 0.8444,
+        "support": 23,
+        "predicted": 22
+      },
+      "랜드마크": {
+        "precision": 0.5556,
+        "recall": 0.3571,
+        "f1": 0.4348,
+        "support": 14,
+        "predicted": 9
+      },
+      "유네스코": {
+        "precision": 1.0,
+        "recall": 0.0952,
+        "f1": 0.1739,
+        "support": 21,
+        "predicted": 2
+      },
+      "박물관": {
+        "precision": 0.8571,
+        "recall": 0.6316,
+        "f1": 0.7273,
+        "support": 19,
+        "predicted": 14
+      }
+    },
+    "worst_false_positive_keywords": [
+      {
+        "keyword": "자연",
+        "fp": 39,
+        "tp": 120
+      },
+      {
+        "keyword": "경치",
+        "fp": 32,
+        "tp": 92
+      },
+      {
+        "keyword": "역사",
+        "fp": 28,
+        "tp": 148
+      },
+      {
+        "keyword": "문화",
+        "fp": 22,
+        "tp": 30
+      },
+      {
+        "keyword": "역사적인 장소",
+        "fp": 20,
+        "tp": 109
+      },
+      {
+        "keyword": "산",
+        "fp": 18,
+        "tp": 45
+      },
+      {
+        "keyword": "역사적 건축",
+        "fp": 15,
+        "tp": 44
+      },
+      {
+        "keyword": "전통",
+        "fp": 15,
+        "tp": 39
+      },
+      {
+        "keyword": "건축",
+        "fp": 14,
+        "tp": 49
+      },
+      {
+        "keyword": "도시",
+        "fp": 14,
+        "tp": 15
+      },
+      {
+        "keyword": "섬",
+        "fp": 14,
+        "tp": 25
+      },
+      {
+        "keyword": "고대 유적",
+        "fp": 12,
+        "tp": 24
+      },
+      {
+        "keyword": "레크리에이션",
+        "fp": 9,
+        "tp": 7
+      },
+      {
+        "keyword": "예술",
+        "fp": 8,
+        "tp": 18
+      },
+      {
+        "keyword": "야외 활동",
+        "fp": 7,
+        "tp": 14
+      }
+    ]
+  },
+  "test": {
+    "micro": {
+      "precision": 0.7095,
+      "recall": 0.7575,
+      "f1": 0.7327,
+      "tp": 403,
+      "fp": 165,
+      "fn": 129
+    },
+    "macro": {
+      "precision": 0.4667,
+      "recall": 0.4813,
+      "f1": 0.459,
+      "labels": 61
+    },
+    "samples": {
+      "items": 163,
+      "exact_match": 0.2025,
+      "mean_jaccard": 0.5884,
+      "avg_gold_keywords": 3.264,
+      "avg_pred_keywords": 3.485
+    },
+    "per_keyword": {
+      "역사": {
+        "precision": 0.75,
+        "recall": 0.9783,
+        "f1": 0.8491,
+        "support": 46,
+        "predicted": 60
+      },
+      "자연": {
+        "precision": 0.6885,
+        "recall": 0.9545,
+        "f1": 0.8,
+        "support": 44,
+        "predicted": 61
+      },
+      "역사적인 장소": {
+        "precision": 0.8537,
+        "recall": 1.0,
+        "f1": 0.9211,
+        "support": 35,
+        "predicted": 41
+      },
+      "경치": {
+        "precision": 0.5833,
+        "recall": 0.9333,
+        "f1": 0.7179,
+        "support": 30,
+        "predicted": 48
+      },
+      "전통": {
+        "precision": 0.7222,
+        "recall": 0.6842,
+        "f1": 0.7027,
+        "support": 19,
+        "predicted": 18
+      },
+      "건축": {
+        "precision": 0.8333,
+        "recall": 0.8333,
+        "f1": 0.8333,
+        "support": 18,
+        "predicted": 18
+      },
+      "산": {
+        "precision": 0.7143,
+        "recall": 0.9375,
+        "f1": 0.8108,
+        "support": 16,
+        "predicted": 21
+      },
+      "역사적 건축": {
+        "precision": 0.6667,
+        "recall": 0.8571,
+        "f1": 0.75,
+        "support": 14,
+        "predicted": 18
+      },
+      "바다": {
+        "precision": 0.9412,
+        "recall": 1.0,
+        "f1": 0.9697,
+        "support": 16,
+        "predicted": 17
+      },
+      "유적": {
+        "precision": 0.625,
+        "recall": 0.625,
+        "f1": 0.625,
+        "support": 8,
+        "predicted": 8
+      },
+      "문화": {
+        "precision": 0.48,
+        "recall": 0.7059,
+        "f1": 0.5714,
+        "support": 17,
+        "predicted": 25
+      },
+      "불교": {
+        "precision": 0.9231,
+        "recall": 1.0,
+        "f1": 0.96,
+        "support": 12,
+        "predicted": 13
+      },
+      "해안": {
+        "precision": 0.6667,
+        "recall": 0.9091,
+        "f1": 0.7692,
+        "support": 11,
+        "predicted": 15
+      },
+      "야외 활동": {
+        "precision": 0.3684,
+        "recall": 0.5833,
+        "f1": 0.4516,
+        "support": 12,
+        "predicted": 19
+      },
+      "사찰": {
+        "precision": 0.9167,
+        "recall": 1.0,
+        "f1": 0.9565,
+        "support": 11,
+        "predicted": 12
+      },
+      "도시": {
+        "precision": 0.65,
+        "recall": 0.8667,
+        "f1": 0.7429,
+        "support": 15,
+        "predicted": 20
+      },
+      "사원": {
+        "precision": 0.8462,
+        "recall": 1.0,
+        "f1": 0.9167,
+        "support": 11,
+        "predicted": 13
+      },
+      "기념물": {
+        "precision": 0.8182,
+        "recall": 0.8182,
+        "f1": 0.8182,
+        "support": 11,
+        "predicted": 11
+      },
+      "섬": {
+        "precision": 0.8462,
+        "recall": 0.9167,
+        "f1": 0.88,
+        "support": 12,
+        "predicted": 13
+      },
+      "강": {
+        "precision": 0.75,
+        "recall": 0.8571,
+        "f1": 0.8,
+        "support": 7,
+        "predicted": 8
+      },
+      "스포츠": {
+        "precision": 0.7059,
+        "recall": 0.9231,
+        "f1": 0.8,
+        "support": 13,
+        "predicted": 17
+      },
+      "랜드마크": {
+        "precision": 0.6667,
+        "recall": 0.8,
+        "f1": 0.7273,
+        "support": 5,
+        "predicted": 6
+      },
+      "유네스코": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "support": 0,
+        "predicted": 0
+      },
+      "박물관": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "support": 4,
+        "predicted": 1
+      }
+    },
+    "worst_false_positive_keywords": [
+      {
+        "keyword": "경치",
+        "fp": 20,
+        "tp": 28
+      },
+      {
+        "keyword": "자연",
+        "fp": 19,
+        "tp": 42
+      },
+      {
+        "keyword": "역사",
+        "fp": 15,
+        "tp": 45
+      },
+      {
+        "keyword": "문화",
+        "fp": 13,
+        "tp": 12
+      },
+      {
+        "keyword": "야외 활동",
+        "fp": 12,
+        "tp": 7
+      },
+      {
+        "keyword": "도시",
+        "fp": 7,
+        "tp": 13
+      },
+      {
+        "keyword": "산",
+        "fp": 6,
+        "tp": 15
+      },
+      {
+        "keyword": "역사적 건축",
+        "fp": 6,
+        "tp": 12
+      },
+      {
+        "keyword": "역사적인 장소",
+        "fp": 6,
+        "tp": 35
+      },
+      {
+        "keyword": "레크리에이션",
+        "fp": 5,
+        "tp": 17
+      },
+      {
+        "keyword": "스포츠",
+        "fp": 5,
+        "tp": 12
+      },
+      {
+        "keyword": "음식",
+        "fp": 5,
+        "tp": 9
+      },
+      {
+        "keyword": "전통",
+        "fp": 5,
+        "tp": 13
+      },
+      {
+        "keyword": "해안",
+        "fp": 5,
+        "tp": 10
+      },
+      {
+        "keyword": "예술",
+        "fp": 4,
+        "tp": 5
+      }
+    ]
+  },
+  "test_new": {
+    "micro": {
+      "precision": 0.7622,
+      "recall": 0.7229,
+      "f1": 0.742,
+      "tp": 407,
+      "fp": 127,
+      "fn": 156
+    },
+    "macro": {
+      "precision": 0.4452,
+      "recall": 0.4639,
+      "f1": 0.4361,
+      "labels": 64
+    },
+    "samples": {
+      "items": 127,
+      "exact_match": 0.2362,
+      "mean_jaccard": 0.6241,
+      "avg_gold_keywords": 4.433,
+      "avg_pred_keywords": 4.205
+    },
+    "per_keyword": {
+      "역사": {
+        "precision": 0.9057,
+        "recall": 0.96,
+        "f1": 0.932,
+        "support": 50,
+        "predicted": 53
+      },
+      "자연": {
+        "precision": 0.8525,
+        "recall": 0.9811,
+        "f1": 0.9123,
+        "support": 53,
+        "predicted": 61
+      },
+      "역사적인 장소": {
+        "precision": 0.7368,
+        "recall": 0.9032,
+        "f1": 0.8116,
+        "support": 31,
+        "predicted": 38
+      },
+      "경치": {
+        "precision": 0.7544,
+        "recall": 0.9348,
+        "f1": 0.835,
+        "support": 46,
+        "predicted": 57
+      },
+      "전통": {
+        "precision": 0.9091,
+        "recall": 0.9091,
+        "f1": 0.9091,
+        "support": 22,
+        "predicted": 22
+      },
+      "건축": {
+        "precision": 0.8947,
+        "recall": 0.7727,
+        "f1": 0.8293,
+        "support": 22,
+        "predicted": 19
+      },
+      "산": {
+        "precision": 0.625,
+        "recall": 0.9375,
+        "f1": 0.75,
+        "support": 16,
+        "predicted": 24
+      },
+      "역사적 건축": {
+        "precision": 0.8421,
+        "recall": 0.9412,
+        "f1": 0.8889,
+        "support": 17,
+        "predicted": 19
+      },
+      "바다": {
+        "precision": 0.85,
+        "recall": 0.85,
+        "f1": 0.85,
+        "support": 20,
+        "predicted": 20
+      },
+      "유적": {
+        "precision": 0.8182,
+        "recall": 0.9,
+        "f1": 0.8571,
+        "support": 20,
+        "predicted": 22
+      },
+      "문화": {
+        "precision": 0.5714,
+        "recall": 0.8889,
+        "f1": 0.6957,
+        "support": 9,
+        "predicted": 14
+      },
+      "불교": {
+        "precision": 0.9286,
+        "recall": 0.9286,
+        "f1": 0.9286,
+        "support": 14,
+        "predicted": 14
+      },
+      "해안": {
+        "precision": 0.8,
+        "recall": 0.9231,
+        "f1": 0.8571,
+        "support": 13,
+        "predicted": 15
+      },
+      "야외 활동": {
+        "precision": 0.75,
+        "recall": 0.6316,
+        "f1": 0.6857,
+        "support": 19,
+        "predicted": 16
+      },
+      "사찰": {
+        "precision": 0.5,
+        "recall": 1.0,
+        "f1": 0.6667,
+        "support": 6,
+        "predicted": 12
+      },
+      "도시": {
+        "precision": 0.5,
+        "recall": 0.5,
+        "f1": 0.5,
+        "support": 2,
+        "predicted": 2
+      },
+      "사원": {
+        "precision": 0.4167,
+        "recall": 1.0,
+        "f1": 0.5882,
+        "support": 5,
+        "predicted": 12
+      },
+      "기념물": {
+        "precision": 1.0,
+        "recall": 0.5,
+        "f1": 0.6667,
+        "support": 2,
+        "predicted": 1
+      },
+      "섬": {
+        "precision": 0.6667,
+        "recall": 0.8571,
+        "f1": 0.75,
+        "support": 7,
+        "predicted": 9
+      },
+      "강": {
+        "precision": 0.75,
+        "recall": 0.75,
+        "f1": 0.75,
+        "support": 8,
+        "predicted": 8
+      },
+      "스포츠": {
+        "precision": 0.75,
+        "recall": 0.75,
+        "f1": 0.75,
+        "support": 8,
+        "predicted": 8
+      },
+      "랜드마크": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "support": 0,
+        "predicted": 0
+      },
+      "유네스코": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "support": 3,
+        "predicted": 0
+      },
+      "박물관": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "support": 5,
+        "predicted": 0
+      }
+    },
+    "worst_false_positive_keywords": [
+      {
+        "keyword": "경치",
+        "fp": 14,
+        "tp": 43
+      },
+      {
+        "keyword": "역사적인 장소",
+        "fp": 10,
+        "tp": 28
+      },
+      {
+        "keyword": "산",
+        "fp": 9,
+        "tp": 15
+      },
+      {
+        "keyword": "자연",
+        "fp": 9,
+        "tp": 52
+      },
+      {
+        "keyword": "사원",
+        "fp": 7,
+        "tp": 5
+      },
+      {
+        "keyword": "레크리에이션",
+        "fp": 6,
+        "tp": 7
+      },
+      {
+        "keyword": "문화",
+        "fp": 6,
+        "tp": 8
+      },
+      {
+        "keyword": "사찰",
+        "fp": 6,
+        "tp": 6
+      },
+      {
+        "keyword": "고대 유적",
+        "fp": 5,
+        "tp": 9
+      },
+      {
+        "keyword": "등산",
+        "fp": 5,
+        "tp": 4
+      },
+      {
+        "keyword": "역사",
+        "fp": 5,
+        "tp": 48
+      },
+      {
+        "keyword": "야외 활동",
+        "fp": 4,
+        "tp": 12
+      },
+      {
+        "keyword": "유적",
+        "fp": 4,
+        "tp": 18
+      },
+      {
+        "keyword": "바다",
+        "fp": 3,
+        "tp": 17
+      },
+      {
+        "keyword": "섬",
+        "fp": 3,
+        "tp": 6
+      }
+    ]
+  },
+  "test_overseas": {
+    "micro": {
+      "precision": 0.732,
+      "recall": 0.724,
+      "f1": 0.728,
+      "tp": 265,
+      "fp": 97,
+      "fn": 101
+    },
+    "macro": {
+      "precision": 0.3763,
+      "recall": 0.3787,
+      "f1": 0.3596,
+      "labels": 59
+    },
+    "samples": {
+      "items": 120,
+      "exact_match": 0.3833,
+      "mean_jaccard": 0.6742,
+      "avg_gold_keywords": 3.05,
+      "avg_pred_keywords": 3.017
+    },
+    "per_keyword": {
+      "역사": {
+        "precision": 0.6923,
+        "recall": 0.9,
+        "f1": 0.7826,
+        "support": 30,
+        "predicted": 39
+      },
+      "자연": {
+        "precision": 0.8537,
+        "recall": 1.0,
+        "f1": 0.9211,
+        "support": 35,
+        "predicted": 41
+      },
+      "역사적인 장소": {
+        "precision": 0.7407,
+        "recall": 0.9091,
+        "f1": 0.8163,
+        "support": 22,
+        "predicted": 27
+      },
+      "경치": {
+        "precision": 0.6087,
+        "recall": 0.9333,
+        "f1": 0.7368,
+        "support": 15,
+        "predicted": 23
+      },
+      "전통": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "support": 1,
+        "predicted": 5
+      },
+      "건축": {
+        "precision": 0.9,
+        "recall": 0.8571,
+        "f1": 0.878,
+        "support": 21,
+        "predicted": 20
+      },
+      "산": {
+        "precision": 0.8571,
+        "recall": 1.0,
+        "f1": 0.9231,
+        "support": 12,
+        "predicted": 14
+      },
+      "역사적 건축": {
+        "precision": 0.5882,
+        "recall": 0.7143,
+        "f1": 0.6452,
+        "support": 14,
+        "predicted": 17
+      },
+      "바다": {
+        "precision": 0.8519,
+        "recall": 1.0,
+        "f1": 0.92,
+        "support": 23,
+        "predicted": 27
+      },
+      "유적": {
+        "precision": 0.7273,
+        "recall": 1.0,
+        "f1": 0.8421,
+        "support": 8,
+        "predicted": 11
+      },
+      "문화": {
+        "precision": 0.3125,
+        "recall": 0.7143,
+        "f1": 0.4348,
+        "support": 7,
+        "predicted": 16
+      },
+      "불교": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "support": 0,
+        "predicted": 1
+      },
+      "해안": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "support": 2,
+        "predicted": 1
+      },
+      "야외 활동": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "support": 0,
+        "predicted": 0
+      },
+      "사찰": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "support": 0,
+        "predicted": 1
+      },
+      "도시": {
+        "precision": 0.3333,
+        "recall": 0.75,
+        "f1": 0.4615,
+        "support": 4,
+        "predicted": 9
+      },
+      "사원": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 1,
+        "predicted": 1
+      },
+      "기념물": {
+        "precision": 1.0,
+        "recall": 0.5,
+        "f1": 0.6667,
+        "support": 4,
+        "predicted": 2
+      },
+      "섬": {
+        "precision": 0.96,
+        "recall": 1.0,
+        "f1": 0.9796,
+        "support": 24,
+        "predicted": 25
+      },
+      "강": {
+        "precision": 0.8182,
+        "recall": 0.8182,
+        "f1": 0.8182,
+        "support": 11,
+        "predicted": 11
+      },
+      "스포츠": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 13,
+        "predicted": 13
+      },
+      "랜드마크": {
+        "precision": 0.7778,
+        "recall": 0.7,
+        "f1": 0.7368,
+        "support": 10,
+        "predicted": 9
+      },
+      "유네스코": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "support": 6,
+        "predicted": 2
+      },
+      "박물관": {
+        "precision": 0.8,
+        "recall": 0.6154,
+        "f1": 0.6957,
+        "support": 13,
+        "predicted": 10
+      }
+    },
+    "worst_false_positive_keywords": [
+      {
+        "keyword": "역사",
+        "fp": 12,
+        "tp": 27
+      },
+      {
+        "keyword": "문화",
+        "fp": 11,
+        "tp": 5
+      },
+      {
+        "keyword": "경치",
+        "fp": 9,
+        "tp": 14
+      },
+      {
+        "keyword": "역사적 건축",
+        "fp": 7,
+        "tp": 10
+      },
+      {
+        "keyword": "역사적인 장소",
+        "fp": 7,
+        "tp": 20
+      },
+      {
+        "keyword": "도시",
+        "fp": 6,
+        "tp": 3
+      },
+      {
+        "keyword": "자연",
+        "fp": 6,
+        "tp": 35
+      },
+      {
+        "keyword": "전통",
+        "fp": 5,
+        "tp": 0
+      },
+      {
+        "keyword": "바다",
+        "fp": 4,
+        "tp": 23
+      },
+      {
+        "keyword": "예술",
+        "fp": 3,
+        "tp": 7
+      },
+      {
+        "keyword": "유적",
+        "fp": 3,
+        "tp": 8
+      },
+      {
+        "keyword": "강",
+        "fp": 2,
+        "tp": 9
+      },
+      {
+        "keyword": "건축",
+        "fp": 2,
+        "tp": 18
+      },
+      {
+        "keyword": "고대 유적",
+        "fp": 2,
+        "tp": 5
+      },
+      {
+        "keyword": "랜드마크",
+        "fp": 2,
+        "tp": 7
+      }
+    ]
+  },
+  "test_other_threshold_mode": {
+    "mode": "per_label",
+    "micro": {
+      "precision": 0.6973,
+      "recall": 0.7406,
+      "f1": 0.7183,
+      "tp": 394,
+      "fp": 171,
+      "fn": 138
+    },
+    "macro": {
+      "precision": 0.5204,
+      "recall": 0.5411,
+      "f1": 0.5167,
+      "labels": 61
+    },
+    "samples": {
+      "items": 163,
+      "exact_match": 0.227,
+      "mean_jaccard": 0.5848,
+      "avg_gold_keywords": 3.264,
+      "avg_pred_keywords": 3.466
+    }
+  },
+  "test_new_other_threshold_mode": {
+    "mode": "per_label",
+    "micro": {
+      "precision": 0.7102,
+      "recall": 0.7531,
+      "f1": 0.731,
+      "tp": 424,
+      "fp": 173,
+      "fn": 139
+    },
+    "macro": {
+      "precision": 0.5084,
+      "recall": 0.5378,
+      "f1": 0.4978,
+      "labels": 64
+    },
+    "samples": {
+      "items": 127,
+      "exact_match": 0.2205,
+      "mean_jaccard": 0.614,
+      "avg_gold_keywords": 4.433,
+      "avg_pred_keywords": 4.701
+    }
+  },
+  "test_overseas_other_threshold_mode": {
+    "mode": "per_label",
+    "micro": {
+      "precision": 0.6893,
+      "recall": 0.7213,
+      "f1": 0.7049,
+      "tp": 264,
+      "fp": 119,
+      "fn": 102
+    },
+    "macro": {
+      "precision": 0.3591,
+      "recall": 0.4005,
+      "f1": 0.3627,
+      "labels": 59
+    },
+    "samples": {
+      "items": 120,
+      "exact_match": 0.35,
+      "mean_jaccard": 0.6507,
+      "avg_gold_keywords": 3.05,
+      "avg_pred_keywords": 3.192
+    }
+  },
+  "model_dir": "outputs/roberta-base-v3"
+}

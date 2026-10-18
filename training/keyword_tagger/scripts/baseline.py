@@ -1,19 +1,25 @@
-"""학습 전 기준선: KeywordMask 의 두 규칙을 그대로 평가한다.
+"""학습 전 기준선: KeywordMask 의 두 규칙과, 해외 여행지에 서버가 쓰는 규칙을 그대로 평가한다.
 
-규칙 (src/main/java/proj/travien/service/KeywordMask.java)
-  substring    fromDescription: description 이 비어 있으면 빈 마스크, 아니면 KEYWORDS 중 description.contains(keyword) 인 것.
-  korean_rule  fromKoreanDescription (DestinationInfo.source 가 TOUR_API 일 때 서버가 쓰는 규칙):
-               두 글자 이상 키워드는 substring 과 같고, 한 글자 키워드(산, 섬, 성, 탑, 강)는 앞이 한글 음절이 아니고
-               뒤가 비었거나 정해진 조사(은, 이, 에서, 으로 …)일 때만 인정.
-  여기서는 description 자리에 TourAPI overview 를 넣는다.
+규칙 (src/main/java/proj/travien/service/KeywordMask.java, domain/DestinationInfo.java)
+  substring      fromDescription: description 이 비어 있으면 빈 마스크, 아니면 KEYWORDS 중 description.contains(keyword) 인 것.
+  korean_rule    fromKoreanDescription (DestinationInfo.source 가 TOUR_API 일 때 서버가 쓰는 규칙):
+                 두 글자 이상 키워드는 substring 과 같고, 한 글자 키워드(산, 섬, 성, 탑, 강)는 앞이 한글 음절이 아니고
+                 뒤가 비었거나 정해진 조사(은, 이, 에서, 으로 …)일 때만 인정.
+  overseas_rule  source 가 WIKIDATA 일 때 서버가 쓰는 규칙: fromKoreanDescription(info.replace("문화어", " "))
+                 ∪ 유형 코드표(src/main/resources/wiki/type-keywords.csv)에서 category 의 QID 마다 정한 키워드.
+                 세계유산 플래그(worldHeritage)면 '유네스코' 를 더하는 부분은 추출본에 그 열이 없어 재현하지 않는다.
+                 해외(3차) 평가 집합에만 적용한다.
+  여기서는 description 자리에 TourAPI overview, 위키백과 도입부를 넣는다.
 
 평가 집합
-  test      1차 배치의 test 분할 163개 (2차 배치를 넣기 전과 같은 목록이라 숫자도 그대로)
-  test_new  2차 배치의 test 분할 (splits.json 에 있을 때만)
-  all       전체 gold (1차 + 2차). all_by_batch 에 배치별 전체 항목 지표도 남긴다 (all_by_batch["1"] 은 예전 all 과 같음)
+  test           1차 배치의 test 분할 163개 (2차 배치를 넣기 전과 같은 목록이라 숫자도 그대로)
+  test_new       2차 배치의 test 분할 (splits.json 에 있을 때만)
+  test_overseas  3차(해외) 배치의 test 분할 (splits.json 에 있을 때만)
+  all            전체 gold (1차 + 2차 + 3차). all_by_batch 에 배치별 전체 항목 지표도 남긴다 (all_by_batch["1"] 은 2차 전의 all)
+  all_domestic   국내(1차 + 2차) 전체. 3차 배치를 넣기 전의 all 과 같다 (해외 행이 있을 때만)
 
 출력
-  results/baseline.json          두 규칙의 test·test_new·전체 항목 지표, 한 글자 키워드별 전후 비교,
+  results/baseline.json          세 규칙의 평가 집합·전체 항목 지표, 한 글자 키워드별 전후 비교,
                                  substring 규칙의 오탐/누락 예시 10개 (1차 배치에서 고름, 설명문 발췌 없음, 커밋용)
   data/baseline_examples.jsonl   같은 예시 10개 + 설명문 앞뒤 발췌 (gitignore)
 실행: python3 -I scripts/baseline.py
@@ -28,18 +34,27 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from kt_common import (  # noqa: E402
     DATA_DIR,
+    GLOPLE_ROOT,
     RESULTS_DIR,
     EVAL_SPLITS,
+    SOURCE_TOUR_API,
+    SOURCE_WIKIDATA,
+    WIKI_TYPE_KEYWORDS_PATH,
+    category_qids,
     contains_standalone_word,
     evaluate_sets,
     korean_rule_predict,
     load_gold,
     load_keywords,
     load_splits,
+    load_wiki_type_table,
+    overseas_rule_predict,
     report_keywords,
     row_batch,
+    row_source,
     substring_predict,
     top_frequent_keywords,
+    top_keywords_by_split,
     write_json,
     write_jsonl,
 )
@@ -168,7 +183,13 @@ def fp_example(row, kw, pos, fp_count=None, common_words=None):
 
 
 def run(rows, keywords, top_keywords, predict=substring_predict):
-    preds = [predict(r["overview"], keywords) for r in rows]
+    """predict(overview, keywords) 규칙으로 평가. (지표, 예측) 을 돌려준다."""
+    return run_rows(rows, keywords, top_keywords, lambda r: predict(r["overview"], keywords))
+
+
+def run_rows(rows, keywords, top_keywords, row_predict):
+    """행 전체(overview + category 등)를 받는 row_predict(row) 규칙으로 평가. 해외 규칙에 쓴다."""
+    preds = [row_predict(r) for r in rows]
     metrics = evaluate_sets([r["keywords"] for r in rows], preds, keywords, top_keywords)
     return metrics, preds
 
@@ -206,8 +227,8 @@ def words_with(rows, kw, standalone_only=False):
     return [{"word": w, "count": c} for w, c in sorted(words.items(), key=lambda x: (-x[1], x[0]))[:5]]
 
 
-def single_char_effect(rows, sub_preds, kor_preds, single_chars):
-    """한 글자 키워드별 substring -> korean_rule 전후 비교.
+def single_char_effect(rows, sub_preds, kor_preds, single_chars, ovs_preds=None):
+    """한 글자 키워드별 substring -> korean_rule 전후 비교. ovs_preds 가 있으면 overseas_rule 도 함께 센다.
 
     korean_rule 로 남은 오탐 항목과 새로 생긴 누락 항목에서 그 글자를 품은 어절을 함께 남긴다.
     """
@@ -225,6 +246,8 @@ def single_char_effect(rows, sub_preds, kor_preds, single_chars):
             "korean_rule_remaining_fp_words": words_with(remaining_fp, kw, standalone_only=True),
             "korean_rule_new_fn_words": words_with(new_fn, kw),
         }
+        if ovs_preds is not None:
+            out[kw]["overseas_rule"] = keyword_counts(rows, ovs_preds, kw)
     return out
 
 
@@ -233,30 +256,39 @@ def main():
     gold = load_gold()
     splits = load_splits()
     by_id = {g["id"]: g for g in gold}
-    top = top_frequent_keywords(gold, keywords)
+    # 자주 나오는 키워드 표: test·test_new 는 국내(1·2차) 기준(3차를 넣기 전의 top_keywords 와 같음), test_overseas 는 해외 기준
+    top_by_split = top_keywords_by_split(gold, keywords)
+    top = top_by_split["test"]
     batch_ids = sorted({row_batch(g) for g in gold})
     gold_batch = {b: [g for g in gold if row_batch(g) == b] for b in batch_ids}
     top_batch1 = top_frequent_keywords(gold_batch[1], keywords)
-    # per_keyword 는 전체 상위 15개 + 1차 상위 15개 중 빠진 것까지 남긴다 (예전 test 숫자를 그대로 비교할 수 있게)
+    domestic = [g for g in gold if row_source(g) == SOURCE_TOUR_API]
+    overseas = [g for g in gold if row_source(g) == SOURCE_WIKIDATA]
+    # per_keyword 는 국내 상위 15개 + 1차 상위 15개 중 빠진 것 + 해외·전체 상위 15개 중 빠진 것까지 남긴다
+    # (예전 test·test_new 숫자를 그대로 비교할 수 있게)
     reported = report_keywords(gold, keywords)
 
     single_chars = [k for k in keywords if len(k) == 1]
     eval_splits = [name for name in EVAL_SPLITS if name in splits]
     split_rows = {name: [by_id[i] for i in splits[name]] for name in eval_splits}
+    all_names = ["all"] + (["all_domestic"] if overseas else [])
 
     def evaluate_all(predict):
-        """평가 집합(test, test_new), 전체, 배치별 전체에 같은 규칙을 적용한다. (지표, 예측) 을 돌려준다."""
+        """평가 집합(test, test_new, test_overseas), 전체, 국내 전체, 배치별 전체에 같은 규칙을 적용한다. (지표, 예측) 을 돌려준다."""
         out = {name: run(rows, keywords, reported, predict) for name, rows in split_rows.items()}
         out["all"] = run(gold, keywords, reported, predict)
+        if overseas:
+            out["all_domestic"] = run(domestic, keywords, reported, predict)
         out["all_by_batch"] = {b: run(gold_batch[b], keywords, reported, predict) for b in batch_ids}
         return out
 
     sub = evaluate_all(substring_predict)
     kor = evaluate_all(korean_rule_predict)
 
-    def metrics_only(res):
-        out = {name: res[name][0] for name in eval_splits + ["all"]}
-        out["all_by_batch"] = {str(b): res["all_by_batch"][b][0] for b in batch_ids}
+    def metrics_only(res, names=None):
+        names = eval_splits + all_names if names is None else names
+        out = {name: res[name][0] for name in names}
+        out["all_by_batch"] = {str(b): m[0] for b, m in res["all_by_batch"].items()}
         return out
 
     # 참고용: 모델 입력과 같은 "title + overview" 에 같은 규칙을 적용했을 때
@@ -273,19 +305,24 @@ def main():
         "eval_sets": {
             "test": "1차 배치 test 분할 (2차 배치를 넣기 전과 같은 목록)",
             "test_new": "2차 배치 test 분할 (여러 지역, 1차와 따로 평가)",
-            "all": "전체 gold (1차 + 2차)",
+            "test_overseas": "3차 배치 test 분할 (해외, 한국어 위키백과 도입부, 국내와 따로 평가)",
+            "all": "전체 gold (1차 + 2차 + 3차)",
+            "all_domestic": "국내 전체 (1차 + 2차, 3차 배치를 넣기 전의 all 과 같음)",
             "all_by_batch": "배치별 전체 항목 (\"1\" 은 2차 배치를 넣기 전의 all 과 같음)",
         },
         "items": {**{name: len(rows) for name, rows in split_rows.items()}, "all": len(gold),
+                  **({"all_domestic": len(domestic)} if overseas else {}),
                   **{f"batch{b}": len(gold_batch[b]) for b in batch_ids}},
+        # top_keywords 는 국내(1·2차) 기준이라 3차를 넣기 전과 같다. 평가 집합별 목록은 top_keywords_by_split
         "top_keywords": top,
         "top_keywords_batch1": top_batch1,
+        **({"top_keywords_overseas": top_by_split["test_overseas"],
+            "top_keywords_all": top_frequent_keywords(gold, keywords)} if overseas else {}),
+        "top_keywords_by_split": {name: top_by_split[name] for name in eval_splits if name in top_by_split},
         "per_keyword_keywords": reported,
         **metrics_only(sub),
-        "reference_title_plus_overview_test": title_variant(split_rows["test"]),
+        **{f"reference_title_plus_overview_{name}": title_variant(split_rows[name]) for name in eval_splits},
     }
-    if "test_new" in split_rows:
-        result["reference_title_plus_overview_test_new"] = title_variant(split_rows["test_new"])
     # 오탐/누락 예시는 README 표와 맞도록 1차 배치에서만 고른다 (2차 배치를 넣기 전과 같은 예시)
     examples = pick_examples(gold_batch[1], sub["all_by_batch"][1][1], keywords)
     result["examples_scope"] = "1차 배치 전체 항목"
@@ -300,31 +337,91 @@ def main():
         **metrics_only(kor),
     }
 
-    def effect(rows, sub_res, kor_res):
-        return single_char_effect(rows, sub_res[1], kor_res[1], single_chars)
+    # 해외 규칙: 해외 행만 있는 평가 집합(test_overseas)과 배치(3차)에만 적용한다
+    ovs_splits = [name for name in eval_splits
+                  if split_rows[name] and all(row_source(r) == SOURCE_WIKIDATA for r in split_rows[name])]
+    ovs_batches = [b for b in batch_ids if all(row_source(r) == SOURCE_WIKIDATA for r in gold_batch[b])]
+    ovs = None
+    if overseas and not WIKI_TYPE_KEYWORDS_PATH.exists():
+        print(f"[건너뜀] 해외 규칙: 유형 코드표 {WIKI_TYPE_KEYWORDS_PATH} 가 없습니다")
+    elif overseas and any("category" not in r for r in overseas):
+        print("[건너뜀] 해외 규칙: data/gold.jsonl 해외 행에 category 가 없습니다. scripts/prepare_data.py 를 다시 돌리세요")
+    elif overseas:
+        type_table = load_wiki_type_table(keywords)
+
+        def overseas_rule(r):
+            return overseas_rule_predict(r["overview"], r.get("category"), keywords, type_table)
+
+        def text_only(r):
+            return korean_rule_predict(r["overview"].replace("문화어", " "), keywords)
+
+        def type_only(r):
+            return overseas_rule_predict("", r.get("category"), keywords, type_table)
+
+        ovs = {name: run_rows(split_rows[name], keywords, reported, overseas_rule) for name in ovs_splits}
+        ovs["all_by_batch"] = {b: run_rows(gold_batch[b], keywords, reported, overseas_rule) for b in ovs_batches}
+
+        def components(rows):
+            return {part: {k: run_rows(rows, keywords, (), fn)[0][k] for k in ("micro", "macro", "samples")}
+                    for part, fn in (("text_only", text_only), ("type_only", type_only))}
+
+        result["overseas_rule"] = {
+            "name": "baseline_overseas_rule",
+            "description": "DestinationInfo.computeKeywordMask 의 WIKIDATA 분기 (서버가 해외 여행지에 지금 쓰는 규칙) "
+                           "중 세계유산 플래그를 뺀 것. 해외(3차) 평가 집합에만 적용",
+            "rule": "korean_rule(overview.replace('문화어', ' ')) ∪ 유형 코드표에서 category('|' 로 이은 P31 QID)의 "
+                    "QID 마다 정한 키워드. 코드표에 없는 QID 는 건너뜀",
+            "type_table": f"{WIKI_TYPE_KEYWORDS_PATH.relative_to(GLOPLE_ROOT)} (유형 {len(type_table)}개)",
+            "not_reproduced": "worldHeritage(P1435 = Q9259) 이면 '유네스코' 를 더하는 부분. data/db_descriptions.jsonl 에 "
+                              "이 열이 없다. category 에 Q9259(유네스코 세계유산 유형)가 있는 항목은 코드표로 '유네스코' 가 붙는다",
+            "items_without_category": {**{name: sum(1 for r in split_rows[name] if not category_qids(r.get("category")))
+                                          for name in ovs_splits},
+                                       **{f"batch{b}": sum(1 for r in gold_batch[b] if not category_qids(r.get("category")))
+                                          for b in ovs_batches}},
+            "items_with_munhwaeo": {**{name: sum(1 for r in split_rows[name] if "문화어" in r["overview"])
+                                       for name in ovs_splits},
+                                    **{f"batch{b}": sum(1 for r in gold_batch[b] if "문화어" in r["overview"])
+                                       for b in ovs_batches}},
+            **metrics_only(ovs, ovs_splits),
+            "components": {
+                "description": "text_only = korean_rule(overview.replace('문화어', ' ')), type_only = 유형 코드표 키워드만",
+                **{name: components(split_rows[name]) for name in ovs_splits},
+                **{f"batch{b}": components(gold_batch[b]) for b in ovs_batches},
+            },
+        }
+
+    def effect(rows, sub_res, kor_res, ovs_res=None):
+        return single_char_effect(rows, sub_res[1], kor_res[1], single_chars, ovs_res[1] if ovs_res else None)
 
     result["single_char_keyword_effect"] = {
-        "description": "한 글자 키워드별 substring(fromDescription) -> korean_rule(fromKoreanDescription) 전후 비교",
-        **{name: effect(split_rows[name], sub[name], kor[name]) for name in eval_splits},
-        "all": effect(gold, sub["all"], kor["all"]),
-        "all_by_batch": {str(b): effect(gold_batch[b], sub["all_by_batch"][b], kor["all_by_batch"][b])
+        "description": "한 글자 키워드별 substring(fromDescription) -> korean_rule(fromKoreanDescription) 전후 비교. "
+                       "해외 평가 집합에는 overseas_rule 도 있음",
+        **{name: effect(split_rows[name], sub[name], kor[name], ovs.get(name) if ovs else None) for name in eval_splits},
+        **{name: effect(gold if name == "all" else domestic, sub[name], kor[name]) for name in all_names},
+        "all_by_batch": {str(b): effect(gold_batch[b], sub["all_by_batch"][b], kor["all_by_batch"][b],
+                                        ovs["all_by_batch"].get(b) if ovs else None)
                          for b in batch_ids},
     }
     write_json(RESULTS_DIR / "baseline.json", result)
     write_jsonl(DATA_DIR / "baseline_examples.jsonl", examples)
 
-    names = eval_splits + ["all"]
-    for rule, res in (("substring", result), ("korean_rule", result["korean_rule"])):
-        for name, m in [(n, res[n]) for n in names] + [(f"batch{b}", m) for b, m in res["all_by_batch"].items()]:
+    names = eval_splits + all_names
+    rules = [("substring", result, names), ("korean_rule", result["korean_rule"], names)]
+    if "overseas_rule" in result:
+        rules.append(("overseas_rule", result["overseas_rule"], ovs_splits))
+    for rule, res, rule_names in rules:
+        for name, m in [(n, res[n]) for n in rule_names] + [(f"batch{b}", m) for b, m in res["all_by_batch"].items()]:
             print(f"[{rule}/{name}] items {m['samples']['items']}  micro P {m['micro']['precision']:.3f} "
                   f"R {m['micro']['recall']:.3f} F1 {m['micro']['f1']:.3f} | macro F1 {m['macro']['f1']:.3f} "
                   f"| exact {m['samples']['exact_match']:.3f}")
-    print("한 글자 키워드 (substring -> korean_rule):")
+    print("한 글자 키워드 (substring -> korean_rule [-> overseas_rule]):")
     for name in names:
         for kw, e in result["single_char_keyword_effect"][name].items():
             a, b = e["substring"], e["korean_rule"]
+            c = e.get("overseas_rule")
+            extra = f"  | 해외 규칙 P {c['precision']:.3f} R {c['recall']:.3f} 예측 {c['predicted']}" if c else ""
             print(f"  [{name}] {kw} 정답 {e['support']:>3}  P {a['precision']:.3f} -> {b['precision']:.3f}  "
-                  f"R {a['recall']:.3f} -> {b['recall']:.3f}  예측 {a['predicted']} -> {b['predicted']}")
+                  f"R {a['recall']:.3f} -> {b['recall']:.3f}  예측 {a['predicted']} -> {b['predicted']}{extra}")
     print("예시:")
     for e in examples:
         if e["type"] == "false_positive":

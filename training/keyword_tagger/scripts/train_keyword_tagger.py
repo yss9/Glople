@@ -3,16 +3,16 @@
 - 입력: title 과 overview 를 문장 쌍으로 넣고 512 토큰으로 자른다.
 - 출력: 키워드마다 시그모이드 확률 (problem_type=multi_label_classification, BCE 손실).
 - 학습 예시가 0개인 키워드는 라벨 공간에서 빼고 결과에 기록한다 (평가 때는 항상 '없음'으로 예측).
-- 임계값은 valid(1차 + 2차 배치)에서 고른다: 전역 1개(기본) + 키워드별(valid 양성이 충분할 때만, 아니면 전역으로 대체).
-- 고른 임계값으로 test(1차 배치, 예전과 같은 163개)와 test_new(2차 배치, splits.json 에 있을 때)를 따로 평가한다.
-  지표 함수는 기준선(scripts/baseline.py)과 같다.
+- 임계값은 valid(1차 + 2차 + 3차 배치)에서 고른다: 전역 1개(기본) + 키워드별(valid 양성이 충분할 때만, 아니면 전역으로 대체).
+- 고른 임계값으로 test(1차 배치, 예전과 같은 163개), test_new(2차 배치), test_overseas(3차 해외 배치)를 따로 평가한다.
+  test_new·test_overseas 는 splits.json 에 있을 때만. 지표 함수는 기준선(scripts/baseline.py)과 같다.
 
-결과: results/<run_name>.json (test 키는 예전 형식 그대로, test_new 키를 더함), 모델: outputs/<run_name>/ (gitignore)
+결과: results/<run_name>.json (test·test_new 키는 예전 형식 그대로, test_overseas 키를 더함), 모델: outputs/<run_name>/ (gitignore)
 
 예) 스모크 테스트 (CPU)
   .venv/bin/python scripts/train_keyword_tagger.py --device cpu --model klue/roberta-small --max-steps 5 --run-name smoke
-예) 본 학습 (Apple GPU, 2차 배치 포함)
-  .venv/bin/python scripts/train_keyword_tagger.py --device mps --run-name roberta-base-v2
+예) 본 학습 (Apple GPU, 3차 해외 배치 포함)
+  .venv/bin/python scripts/train_keyword_tagger.py --device mps --run-name roberta-base-v3
 """
 from __future__ import annotations
 
@@ -40,7 +40,7 @@ from kt_common import (  # noqa: E402
     load_splits,
     report_keywords,
     row_batch,
-    top_frequent_keywords,
+    top_keywords_by_split,
     write_json,
     write_jsonl,
 )
@@ -183,8 +183,10 @@ def main():
     by_id = {g["id"]: g for g in gold}
     rows = {name: [by_id[i] for i in ids] for name, ids in splits.items()}
     eval_splits = [name for name in EVAL_SPLITS if name in rows]
-    top_keywords = top_frequent_keywords(gold, keywords)
-    # per_keyword 는 상위 15개 + 1차 배치 상위 15개 중 빠진 것까지 (기준선 baseline.json 과 같은 목록)
+    # top_keywords 는 국내(1·2차) 기준 상위 15개(3차를 넣기 전과 같음). test_overseas 는 해외 기준 목록을 따로 남긴다
+    top_by_split = top_keywords_by_split(gold, keywords)
+    top_keywords = top_by_split["test"]
+    # per_keyword 는 국내 상위 15개 + 1차·해외·전체 상위 15개 중 빠진 것까지 (기준선 baseline.json 과 같은 목록)
     reported_keywords = report_keywords(gold, keywords)
     print("[분할] " + ", ".join(f"{name} {len(r)}" for name, r in rows.items()))
 
@@ -357,7 +359,8 @@ def main():
             "max_length": args.max_length,
             "input": "tokenizer(title, overview, truncation=True) 의 input_ids + attention_mask (token_type_ids 는 넣지 않음)",
         })
-        # compare.py 가 키워드별 지표를 다시 계산할 때 읽는다: test_predictions.jsonl, test_new_predictions.jsonl
+        # compare.py 가 키워드별 지표를 다시 계산할 때 읽는다: test_predictions.jsonl, test_new_predictions.jsonl,
+        # test_overseas_predictions.jsonl
         for name in eval_splits:
             pred_sets = to_keyword_sets(probs[name], selected_thr, label_space)
             write_jsonl(out_dir / f"{name}_predictions.jsonl", (
@@ -389,9 +392,10 @@ def main():
             "min_valid_pos": args.min_valid_pos,
         },
         "top_keywords": top_keywords,
+        "top_keywords_by_split": {name: top_by_split[name] for name in eval_splits if name in top_by_split},
         "eval_splits": eval_splits,
         "valid": results_by_mode[selected]["valid"],
-        # test 는 1차 배치 163개 (예전 결과 파일과 같은 키), test_new 는 2차 배치 (있을 때만)
+        # test 는 1차 배치 163개 (예전 결과 파일과 같은 키), test_new 는 2차 배치, test_overseas 는 3차 해외 배치 (있을 때만)
         **{name: results_by_mode[selected][name] for name in eval_splits},
         **{f"{name}_other_threshold_mode": {
             "mode": other, **{k: results_by_mode[other][name][k] for k in ("micro", "macro", "samples")}}

@@ -1,18 +1,23 @@
-"""라벨 검증·병합, 교차 라벨 일치도, train/valid/test(/test_new) 분할을 한 번에 만든다.
+"""라벨 검증·병합, 교차 라벨 일치도, train/valid/test(/test_new/test_overseas) 분할을 한 번에 만든다.
 
 배치
   1차  data/descriptions.jsonl (Neoulteo DB 덤프의 TourAPI overview) + data/labels/part_*.jsonl, data/labels/cross_check.jsonl
   2차  data/db_descriptions.jsonl (로컬 DB 에서 꺼낸 TourAPI 설명문, source=TOUR_API) + data/labels_v2/part_*.jsonl,
        data/labels_v2/cross_check.jsonl. data/chunks_v2/all_new.jsonl(라벨러에게 준 설명문)이 있으면 id·본문을 대조한다.
        data/labels_v2/ 가 없으면 1차만으로 예전과 같은 결과를 만든다.
+  3차  같은 data/db_descriptions.jsonl 의 해외 설명문(source=WIKIDATA, 한국어 위키백과 도입부, CC BY-SA 4.0)
+       + data/labels_v3/part_*.jsonl, data/labels_v3/cross_check.jsonl. data/chunks_v3/all_new.jsonl 이 있으면
+       id·본문(+국가·위치·유형)을 대조한다. data/labels_v3/ 가 없으면 1·2차만으로 예전과 같은 결과를 만든다.
+  id 는 배치·출처를 통틀어 문자열로 유일해야 한다(국내는 숫자 contentid, 해외는 QID). 겹치면 멈춘다.
 출력
-  labels/gold_labels.jsonl      {"id","keywords"} 만 (설명문 없음, 커밋용). 1차 행 뒤에 2차 행을 붙인다
-  labels/batches.json           배치별 출처·라벨 파일·id 목록 (gold_labels.jsonl 의 각 id 가 몇 차인지)
-  data/gold.jsonl               id/title/overview/keywords/batch (학습용, gitignore)
-  labels/splits.json            배치마다 seed 13, 70/15/15. 1차 train/valid/test 는 그대로 두고
-                                2차의 70%·15% 를 train·valid 뒤에 붙이며 2차의 15% 는 test_new 로 따로 둔다
+  labels/gold_labels.jsonl      {"id","keywords"} 만 (설명문 없음, 커밋용). 1차 행 뒤에 2차, 3차 행을 차례로 붙인다
+  labels/batches.json           배치별 출처(source)·라벨 파일·id 목록 (gold_labels.jsonl 의 각 id 가 몇 차인지)
+  data/gold.jsonl               id/title/overview/keywords/batch/source (+3차는 category 등) (학습용, gitignore)
+  labels/splits.json            배치마다 seed 13, 70/15/15. 1차 train/valid/test, 2차 train/valid/test_new 는 그대로 두고
+                                3차의 70%·15% 를 train·valid 뒤에 붙이며 3차의 15% 는 test_overseas 로 따로 둔다
   results/agreement.json        1차 교차 라벨 vs 기본 라벨 일치도
   results/agreement_batch2.json 2차 교차 라벨 vs 기본 라벨 일치도
+  results/agreement_batch3.json 3차 교차 라벨 vs 기본 라벨 일치도
   results/label_stats.json      분할별 키워드 빈도
 
 실행: python3 -I scripts/prepare_data.py
@@ -22,6 +27,7 @@ from __future__ import annotations
 import json
 import os
 import random
+import re
 import sys
 from collections import Counter
 from pathlib import Path
@@ -30,35 +36,47 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from kt_common import (  # noqa: E402
     BATCH2_MANIFEST_PATH,
+    BATCH3_MANIFEST_PATH,
     BATCHES_PATH,
     CROSS_CHECK_PATH,
     CROSS_CHECK_V2_PATH,
+    CROSS_CHECK_V3_PATH,
     DB_DESCRIPTIONS_PATH,
     DESCRIPTIONS_PATH,
     GOLD_LABELS_PATH,
     GOLD_PATH,
     RAW_LABELS_DIR,
     RAW_LABELS_V2_DIR,
+    RAW_LABELS_V3_DIR,
     RESULTS_DIR,
     ROOT,
+    SOURCE_TOUR_API,
+    SOURCE_WIKIDATA,
     SPLIT_NAMES,
     SPLIT_SEED,
     SPLITS_PATH,
+    WIKI_QID_PATTERN,
+    WIKI_TYPE_KEYWORDS_PATH,
+    category_qids,
     evaluate_sets,
     jaccard,
     keyword_order,
     load_batches,
     load_keywords,
+    load_wiki_type_table,
     read_jsonl,
     write_json,
     write_jsonl,
 )
 
 MIN_TRAIN_EXAMPLES = 5
+# 출처별 id 형식. 국내 contentid 는 숫자, 해외는 위키데이터 QID 라서 문자열로도 겹칠 수 없다 (그래도 겹침은 따로 검사한다).
+ID_PATTERNS = {SOURCE_TOUR_API: re.compile(r"[0-9]+"), SOURCE_WIKIDATA: WIKI_QID_PATTERN}
 
 # 배치별 출처. labels/batches.json 에 그대로 기록된다 (경로는 keyword_tagger 기준 상대경로).
 BATCH_INFO = {
     1: {
+        "source": SOURCE_TOUR_API,
         "text_source": "data/descriptions.jsonl",
         "text_origin": "한국관광공사 TourAPI 관광정보 overview, Neoulteo 프로젝트 DB 덤프",
         "labels": "data/labels/part_*.jsonl",
@@ -67,6 +85,7 @@ BATCH_INFO = {
         "agreement": "results/agreement.json",
     },
     2: {
+        "source": SOURCE_TOUR_API,
         "text_source": "data/db_descriptions.jsonl (source=TOUR_API, 1차에 없는 id)",
         "text_origin": "로컬 DB destination_info 에 수집된 TourAPI 설명문 (scripts/export_from_db.py)",
         "collected": "2026-10-17",
@@ -75,7 +94,28 @@ BATCH_INFO = {
         "labeler": "AI 라벨러(Claude), 1차와 같은 키워드 라벨링 가이드",
         "agreement": "results/agreement_batch2.json",
     },
+    3: {
+        "source": SOURCE_WIKIDATA,
+        "region": "해외",
+        "text_source": "data/db_descriptions.jsonl (source=WIKIDATA, 1·2차에 없는 id)",
+        "text_origin": "로컬 DB destination_info 에 수집된 위키데이터 해외 여행지의 한국어 위키백과 도입부 "
+                       "(scripts/export_from_db.py, 2차와 같은 추출본)",
+        "text_license": "CC BY-SA 4.0 (한국어 위키백과 본문), CC0 (Wikidata 항목·유형)",
+        "exported": "2026-10-17",
+        "labeled": "2026-10-18",
+        "labels": "data/labels_v3/part_*.jsonl",
+        "cross_check": "data/labels_v3/cross_check.jsonl (라벨 파일 순서로 10번째마다 1개, 80개)",
+        "labeler": "AI 라벨러(Claude), 1·2차와 같은 키워드 라벨링 가이드",
+        "agreement": "results/agreement_batch3.json",
+    },
 }
+# DB 추출본에서 설명문과 함께 gold.jsonl 에 옮겨 둘 필드 (배치별)
+EXTRA_FIELDS = {
+    2: ("content_type_id", "location", "copyright_type"),
+    3: ("country", "country_code", "location", "category", "license"),
+}
+# 라벨러에게 준 설명문(all_new.jsonl)과 DB 추출본을 대조할 때, 본문 외에 같아야 하는 필드 (다르면 경고만)
+MANIFEST_META_FIELDS = {2: (), 3: ("country", "country_code", "location", "category")}
 
 
 def rel(path: Path) -> str:
@@ -127,55 +167,86 @@ def batch1_descriptions(problems):
     return descriptions
 
 
-def batch2_descriptions(primary, batch1_ids, problems):
-    """2차 설명문: db_descriptions.jsonl 의 TourAPI 행 중 2차 라벨이 있는 것 (라벨 파일 순서).
-
-    라벨러에게 준 data/chunks_v2/all_new.jsonl 이 있으면 id 집합과 title/overview 가 DB 와 같은지 본다.
-    본문이 다르면(DB 를 다시 꺼내 설명문이 바뀐 경우) 라벨과 본문이 어긋나므로 멈춘다.
-    """
+def load_db_by_source(problems):
+    """data/db_descriptions.jsonl -> {source: {id: row}}. 같은 출처 안의 중복 id 는 problems 에 쌓는다."""
     if not DB_DESCRIPTIONS_PATH.exists():
         raise SystemExit(f"{DB_DESCRIPTIONS_PATH} 가 없습니다. scripts/export_from_db.py 로 먼저 꺼내세요.")
     db = {}
     for row in read_jsonl(DB_DESCRIPTIONS_PATH):
-        if row.get("source") != "TOUR_API":
-            continue
+        source = row.get("source")
         rid = str(row["id"])
-        if rid in db:
-            problems.append(f"[2차] db_descriptions.jsonl 에 TOUR_API 중복 id: {rid}")
-        db[rid] = row
+        rows = db.setdefault(source, {})
+        if rid in rows:
+            problems.append(f"db_descriptions.jsonl 에 {source} 중복 id: {rid}")
+        rows[rid] = row
+    return db
 
+
+def db_batch_descriptions(batch, source, primary, db, earlier_ids, manifest_path, problems):
+    """2차·3차 설명문: db_descriptions.jsonl 에서 source 가 같은 행 중 그 배치 라벨이 있는 것 (라벨 파일 순서).
+
+    - id 가 그 출처의 DB 추출본에 있는지, 출처의 id 형식(국내 숫자, 해외 QID)인지, 앞 배치와 겹치지 않는지 본다.
+    - 다른 출처의 DB id 와 문자열로 같은 id 가 있으면 멈춘다 (gold·분할은 id 문자열로만 찾으므로 (source, id) 로 나눠야 함).
+    - 라벨러에게 준 manifest_path(all_new.jsonl)가 있으면 id 집합과 title/overview 가 DB 와 같은지 본다.
+      본문이 다르면(DB 를 다시 꺼내 설명문이 바뀐 경우) 라벨과 본문이 어긋나므로 멈춘다.
+    """
+    tag = f"[{batch}차]"
+    rows_db = db.get(source, {})
     ids = list(primary)
-    not_in_db = [i for i in ids if i not in db]
+    not_in_db = [i for i in ids if i not in rows_db]
     if not_in_db:
-        problems.append(f"[2차] db_descriptions.jsonl(TOUR_API)에 없는 라벨 id {len(not_in_db)}개: {not_in_db[:10]}")
-    overlap = [i for i in ids if i in batch1_ids]
+        problems.append(f"{tag} db_descriptions.jsonl({source})에 없는 라벨 id {len(not_in_db)}개: {not_in_db[:10]}")
+    bad_format = [i for i in ids if not ID_PATTERNS[source].fullmatch(i)]
+    if bad_format:
+        problems.append(f"{tag} {source} id 형식이 아닌 id {len(bad_format)}개: {bad_format[:10]}")
+    overlap = [i for i in ids if i in earlier_ids]
     if overlap:
-        problems.append(f"[2차] 1차와 겹치는 id {len(overlap)}개: {overlap[:10]}")
-    blank = [i for i in ids if i in db and not (db[i].get("overview") or "").strip()]
+        names = "·".join(str(b) for b in range(1, batch))
+        problems.append(f"{tag} {names}차와 겹치는 id {len(overlap)}개: {overlap[:10]}")
+    other_ids = {i for s, rows in db.items() if s != source for i in rows}
+    collide = [i for i in ids if i in other_ids]
+    if collide:
+        problems.append(f"{tag} 다른 출처의 DB id 와 문자열이 같은 id {len(collide)}개: {collide[:10]} "
+                        "(id 를 (source, id) 로 나눠야 합니다)")
+    blank = [i for i in ids if i in rows_db and not (rows_db[i].get("overview") or "").strip()]
     if blank:
-        problems.append(f"[2차] 설명문이 빈 id {len(blank)}개: {blank[:10]}")
+        problems.append(f"{tag} 설명문이 빈 id {len(blank)}개: {blank[:10]}")
 
     manifest_check = None
-    if BATCH2_MANIFEST_PATH.exists():
-        manifest = read_jsonl(BATCH2_MANIFEST_PATH)
+    if manifest_path.exists():
+        manifest = read_jsonl(manifest_path)
         m_ids = [str(r["id"]) for r in manifest]
-        check_coverage("2차 all_new.jsonl", m_ids, primary, problems)
-        changed = [str(r["id"]) for r in manifest
-                   if str(r["id"]) in db and (db[str(r["id"])]["title"], db[str(r["id"])]["overview"])
-                   != (r["title"], r["overview"])]
+        check_coverage(f"{batch}차 {manifest_path.name}", m_ids, primary, problems)
+        changed = [i for i, r in zip(m_ids, manifest)
+                   if i in rows_db and (rows_db[i]["title"], rows_db[i]["overview"]) != (r["title"], r["overview"])]
         if changed:
-            problems.append(f"[2차] 라벨러에게 준 본문과 DB 본문이 다른 id {len(changed)}개: {changed[:10]}")
-        manifest_check = {"path": rel(BATCH2_MANIFEST_PATH), "items": len(manifest), "text_mismatch": len(changed)}
+            problems.append(f"{tag} 라벨러에게 준 본문과 DB 본문이 다른 id {len(changed)}개: {changed[:10]}")
+        manifest_check = {"path": rel(manifest_path), "items": len(manifest), "text_mismatch": len(changed)}
+        meta_fields = MANIFEST_META_FIELDS.get(batch, ())
+        if meta_fields:
+            meta_changed = [i for i, r in zip(m_ids, manifest)
+                            if i in rows_db and any(rows_db[i].get(f) != r.get(f) for f in meta_fields)]
+            if meta_changed:
+                print(f"[경고] {tag} 라벨러에게 준 {'/'.join(meta_fields)} 와 DB 값이 다른 id {len(meta_changed)}개: "
+                      f"{meta_changed[:10]} (본문은 같으므로 계속합니다)")
+            manifest_check["compared_fields"] = ["title", "overview", *meta_fields]
+            manifest_check["meta_mismatch"] = len(meta_changed)
 
+    id_check = {
+        "id_format": ID_PATTERNS[source].pattern,
+        "bad_format": len(bad_format),
+        "overlap_with_earlier_batches": len(overlap),
+        "same_string_as_other_source_db_ids": len(collide),
+        "other_source_db_ids_checked": len(other_ids),
+    }
     rows = []
     for i in ids:
-        if i not in db:
+        if i not in rows_db:
             continue
-        d = db[i]
-        rows.append({"id": i, "title": d["title"], "overview": d["overview"],
-                     "content_type_id": d.get("content_type_id"), "location": d.get("location"),
-                     "copyright_type": d.get("copyright_type")})
-    return rows, manifest_check
+        d = rows_db[i]
+        rows.append({"id": i, "title": d["title"], "overview": d["overview"], "source": source,
+                     **{k: d.get(k) for k in EXTRA_FIELDS[batch]}})
+    return rows, manifest_check, id_check
 
 
 def gold_summary(gold, keywords, part_files):
@@ -190,8 +261,21 @@ def gold_summary(gold, keywords, part_files):
     }
 
 
+def has_labels(labels_dir):
+    return labels_dir.exists() and any(labels_dir.glob("part_*.jsonl"))
+
+
+def type_counts(gold3, keywords):
+    """3차 항목의 위키데이터 유형(category QID) 빈도 상위 10개. 서버 유형 코드표가 있으면 한국어 유형명을 붙인다."""
+    labels = {}
+    if WIKI_TYPE_KEYWORDS_PATH.exists():
+        labels = {q: t["ko_label"] or t["en_label"] for q, t in load_wiki_type_table(keywords).items()}
+    counts = Counter(q for g in gold3 for q in category_qids(g.get("category")))
+    return {(f"{q} ({labels[q]})" if q in labels else q): n for q, n in counts.most_common(10)}
+
+
 def validate_and_merge(keywords):
-    """두 배치를 검증한 뒤 gold 로 합친다. 문제가 하나라도 있으면 아무것도 쓰지 않고 멈춘다."""
+    """배치(1차, 있으면 2차·3차)를 검증한 뒤 gold 로 합친다. 문제가 하나라도 있으면 아무것도 쓰지 않고 멈춘다."""
     order = keyword_order(keywords)
     problems = []
 
@@ -199,55 +283,92 @@ def validate_and_merge(keywords):
     primary1, parts1 = load_primary(RAW_LABELS_DIR, order, problems)
     check_coverage("1차", [d["id"] for d in desc1], primary1, problems)
 
-    has_batch2 = RAW_LABELS_V2_DIR.exists() and any(RAW_LABELS_V2_DIR.glob("part_*.jsonl"))
-    desc2, parts2, manifest_check, primary2 = [], [], None, {}
-    if has_batch2:
-        primary2, parts2 = load_primary(RAW_LABELS_V2_DIR, order, problems)
-        desc2, manifest_check = batch2_descriptions(primary2, {d["id"] for d in desc1}, problems)
+    later = {2: (RAW_LABELS_V2_DIR, SOURCE_TOUR_API, BATCH2_MANIFEST_PATH),
+             3: (RAW_LABELS_V3_DIR, SOURCE_WIKIDATA, BATCH3_MANIFEST_PATH)}
+    primary = {1: primary1}
+    parts = {1: parts1}
+    descs = {1: desc1}
+    manifest_checks, id_checks = {}, {}
+    earlier_ids = {d["id"] for d in desc1}
+    db = None
+    for batch, (labels_dir, source, manifest_path) in later.items():
+        if not has_labels(labels_dir):
+            continue
+        if db is None:
+            db = load_db_by_source(problems)
+        primary[batch], parts[batch] = load_primary(labels_dir, order, problems)
+        descs[batch], manifest_checks[batch], id_checks[batch] = db_batch_descriptions(
+            batch, source, primary[batch], db, earlier_ids, manifest_path, problems)
+        earlier_ids |= set(primary[batch])
     if problems:
         raise SystemExit("라벨 검증 실패:\n  " + "\n  ".join(problems))
 
-    def merged(batch, descriptions, primary):
+    def merged(batch, descriptions, prim):
         out = []
         for d in descriptions:
             row = {"id": d["id"], "title": d["title"], "overview": d["overview"],
-                   "keywords": sorted(set(primary[d["id"]]), key=order.__getitem__), "batch": batch}
+                   "keywords": sorted(set(prim[d["id"]]), key=order.__getitem__), "batch": batch,
+                   "source": BATCH_INFO[batch]["source"]}
             if batch > 1:
-                row.update({k: d.get(k) for k in ("content_type_id", "location", "copyright_type")})
+                row.update({k: d.get(k) for k in EXTRA_FIELDS[batch]})
             out.append(row)
         return out
 
-    gold1 = merged(1, desc1, primary1)
-    gold2 = merged(2, desc2, primary2)
-    gold = gold1 + gold2
+    golds = {b: merged(b, descs[b], primary[b]) for b in sorted(descs)}
+    gold = [g for b in sorted(golds) for g in golds[b]]
+    ids = [g["id"] for g in gold]
+    assert len(ids) == len(set(ids)), "배치 사이에 겹치는 id 가 있습니다"
     write_jsonl(GOLD_LABELS_PATH, ({"id": g["id"], "keywords": g["keywords"]} for g in gold))
     write_jsonl(GOLD_PATH, gold)
 
     batches = [{"batch": 1, **BATCH_INFO[1], "label_files": [p.name for p in parts1],
-                "items": len(gold1), "ids": [g["id"] for g in gold1]}]
-    if gold2:
+                "items": len(golds[1]), "ids": [g["id"] for g in golds[1]]}]
+    if golds.get(2):
+        gold2 = golds[2]
         region = Counter((g.get("location") or "").split(" ")[0] or "(없음)" for g in gold2)
         batches.append({
-            "batch": 2, **BATCH_INFO[2], "label_files": [p.name for p in parts2], "items": len(gold2),
-            "manifest_check": manifest_check,
+            "batch": 2, **BATCH_INFO[2], "label_files": [p.name for p in parts[2]], "items": len(gold2),
+            "manifest_check": manifest_checks[2],
+            "id_check": id_checks[2],
             "content_type_id": dict(Counter(str(g.get("content_type_id")) for g in gold2)),
             "copyright_type": dict(Counter(str(g.get("copyright_type")) for g in gold2)),
             "region_top10": dict(region.most_common(10)),
             "ids": [g["id"] for g in gold2],
         })
+    if golds.get(3):
+        gold3 = golds[3]
+        countries = Counter(g.get("country") or "(없음)" for g in gold3)
+        batches.append({
+            "batch": 3, **BATCH_INFO[3], "label_files": [p.name for p in parts[3]], "items": len(gold3),
+            "manifest_check": manifest_checks[3],
+            "id_check": id_checks[3],
+            "license": dict(Counter(str(g.get("license")) for g in gold3)),
+            "countries": len(countries),
+            "country_top10": dict(countries.most_common(10)),
+            "category_missing": sum(1 for g in gold3 if not category_qids(g.get("category"))),
+            "category_top10": type_counts(gold3, keywords),
+            "ids": [g["id"] for g in gold3],
+        })
     write_json(BATCHES_PATH, {
         "description": "labels/gold_labels.jsonl 의 각 id 가 몇 차 라벨 배치인지와 배치별 출처. "
                        "이 파일이 없거나 목록에 없는 id 는 1차로 본다 (kt_common.load_batches).",
+        "id_namespace": "id 는 배치·출처를 통틀어 문자열로 유일하다. source=TOUR_API 는 숫자 contentid, "
+                        "source=WIKIDATA 는 위키데이터 QID('Q' + 숫자)라 서로 겹칠 수 없고, prepare_data.py 가 "
+                        "배치 사이와 DB 추출본의 다른 출처 id 와 겹치지 않는지 확인한다(겹치면 멈춤). "
+                        "그래서 gold·분할은 id 문자열 하나로 찾는다.",
         "batches": batches,
     })
     by_batch = load_batches()
     assert all(by_batch.get(g["id"]) == g["batch"] for g in gold), "batches.json 과 gold 배치 번호가 다릅니다"
 
-    summaries = {1: gold_summary(gold1, keywords, parts1)}
-    if gold2:
-        summaries[2] = gold_summary(gold2, keywords, parts2)
-        summaries[2]["manifest_check"] = manifest_check
-    return gold, {1: primary1, 2: primary2}, summaries
+    summaries = {}
+    for b in sorted(golds):
+        if not golds[b]:
+            continue
+        summaries[b] = gold_summary(golds[b], keywords, parts[b])
+        if b in manifest_checks:
+            summaries[b]["manifest_check"] = manifest_checks[b]
+    return gold, primary, summaries
 
 
 def agreement(primary, cross_path, labels_glob, keywords):
@@ -318,30 +439,53 @@ def split_ids(ids):
     return sorted(ids[:n_train]), sorted(ids[n_train:n_train + n_valid]), sorted(ids[n_train + n_valid:])
 
 
+# 배치별 시험 분할 이름. 배치마다 15% 를 따로 두고 서로 섞지 않는다.
+BATCH_TEST_SPLIT = {1: "test", 2: "test_new", 3: "test_overseas"}
+
+
+def check_existing_splits(new_splits, batch_of):
+    """기존 splits.json 의 배치별 목록이 새로 만든 목록과 같은지 본다. 다르면 멈춘다.
+
+    1차 train/valid/test, 2차 train/valid/test_new 는 예전 결과(results/roberta-base.json, roberta-base-v2.json)와
+    비교하는 기준이라 절대 바뀌면 안 된다. 분할마다 배치별로 (순서까지) 비교하고, 기존 파일에 없던 배치는 건너뛴다.
+    """
+    if not SPLITS_PATH.exists():
+        return
+    with open(SPLITS_PATH, encoding="utf-8") as f:
+        old = json.load(f)
+    for name, new in new_splits.items():
+        prev = old.get(name)
+        if prev is None:
+            continue
+        for b in sorted({batch_of[i] for i in prev if i in batch_of}):
+            before = [i for i in prev if batch_of.get(i) == b]
+            after = [i for i in new if batch_of[i] == b]
+            if before != after:
+                raise SystemExit(f"{b}차 {name} 분할이 기존 {SPLITS_PATH.name} 와 다릅니다. "
+                                 f"{b}차 설명문·라벨이 바뀌었는지 확인하세요.")
+
+
 def make_splits(gold):
-    train1, valid1, test1 = split_ids(g["id"] for g in gold if g["batch"] == 1)
-    if SPLITS_PATH.exists():
-        # 1차 분할은 예전 결과(results/roberta-base.json 등)와 비교하는 기준이라 절대 바뀌면 안 된다.
-        with open(SPLITS_PATH, encoding="utf-8") as f:
-            old = json.load(f)
-        for name, new in (("train", train1), ("valid", valid1), ("test", test1)):
-            prev = old.get(name, [])[:len(new)]
-            if old.get(name) is not None and prev != new:
-                raise SystemExit(f"1차 {name} 분할이 기존 {SPLITS_PATH.name} 와 다릅니다. 1차 설명문·라벨이 바뀌었는지 확인하세요.")
-    batch2 = [g["id"] for g in gold if g["batch"] == 2]
-    train2, valid2, test2 = split_ids(batch2) if batch2 else ([], [], [])
+    batch_of = {g["id"]: g["batch"] for g in gold}
+    batches = sorted(set(batch_of.values()))
+    parts = {b: split_ids(g["id"] for g in gold if g["batch"] == b) for b in batches}
+    lists = {
+        "train": [i for b in batches for i in parts[b][0]],
+        "valid": [i for b in batches for i in parts[b][1]],
+        **{BATCH_TEST_SPLIT[b]: parts[b][2] for b in batches},
+    }
+    check_existing_splits(lists, batch_of)
     splits = {
         "seed": SPLIT_SEED,
         "method": "배치마다 따로 sorted(ids) -> random.Random(13).shuffle -> 70/15/15. "
-                  "train/valid 는 1차 목록(그대로) 뒤에 2차 목록을 붙이고, test 는 1차 그대로, 2차의 15% 는 test_new",
-        "sizes_by_batch": {"1": {"train": len(train1), "valid": len(valid1), "test": len(test1)}},
-        "train": train1 + train2,
-        "valid": valid1 + valid2,
-        "test": test1,
+                  "train/valid 는 1차 목록(그대로) 뒤에 2차 목록을 붙이고, test 는 1차 그대로, 2차의 15% 는 test_new. "
+                  "3차(해외)는 70%·15% 를 train·valid 의 2차 목록 뒤에 붙이고, 15% 는 test_overseas",
+        "sizes_by_batch": {
+            str(b): {"train": len(parts[b][0]), "valid": len(parts[b][1]), BATCH_TEST_SPLIT[b]: len(parts[b][2])}
+            for b in batches
+        },
+        **{name: lists[name] for name in SPLIT_NAMES if name in lists},
     }
-    if batch2:
-        splits["sizes_by_batch"]["2"] = {"train": len(train2), "valid": len(valid2), "test_new": len(test2)}
-        splits["test_new"] = test2
     write_json(SPLITS_PATH, splits)
     return {name: splits[name] for name in SPLIT_NAMES if name in splits}
 
@@ -394,12 +538,15 @@ def main():
     write_json(RESULTS_DIR / "agreement.json", agr)
     print_agreement("1차", agr)
     cross_ids = {str(r["id"]) for r in read_jsonl(CROSS_CHECK_PATH)}
-    if 2 in summaries:
-        agr2 = agreement(primary[2], CROSS_CHECK_V2_PATH, "data/labels_v2/part_*.jsonl", keywords)
-        agr2["gold_summary"] = summaries[2]
-        write_json(RESULTS_DIR / "agreement_batch2.json", agr2)
-        print_agreement("2차", agr2)
-        cross_ids |= {str(r["id"]) for r in read_jsonl(CROSS_CHECK_V2_PATH)}
+    for b, cross_path, labels_glob in ((2, CROSS_CHECK_V2_PATH, "data/labels_v2/part_*.jsonl"),
+                                       (3, CROSS_CHECK_V3_PATH, "data/labels_v3/part_*.jsonl")):
+        if b not in summaries:
+            continue
+        agr_b = agreement(primary[b], cross_path, labels_glob, keywords)
+        agr_b["gold_summary"] = summaries[b]
+        write_json(RESULTS_DIR / f"agreement_batch{b}.json", agr_b)
+        print_agreement(f"{b}차", agr_b)
+        cross_ids |= {str(r["id"]) for r in read_jsonl(cross_path)}
 
     splits = make_splits(gold)
     stats = label_stats(gold, splits, keywords)
