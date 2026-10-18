@@ -21,6 +21,8 @@ from glople_agent import contract
 from glople_agent.answer import templates as tpl
 from glople_agent.context import AgentContext
 from glople_agent.graph.edges import ROUTE_RETRY_ATTEMPTS, fallback_reason
+from glople_agent.graph.followup import compose_router_input
+from glople_agent.graph.grounding import Grounding, check_call, grounded
 from glople_agent.llm.normalize import (RouterOutcome, is_model_connection_error, is_model_error,
                                         normalize_router, normalize_router_error, retry_overrides)
 from glople_agent.plan import (AuthExpired, PlanDecision, PlanRejected, PlanStore, PlanStoreError, apply_edit,
@@ -29,6 +31,7 @@ from glople_agent.sanitize import clean_text
 from glople_agent.state import AgentState, Card, PlanDraft
 from glople_agent.tools.args import ARGS_MODELS, arg_errors, validate_args
 from glople_agent.tools.envelope import card_from_tool_message
+from glople_agent.tools.regions import resolve as resolve_region
 
 PLAN = contract.PLAN_TOOL_NAME
 MAX_CALLS_PER_TURN = 4      # 턴당 도구 호출 상한(같은 서명은 한 번)
@@ -137,13 +140,22 @@ def start_turn(state: AgentState) -> dict:
     text = clean_text(_text(human.content) if human is not None else "")   # 특수 토큰·HTML 제거, 500자
     stale = unpaired_calls(messages[:i] if i is not None else messages)
     update_cards = _cancelled_plan_cards(state, stale) if stale else []
+    memory = state.get("memory") or {}
+    # M1 후속 발화: 되묻기 답이면 직전 발화에 이어 붙이고, 거기·그곳·그쪽은 last_region으로(라우터 문장에서만)
+    router_input, followup = compose_router_input(text, memory)
+    trace: dict[str, Any] = {}
+    if stale:
+        trace["closed_stale_calls"] = len(stale)
+    if followup:
+        trace["followup"] = followup
     return {
         "messages": _cancelled(stale),
         **({"cards": update_cards} if update_cards else {}),
+        **({"memory": {"pending_clarify": None}} if memory.get("pending_clarify") else {}),   # 다음 한 턴만
         "call_log": Overwrite([]),          # operator.add 채널을 턴마다 비움
         "turn_id": (human.id if human is not None and human.id else None) or f"turn-{uuid.uuid4()}",
         "user_text": text,
-        "router_input": text,               # M1: pending_clarify 이어 붙이기·지시어 풀이
+        "router_input": router_input,
         "router_kind": None,
         "router_attempts": 0,
         "verdicts": [],
@@ -153,7 +165,7 @@ def start_turn(state: AgentState) -> dict:
         "plan_notice": None,
         "final_text": None,
         "reply_kind": None,
-        "trace": {"closed_stale_calls": len(stale)} if stale else {},
+        "trace": trace,
     }
 
 
@@ -214,13 +226,59 @@ def _clarify_text(name: str, fields: Sequence[str], args: Mapping[str, Any]) -> 
         return tpl.clarify_for(name, (), category_word=category_word)
 
 
-def make_validate(tool_names: Iterable[str]):
-    """이름·스키마(required·enum·int·모르는 키)·중복 서명·create_travel_plan 단독·턴당 4개.
+def grounding_clarify_text(name: str, g: Grounding, args: Mapping[str, Any]) -> str | None:
+    """근거 검사가 되물을 때의 문장. 모호한 지역은 후보를, 나머지는 labeling_rules 6절 문장."""
+    if "clarify:region_ambiguous" in g.issues and len(g.candidates) >= 2:
+        return tpl.clarify_region_choice(g.candidates)
+    return _clarify_text(name, g.clarify_fields, args)
 
-    통과한 호출만 남기도록 라우터 AIMessage를 같은 id로 교체한다(인자는 실행 모델로 정규화: "3"→3,
-    앞뒤 공백, MBTI 대문자). 전부 탈락이면 RemoveMessage. 원출력은 trace["validate"]에 남긴다.
+
+def judge_call(name: str, args: Any, text: str, *, known: Iterable[str], recent_places: Iterable[str] = (),
+               region_clarify_tools: frozenset[str] = frozenset()) -> tuple[dict[str, Any], dict | None]:
+    """호출 하나의 판정: 이름 → 스키마(required·enum·int·모르는 키) → 근거(grounding, M1).
+
+    (verdict, 실행할 인자)를 돌려준다. 실행할 인자는 실행 모델로 정규화하고 근거 검사가 고친 값("3"→3, 앞뒤 공백,
+    MBTI 대문자, 키워드 목록 표기, 근거 없는 선택 인자 뺌). 실패면 None. 중복·턴당 상한·일정 단독은 validate가 본다.
+    validate 노드와 근거 검사 측정(eval/grounding_eval.py)이 같은 함수를 쓴다.
+    """
+    verdict: dict[str, Any] = {"name": name, "ok": False, "reason": "ok"}
+    if name not in set(known):
+        verdict["reason"] = "unknown_tool"
+        return verdict, None
+    errors = arg_errors(name, args)
+    extra = [e.field for e in errors if e.kind == "extra"]
+    if errors and len(extra) == len(errors) and isinstance(args, dict):
+        # 모르는 키만 틀림(v1·v2 모두 search_reviews에 limit을 붙임) → 그 키만 빼고 나머지로 계속(design.md 7절 '빼기')
+        args = {k: v for k, v in args.items() if k not in extra}
+        errors = arg_errors(name, args)
+    if errors:
+        fields = list(dict.fromkeys(e.field for e in errors if e.kind in CLARIFY_KINDS and e.field))
+        verdict.update(reason="schema", errors=[list(e) for e in errors])
+        if fields or not any(e.kind == "extra" for e in errors):
+            verdict["clarify"] = _clarify_text(name, fields, args)
+        return verdict, None
+    clean = validate_args(name, args).model_dump(exclude_none=True)
+    g = check_call(name, clean, text, recent_places=recent_places, region_clarify_tools=region_clarify_tools)
+    issues = [*(["drop:extra_key"] * bool(extra)), *g.issues]
+    if issues:
+        verdict["grounding"] = {**g.as_trace(), "issues": issues}
+    if not g.ok:
+        verdict.update(reason="grounding", clarify=grounding_clarify_text(name, g, clean))
+        return verdict, None
+    verdict["ok"] = True
+    return verdict, validate_args(name, g.args).model_dump(exclude_none=True)
+
+
+def make_validate(tool_names: Iterable[str], *, region_clarify_tools: Iterable[str] = ()):
+    """이름·스키마·근거(M1)·중복 서명·create_travel_plan 단독·턴당 4개.
+
+    통과한 호출만 남기도록 라우터 AIMessage를 같은 id로 교체한다(인자는 judge_call이 정규화·고친 값).
+    전부 탈락이면 RemoveMessage. 원출력은 trace["validate"]에 남긴다.
+    region_clarify_tools: 지역 해석이 모호하면(광주) 후보를 되물을 도구. 지역을 실제로 쓰는 백엔드(S1 검색·M6 날씨)가
+    붙기 전인 M1에는 비워 둔다(준비 중·미지원 결과 앞에서 '어느 광주?'를 묻지 않게).
     """
     known = (set(tool_names) & set(ARGS_MODELS)) | {PLAN}
+    region_tools = frozenset(region_clarify_tools)
 
     def validate(state: AgentState) -> dict:
         ai = router_message(state)
@@ -228,28 +286,24 @@ def make_validate(tool_names: Iterable[str]):
             return {"verdicts": [], "trace": _with_trace(state, "validate", {"error": "no_router_message"})}
         seen = set(state.get("call_log") or [])
         used = len(seen)
+        text = state.get("router_input", "")
+        recent = (state.get("memory") or {}).get("recent_places") or []
         verdicts: list[dict] = []
-        passed: list[dict] = []          # 실행할 호출(정규화한 인자)
+        passed: list[dict] = []          # 실행할 호출(정규화·근거 검사로 고친 인자)
         for tc in ai.tool_calls:
             name, args, cid = tc["name"], tc.get("args") or {}, tc["id"]
-            verdict: dict[str, Any] = {"tool_call_id": cid, "name": name, "ok": False, "reason": "ok"}
-            if name not in known:
-                verdict["reason"] = "unknown_tool"
-            elif errors := arg_errors(name, args):
-                fields = list(dict.fromkeys(e.field for e in errors if e.kind in CLARIFY_KINDS and e.field))
-                verdict.update(reason="schema", errors=[list(e) for e in errors])
-                if fields or not any(e.kind == "extra" for e in errors):
-                    verdict["clarify"] = _clarify_text(name, fields, args)
-            else:
-                clean = validate_args(name, args).model_dump(exclude_none=True)
+            verdict, clean = judge_call(name, args, text, known=known, recent_places=recent,
+                                        region_clarify_tools=region_tools)
+            verdict = {"tool_call_id": cid, **verdict}
+            if clean is not None:
                 sig = _signature(name, clean)
                 if sig in seen:
-                    verdict["reason"] = "duplicate"
+                    verdict.update(ok=False, reason="duplicate")
                 elif used + len(passed) >= MAX_CALLS_PER_TURN:
-                    verdict["reason"] = "over_limit"
+                    verdict.update(ok=False, reason="over_limit")
                 else:
                     seen.add(sig)
-                    verdict.update(ok=True, signature=sig)
+                    verdict["signature"] = sig
                     passed.append(make_tool_call(name=name, args=clean, id=cid))
             verdicts.append(verdict)
 
@@ -280,6 +334,22 @@ def make_validate(tool_names: Iterable[str]):
 
 # --- collect · 답변 ---------------------------------------------------------------------
 
+REGION_ARG_KEYS = ("hashtag", "query", "name")   # region 인자가 없을 때 지역 이름이면 last_region으로 쓸 인자
+
+
+def region_of_args(args: Mapping[str, Any]) -> str | None:
+    """호출 인자에서 '이번에 말한 지역'(사용자 표기 그대로). region이 있으면 그것, 아니면 글로플러 해시태그·후기
+    검색어·장소 이름 중 지역 해석기가 아는 이름(지시어 '거기'를 다음 턴에 이것으로 바꿈)."""
+    region = args.get("region")
+    if isinstance(region, str) and region.strip():
+        return region.strip()
+    for key in REGION_ARG_KEYS:
+        value = args.get(key)
+        if isinstance(value, str) and value.strip() and resolve_region(value).status != "not_found":
+            return value.strip().lstrip("#")
+    return None
+
+
 def _memory_after(memory: Mapping[str, Any] | None, cards: Sequence[Card]) -> dict:
     old = list((memory or {}).get("recent_places") or [])
     names: list[str] = []
@@ -288,8 +358,7 @@ def _memory_after(memory: Mapping[str, Any] | None, cards: Sequence[Card]) -> di
         data = card.get("data") or {}
         if card["status"] == "ok" and card["kind"] in ("destination_list", "destination_detail"):
             names += [i["name"] for i in data.get("items") or [] if isinstance(i, dict) and i.get("name")]
-        if isinstance((data.get("args") or {}).get("region"), str):
-            region = data["args"]["region"]
+        region = region_of_args(data.get("args") or {}) or region
     update: dict[str, Any] = {}
     if names:
         update["recent_places"] = list(dict.fromkeys([*names, *old]))[:MAX_RECENT_PLACES]
@@ -357,14 +426,33 @@ def make_answer_llm(answer_llm: BaseChatModel | None):
     return answer_llm_node
 
 
+def pending_clarify(state: AgentState, reason: str, tool: str | None) -> dict:
+    """다음 턴 start_turn이 이번 발화에 답을 이어 붙이도록 남기는 기억(memory.pending_clarify)."""
+    return {"pending_clarify": {"utterance": state.get("router_input", ""), "reason": reason, "tool": tool}}
+
+
+def _clarify_reason(v: Mapping[str, Any]) -> str:
+    issues = (v.get("grounding") or {}).get("issues") or []
+    first = next((i for i in issues if i.startswith("clarify:")), None)
+    return first or f"{v.get('reason', 'schema')}"
+
+
 def clarify(state: AgentState) -> dict:
     questions = _clarify_questions(state)
-    return {"final_text": tpl.join_answers(questions) or tpl.FALLBACK, "reply_kind": "clarify"}
+    first = next((v for v in state.get("verdicts") or [] if not v["ok"] and v.get("clarify")), None)
+    update: dict[str, Any] = {"final_text": tpl.join_answers(questions) or tpl.FALLBACK, "reply_kind": "clarify"}
+    if first is not None and state.get("router_input"):
+        update["memory"] = pending_clarify(state, _clarify_reason(first), first.get("name"))
+    return update
 
 
 def direct_reply(state: AgentState) -> dict:
-    # 라우터가 낸 문장(인사·거절·되묻기) 그대로. M1: 학습한 되묻기 문장이면 pending_clarify 저장
-    return {"final_text": state.get("final_text") or tpl.FALLBACK, "reply_kind": "direct"}
+    """라우터가 낸 문장(인사·거절·되묻기) 그대로. 학습한 되묻기 문장이면 pending_clarify를 남긴다(M1)."""
+    text = state.get("final_text") or tpl.FALLBACK
+    update: dict[str, Any] = {"final_text": text, "reply_kind": "direct"}
+    if (kind := tpl.clarify_kind(text)) is not None and state.get("router_input"):
+        update["memory"] = pending_clarify(state, f"router:{kind}", None)
+    return update
 
 
 def fallback(state: AgentState) -> dict:
@@ -405,15 +493,18 @@ def plan_prepare(state: AgentState, runtime: Ctx) -> Command[Literal["review", "
         msg = _tool_error(call["id"], PLAN, "login_required", tpl.PLAN_LOGIN_REQUIRED)
         return Command(goto="finish", update={"messages": [msg], "results": [_plan_result(call["id"], "error")],
                                               "final_text": tpl.PLAN_LOGIN_REQUIRED, "reply_kind": "plan"})
+    # 장소 출처: 발화에 근거(grounding 규칙: 앞 경계·조사만) → USER, 최근 결과 → TOOL_RESULT, 그 밖 MODEL_SUGGESTED
     draft = make_draft(call["args"], client_request_id=call["id"], utterance=state.get("router_input", ""),
-                       recent_places=(state.get("memory") or {}).get("recent_places") or [])
+                       recent_places=(state.get("memory") or {}).get("recent_places") or [], matcher=grounded)
     if not selected_items(draft):   # 근거 있는 장소 0곳(전부 지어낸 장소이거나 다 빠짐) → 장소 되묻기
         question = tpl.clarify_plan(["places"])
         msg = _tool_error(call["id"], PLAN, "no_places", question)
         return Command(goto="finish", update={"messages": [msg], "results": [_plan_result(call["id"], "error")],
                                               "final_text": question, "reply_kind": "clarify",
+                                              "memory": pending_clarify(state, "clarify:places", PLAN),
                                               "trace": _with_trace(state, "plan", {"draft": draft})})
     return Command(goto="review", update={"plan_draft": draft, "plan_edits": 0, "plan_notice": None,
+                                          "memory": {"last_region": draft["region"]},
                                           "cards": [_plan_card(state, draft)]})
 
 
@@ -501,11 +592,23 @@ TrajectorySink = Callable[[dict], None]
 
 
 def trajectory_record(state: AgentState) -> dict:
-    """궤적 한 줄(M1부터 파일로). 토큰·사용자 id·원문은 넣지 않는다."""
+    """궤적 한 줄(eval/trajectory.py가 파일로). 토큰·사용자 id·원문(발화·인자 값·결과 글)은 넣지 않는다.
+    호출은 이름·판정·근거 검사 코드만, 결과는 도구·상태만 남긴다(막힌 호출로 오탐을 보려는 용도, design.md 7절)."""
+    trace = state.get("trace") or {}
+    followup = trace.get("followup") or {}
+    verdicts = []
+    for v in state.get("verdicts") or []:
+        row = {k: v[k] for k in ("name", "ok", "reason")}
+        if issues := (v.get("grounding") or {}).get("issues"):
+            row["issues"] = list(issues)
+        verdicts.append(row)
     return {"turn_id": state.get("turn_id"), "router_kind": state.get("router_kind"),
             "router_attempts": state.get("router_attempts", 0), "reply_kind": state.get("reply_kind"),
-            "verdicts": [{k: v[k] for k in ("name", "ok", "reason")} for v in state.get("verdicts") or []],
-            "results": list(state.get("results") or []), "remaining_steps": state.get("remaining_steps")}
+            "followup": {"joined": "joined" in followup and "skipped" not in followup["joined"],
+                         "demonstratives": followup.get("demonstratives", 0)},
+            "verdicts": verdicts,
+            "results": [{"tool": r.get("tool"), "status": r.get("status")} for r in state.get("results") or []],
+            "remaining_steps": state.get("remaining_steps")}
 
 
 def make_finish(sink: TrajectorySink | None = None):
@@ -526,7 +629,8 @@ def make_finish(sink: TrajectorySink | None = None):
 __all__ = [
     "CLARIFY_KINDS", "MAX_CALLS_PER_TURN", "MAX_PLAN_EDITS", "MAX_RECENT_PLACES", "SAVE_ATTEMPTS",
     "TrajectorySink", "UNFINISHED_CALL", "answer_template", "clarify", "collect",
-    "confirm_payload", "direct_reply", "fallback", "make_answer_llm", "make_finish", "make_route",
-    "make_save_plan", "make_validate", "plan_card_id", "plan_prepare", "review", "router_message",
-    "start_turn", "trajectory_record", "turn_cards", "turn_messages", "unpaired_calls",
+    "confirm_payload", "direct_reply", "fallback", "grounding_clarify_text", "judge_call", "make_answer_llm",
+    "make_finish", "make_route", "make_save_plan", "make_validate", "pending_clarify", "plan_card_id",
+    "plan_prepare", "region_of_args", "review", "router_message", "start_turn", "trajectory_record", "turn_cards",
+    "turn_messages", "unpaired_calls",
 ]

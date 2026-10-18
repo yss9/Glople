@@ -236,6 +236,9 @@ _RULE_EXPECTED = {
     "부산 이번 주말 날씨 어때?": ("tool", [("get_weather", {"region": "부산", "when": "이번 주말"})]),
     "고마워": ("text", []),
     "(잘림) 강릉 2박 3일 경포대랑 안목해변 일정 저장해줘": ("truncated", []),
+    # M1: v1처럼 빠진 나이를 지어냄(성별·MBTI는 발화에 있는 값 그대로)
+    "(지어냄) 나랑 비슷한 여행자 루트 보고 싶은데 ENTP 남자임":
+        ("tool", [("recommend_similar_traveler_routes", {"age": 30, "gender": "남성", "mbti": "ENTP"})]),
 }
 
 

@@ -52,6 +52,8 @@ class Deps:
     sink: nodes.TrajectorySink | None = None         # 궤적 한 줄(M1부터 파일)
     answer_mode: AnswerMode = "template"
     retry_initial_interval: float = 0.5              # RetryPolicy 대기(테스트는 0)
+    # 지역이 모호하면(광주) 후보를 되물을 도구. 지역을 실제로 쓰는 백엔드가 없는 M1은 비움(S1·M6에서 켬)
+    region_clarify_tools: frozenset[str] = frozenset()
 
 
 def route_retry_policy(initial_interval: float = 0.5) -> RetryPolicy:
@@ -66,7 +68,7 @@ def build_graph(deps: Deps, checkpointer: BaseCheckpointSaver | None = None) -> 
     g.add_node("start_turn", nodes.start_turn)
     g.add_node("route", nodes.make_route(deps.router_llm),
                retry_policy=route_retry_policy(deps.retry_initial_interval))
-    g.add_node("validate", nodes.make_validate(tool_names))
+    g.add_node("validate", nodes.make_validate(tool_names, region_clarify_tools=deps.region_clarify_tools))
     g.add_node("tools", ToolNode(list(deps.read_tools), handle_tool_errors=tool_error_to_json))
     g.add_node("collect", nodes.collect)
     g.add_node("answer_template", nodes.answer_template)

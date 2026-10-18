@@ -1,4 +1,7 @@
-"""LLM 연결: 서버 quirk 정규화(normalize), 가짜 모델(fake). 실제 ChatOpenAI 클라이언트(models.py)는 M1."""
+"""LLM 연결: 서버 quirk 정규화(normalize), 가짜 모델(fake), 실제 ChatOpenAI 클라이언트(models.py, M1).
+
+models.py는 langchain-openai를 import하므로 여기서 미리 import하지 않는다(필요한 곳에서 직접).
+"""
 from glople_agent.llm.fake import (
     DEFAULT_QUIRKS,
     QUIRK_KINDS,

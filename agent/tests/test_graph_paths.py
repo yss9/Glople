@@ -126,7 +126,7 @@ def test_validate_replaces_router_message_in_place(make_graph, agent_context):
 def test_turn_call_limit_is_four(make_graph, agent_context):
     raw = calls(*[("search_reviews", {"query": q}) for q in ("바나힐", "도동항", "경포대", "우도", "성산")])
     kit = make_graph(QuirkScript([raw]))
-    kit.turn("후기 다섯 개", agent_context)
+    kit.turn("바나힐 도동항 경포대 우도 성산 후기 다섯 개", agent_context)   # 검색어가 모두 발화에 있음(근거 검사 통과)
     v = kit.values()
     assert [x["reason"] for x in v["verdicts"]] == ["ok", "ok", "ok", "ok", "over_limit"]
     [router] = router_messages(v)
@@ -143,17 +143,34 @@ def test_numeric_string_args_are_normalized_before_tools(make_graph, agent_conte
     assert kit.backend.calls == [("recommend_similar_traveler_routes", {"age": 28, "gender": "남성", "mbti": "ENTP"})]
 
 
-@pytest.mark.parametrize("raw", [
-    calls(("book_hotel", {"city": "다낭"})),                                  # 모르는 도구
-    calls(("search_reviews", {"query": "바나힐", "userId": "u2"})),            # 모르는 키만 틀림
-], ids=["unknown_tool", "extra_key"])
-def test_no_valid_call_without_clarify_goes_fallback(make_graph, agent_context, raw):
-    kit = make_graph(QuirkScript([raw]))
+def test_unknown_tool_without_clarify_goes_fallback(make_graph, agent_context):
+    kit = make_graph(QuirkScript([calls(("book_hotel", {"city": "다낭"}))]))   # 모르는 도구
     r = kit.turn("아무 말", agent_context)
     assert r.path == ["start_turn", "route", "validate", "fallback", "finish"]
     assert r.final_text == tpl.fallback_text("no_valid_call") and r.reply_kind == "fallback"
     assert kinds(kit.values()["messages"]) == ["HumanMessage", "AIMessage"]
     assert kit.backend.calls == []
+
+
+def test_unknown_key_is_dropped_and_call_runs(make_graph, agent_context):
+    # M1: 모르는 키만 틀리면 그 키를 빼고 실행한다(v1·v2 모두 search_reviews에 limit을 붙이는 오답, design.md 7절 '빼기').
+    # M0에서는 이 호출이 fallback이었다. ToolNode의 extra="forbid"는 그대로라 validate를 거치지 않은 호출의
+    # 모르는 키는 여전히 bad_request다(test_tools.py::test_toolnode_parallel_order_errors_and_checkpoint)
+    kit = make_graph(QuirkScript([calls(("search_reviews", {"query": "바나힐", "limit": 3, "userId": "u2"}))]))
+    r = kit.turn("바나힐 후기 몇 개만 보여줘", agent_context)
+    assert r.path == TEMPLATE_PATH
+    [router] = router_messages(kit.values())
+    assert router.tool_calls[0]["args"] == {"query": "바나힐"}
+    assert kit.backend.calls == [("search_reviews", {"query": "바나힐"})]
+    [v] = kit.values()["verdicts"]
+    assert v["ok"] and v["grounding"]["issues"] == ["drop:extra_key"]
+
+
+def test_unknown_key_with_ungrounded_value_clarifies(make_graph, agent_context):
+    kit = make_graph(QuirkScript([calls(("search_reviews", {"query": "바나힐", "userId": "u2"}))]))
+    r = kit.turn("아무 말", agent_context)   # 키를 뺀 뒤 근거 검사: '바나힐'이 발화에 없음 → 후기 대상 되묻기
+    assert r.path == ["start_turn", "route", "validate", "clarify", "finish"]
+    assert r.final_text == tpl.CLARIFY["reviews_target"] and kit.backend.calls == []
 
 
 def test_plan_mixed_with_other_call_keeps_plan_only(make_graph, agent_context):
@@ -348,7 +365,7 @@ def test_memory_recent_places_ground_later_plan(make_graph, agent_context):
     kit.turn("바다 보이는 곳 추천해줘", agent_context)
     memory = kit.values()["memory"]
     assert "가거도" in memory["recent_places"]   # 사용자 정의 리듀서(merge_memory)로 턴을 넘어 남음
-    r = kit.turn("아까 그 섬으로 당일치기 일정 저장해줘", agent_context)
+    r = kit.turn("통영 당일치기로 아까 그 섬 일정 저장해줘", agent_context)   # 가거도는 발화에 없고 최근 결과에만
     items = r.pending.value["draft"]["items"]
     assert [(i["name"], i["source"], i["selected"]) for i in items] == [("가거도", "TOOL_RESULT", True),
                                                                        ("지어낸 섬", "MODEL_SUGGESTED", False)]

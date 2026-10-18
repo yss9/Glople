@@ -32,7 +32,7 @@ langgraph 1.2.12·prebuilt 1.1.0·checkpoint 4.2.0·langchain-core 1.6.6에서 �
 - `add_node(destinations=)`는 갈 수 있는 곳을 제한함(5.4) → 그림(draw_mermaid 점선)에만 쓰이고 실행 때는 막지 않음. 목록 밖 goto도 실행되고, 없는 노드 이름 goto(오타)는 예외 없이 무시되어 그래프가 그냥 끝남(경고 로그 `wrote to unknown channel branch:to:<이름>`). 정적 엣지가 있는 노드가 `Command(goto=)`를 내면 엣지를 대체하지 않고 둘 다 실행됨 → goto 대상은 상수로 두고 경로 테스트로 지키며, Command를 내는 노드(plan_prepare·review·save_plan)에는 정적 엣지를 달지 않음 (`test_goto_outside_destinations_still_runs`, `test_goto_unknown_node_is_ignored_with_warning`, `test_command_goto_adds_to_static_edges`)
 - `RemoveMessage`로 지울 메시지가 없어도 됨 → 없는 id를 지우면 `ValueError: Attempting to delete a message with an ID that doesn't exist` → validate는 이번 턴 라우터 AIMessage id가 messages에 있을 때만 RemoveMessage를 냄 (`test_remove_message_with_unknown_id_raises`)
 - 확인 못 함: SqliteSaver 파일·`metadata` 열에 context가 없는지(A2의 Sqlite 쪽) → M0에는 langgraph-checkpoint-sqlite를 깔지 않음(3.3, M3부터) → M3에서 `test_token_hygiene`에 sqlite 판을 더함
-- 확인 못 함: ChatOpenAI·HTTP 쪽 가정(A7~A10, A12: `bind_tools` JSON, `logit_bias` 키, artifact 직렬화, `finish_reason`·`invalid_tool_calls`, openai 3.24.0과의 왕복) → 가짜 OpenAI 서버가 필요하고 8090 접속 금지라 M1 범위 → M1의 HTTP 동작 고정 테스트로 넘김
+- 확인 못 함: ChatOpenAI·HTTP 쪽 가정(A7~A10, A12: `bind_tools` JSON, `logit_bias` 키, artifact 직렬화, `finish_reason`·`invalid_tool_calls`, openai 3.24.0과의 왕복) → 가짜 OpenAI 서버가 필요하고 8090 접속 금지라 M1 범위 → M1의 HTTP 동작 고정 테스트로 넘김 → **M1에서 확인**(아래 'M1 ChatOpenAI ↔ 가짜 OpenAI 서버' 절)
 - 확인 못 함: `add_node(timeout=)`(async 노드 전용이라는 조사 결과), `error_handler=`, 서브그래프 interrupt 전파·`get_state(subgraphs=True)`, `stream_events(version="v3")` → M0 그래프가 쓰지 않음(timeout·error_handler는 미사용, 서브그래프는 M3) → 쓰기 시작하는 단계에서 이 파일에 고정 테스트를 더함
 
 ## M0 가짜 모델·quirk 정규화(`llm/fake.py`, `llm/normalize.py`)
@@ -78,3 +78,49 @@ langgraph 1.2.12·prebuilt 1.1.0·checkpoint 4.2.0에서 확인함. 설계 5·9�
 - `start_turn`이 짝 없는 tool_call을 cancelled ToolMessage로 채움(12절) → ToolMessage만 닫으면 확인 카드가 `plan_confirm`·`ok`로 남아, reject 재개(`error`, `data.cancelled=True`)와 결과가 달랐음(M5 화면 복원에 죽은 카드가 살아 보임) → 닫는 호출이 create_travel_plan이면 같은 card_id 카드를 `error`·`cancelled`로 교체하고 card 이벤트도 냄(turn_id는 그 카드가 뜬 턴 그대로) (`test_hitl.py::test_new_message_while_card_pending`)
 - 확인 카드 edit의 `PlanDraftIn.places`는 모양만 검사(9.1) → `apply_edit`는 목록의 장소를 모두 사용자가 고른 것(USER_EDIT, selected)으로 봐서, 화면이 해제된 MODEL_SUGGESTED까지 기본값으로 다시 보내면 지어낸 장소가 저장됨(CLI `e`에서 장소 칸을 비운 경우) → places는 '저장할(선택한) 장소 목록'이라는 계약을 Field description(interrupt의 response_schema에 실림)과 주석에 적고, CLI 기본값을 선택된 장소만으로 바꿈(해제된 제안은 안내만). M5 PlanConfirmCard도 같은 계약 (`test_cli.py::test_chat_edit_with_blank_places_keeps_unselected_suggestion_out`)
 - `clean_text`는 '지운 자리에서 다시 생기는 조합'이 없어질 때까지 반복하고 500자 자르기는 끝에서(5.3) → 일부러 겹친 입력(`<<<b>b>b>`)은 한 바퀴에 한 겹씩 벗겨져 O(n²)(72KB 한 마디가 약 8초, start_turn·check_edit에서) → 반복은 `MAX_PASSES`(8)번까지, 그래도 안정되지 않으면 꺾쇠를 모두 지움(특수 토큰·태그는 모두 `<`로 시작). max_len이 있으면 정제 전에 `max(max_len×8, 1024)`자로 먼저 자르고, 일정 칸 정제는 필드 한도의 4배를 max_len으로 줌. 72KB 7ms, 900KB(제한 없음) 86ms. 무작위 조합 20만 개 + 깊은 겹침 fuzz에서 Qwen 특수 토큰 26개 중 남은 것 0. M5 요청 본문 크기 상한은 따로 둠 (`test_sanitize.py::test_nested_input_cost_is_linear`, `test_deeper_than_max_passes_still_clean`)
+
+## M1 근거 검사(`graph/grounding.py`, `nodes.judge_call`, `eval/grounding_eval.py`)
+
+시범판 `proto_validate.py`(MVP 설계 조사 자료, 저장소 밖)를 이식했다. 시범판을 그대로 다시 돌린 결과(2026-10-18): 정답 v2 train 2,913 / test 290 / human_style 86호출 막힘 0(human_style에 note 1: 와이너리 → 와인), v1 사람 말투 오답 24개 중 16개에 걸리고 정답 66개는 0 — 설계 1.3의 숫자와 같음.
+
+- 키워드 '목록 밖이면 안에 든 목록 키워드로' → 시범판은 부분 문자열이라 `산책로` → `산`, `강변` → `강`처럼 한 글자 키워드가 다른 낱말에 걸림 → 한 글자 키워드는 홀로 쓴 단어(+조사)만(Spring `KeywordMask.fromKoreanDescription`과 같은 규칙), 띄어쓰기 무시, 동의어 표(labeling_rules 4절 '뜻이 하나일 때만': 스노쿨링·와이너리·세계유산 …, 슬랭 '맛집'·후보가 여럿인 '바닷가'는 넣지 않음). 그래서 human_style의 note 1건(와이너리)도 사라짐 (`tests/test_keywords_regions_policy.py`)
+- 목록 밖 키워드를 validate가 '빼기' → 서버가 조용히 버리는 말을 사용자·LLM에게 알려야 해서 validate는 인자에 남기고(근거 코드 `drop:unknown_keyword`), 어댑터가 서버에 보내지 않고 notes에 '반영하지 못한 키워드'로 적음. 아는 키워드가 하나도 없을 때만 validate가 되묻기 (`test_grounding.py::test_fixed_args_reach_the_tool`)
+- 나이 `str(age) in text` → `128번 버스`의 28도 근거가 됨 → 숫자 경계(`(?<!\d)28(?!\d)`)로. 지시어에 그쪽·이쪽·저쪽 추가, 영문 대소문자 무시, 일정 장소는 `memory.recent_places`도 근거
+- `get_weather.when`은 발화와 다를 때만 고침 → v1이 `낼 영월 날씨`에서 when을 빠뜨린 오답은 못 잡음 → 빠졌는데 발화에 시점 말이 있으면 채움(시범판에 없던 규칙, train 정답 2,913호출에서 바뀐 것 0으로 확인). 그래서 v1 사람 말투 오답 잡음이 16 → 17
+- 설계 7절 표의 '공통: 모르는 키 → clarify / 빼기' → M0 validate는 모르는 키가 하나라도 있으면 그 호출을 버려 fallback이었음. v1·v2 모두 `search_reviews`에 `limit`을 붙이는 오답이 v2 test에서 각 4건 → 모르는 키만 틀리면 그 키를 빼고 계속(`drop:extra_key`). ToolNode의 `extra="forbid"`는 그대로라 validate를 거치지 않은 호출은 여전히 bad_request (`test_graph_paths.py::test_unknown_key_is_dropped_and_call_runs`)
+- 설계 7절 'category 근거가 없으면 뺌' → 시범판도 하지 않았고, 카테고리 말은 train·test 말이 달라(CATEGORY_WORDS / CATEGORY_WORDS_TEST) 목록으로 대조하면 test 정답을 건드릴 위험 → 하지 않음(enum 검사만). 카테고리를 잘못 고른 오답은 학습의 몫
+- '지역 해석기 결과 ambiguous(광주) → 후보 되묻기' → M1에는 지역을 실제로 쓰는 백엔드(S1 검색·M6 날씨)가 없어, 준비 중·미지원 답 앞에서 '어느 광주?'를 묻게 됨(정답 17호출이 '광주') → 기능은 두되 `Deps.region_clarify_tools`(기본 빈 집합)에 든 도구만 되묻는다. S1·M6에서 켬 (`test_places_grounded_by_recent_results_and_region_ambiguity_switch`)
+- 정답 3,289호출 → valid 194호출을 더해 3,483호출로 잼. 정답 막힘 0·인자 바뀜 0. 그래프 전체로도(`replay --data v2-train,v2-valid,v2-test,human`) 3,590건 예외 0·정답과 다른 경로 0 (`test_replay.py::test_v2_train_replay_with_grounding_blocks_nothing`)
+- 확인 못 함: 근거 검사를 train으로만 다듬었다고 말하기 어려움 — 시범판이 이미 human_style·v1 예측을 보고 만든 규칙이라 v1-human 숫자는 '학습 세트' 성격. v2 예측(v2-human·v2-v2test)과 v1-v2test가 새 세트 → README 표에 따로 적음
+
+## M1 후속 발화 메모리(`graph/followup.py`, `start_turn`)
+
+- 설계 5.3 'pending_clarify가 있으면 직전 발화와 이어 붙임' → 그대로 하면 되묻기 뒤의 새 요청('안녕', '제주 2박 3일 … 저장해줘')까지 이어 붙어 라우터가 엉뚱한 호출을 냄(M0 데모에서 일정 지역이 '나랑'이 됨) → 40자를 넘거나, 인사·감사로 시작하거나, 요청 말(추천·알려·찾아·저장·날씨·후기·글로플러 …)이 있으면 새 요청으로 보고 잇지 않음. 한계: "제주로 해줘"처럼 요청 말이 섞인 답은 잇지 않아 라우터가 혼자 판단함 (`test_followup.py::test_looks_like_new_request`)
+- pending_clarify는 clarify 노드(근거·스키마 되묻기), 라우터가 낸 학습 되묻기 문장(direct_reply, `templates.clarify_kind`), 장소 0곳 일정(plan_prepare)에서 남기고, 다음 턴 start_turn이 한 번 쓰고 None으로 비움(merge_memory가 키 단위로 덮음). 도구 결과와 되묻기가 섞인 답(answer_template)에는 남기지 않음
+- 지시어는 '거기·그곳·그쪽'(+조사)만, 조사는 지역 받침에 맞춰 바꿈(거기서 → 강릉에서, 그곳은 → 제주는). '여기'는 모르는 곳이라 그대로. last_region은 region 인자, 그리고 해시태그·후기 검색어·장소 이름 중 지역 해석기가 아는 이름, 일정 지역에서 갱신
+
+## M1 Spring 어댑터(`tools/spring.py`, `tools/adapters/`, `tools/fixture_spring.py`)
+
+Spring 코드를 읽고 맞춘 것(서버는 띄우지 않음, 테스트는 respx와 MockTransport만).
+
+- 글로플러 '204거나 지역명이면 `agents?country=`' → `GET /api/users/agents?country=`는 없으면 **200 []**(204 아님, `UserController.getAgents`), `search-agents-by-hashtag`만 204 → 어댑터는 둘 다 '빈 목록'으로 같게 다룸. 조사 1의 세 번째 대체(전체 목록에서 해시태그·소개 부분 일치)도 넣음('맛집' → '#맛집투어')
+- `/api/search`는 아는 키워드가 하나도 없으면 마스크가 비어 **200 []**(오류 아님). `info-recommend`는 gender를 '남성'으로 보내면 오류 없이 0건, 값이 빠지면 500(가짜 Spring도 같게)
+- Post 엔티티의 필드 `AddressTitle`은 Lombok getter `getAddressTitle()`이라 JSON 키가 `addressTitle`. `createDate`(Timestamp)는 Spring Boot 기본(WRITE_DATES_AS_TIMESTAMPS 끔)이라 ISO 문자열 → 어댑터는 epoch 밀리초도 받고 한국 날짜로 바꿈
+- M0 가짜 백엔드의 유사 여행자 순위(MBTI 일치 수 → 나이 차)는 서버와 달랐음 → 가짜 Spring이 `UserInfoRecommendationService`처럼 6차원 코사인 유사도↓·id↓ 12명 → 템플릿 테스트의 2·3번째 순서가 바뀜(INTP가 ENTJ보다 앞)
+- 도구에 `runtime: ToolRuntime`을 받아 `context.now`를 쓰려 함(prebuilt 1.1.0 문서) → ToolNode가 runtime을 args에 넣은 채 `args_schema`로 검증해서, 인자 모델이 `extra="forbid"`면 빈 메시지의 ToolInvocationError → registry는 `langgraph.runtime.get_runtime()`으로 context를 읽고 now·seed만 `ToolContext`로 옮김(토큰은 도구로 안 감). 그래프 밖 직접 호출에서는 RuntimeError라 None → 백엔드 시계 (`test_pins_langgraph.py::test_tool_runtime_injection_breaks_extra_forbid_args_schema`, `test_get_runtime_inside_tool_under_toolnode_sees_context`, `test_spring_adapters.py::test_toolnode_passes_now_but_never_the_token`)
+- FakeBackend는 이제 `SpringBackend + SpringClient + httpx.MockTransport(FixtureSpring)`이라 M0 그래프 테스트도 실제 어댑터·HTTP 처리를 탐. 가짜 주소는 `http://spring.fixture`(네트워크 없음)
+- search_destinations의 '음식점·숙박은 부르지 않고 정해진 답'(8.2)은 S1 어댑터 규칙 → S1 전에는 모든 카테고리가 pending_feature('준비 중')가 더 정확해서 그대로 두고, 카드 extra에 `categoryCollected`만 남김
+- 지역 표: 시군 159(시 75·군 82·광역시 군 포함, 자치구는 아직 없음), 시도 18(2026 개편 '전남광주통합특별시' 포함). regionCode는 법정동 시도 코드(행정표준코드 앞 두 자리)를 적었고 sigunguCode·위경도는 **null**(오너가 DB에서 뽑기 전, 조사 1의 8절 쿼리). 광주광역시·전라남도 코드는 통합특별시 뒤 DB 표기 확인 필요. 도시 국가(싱가포르·홍콩·마카오)는 나라와 도시가 겹쳐 도시 하나로 봄, '고성'(강원·경남)도 모호
+
+## M1 ChatOpenAI ↔ 가짜 OpenAI 서버(`llm/models.py`, `scripts/fake_openai_server.py`, `tests/test_pins_openai_http.py`)
+
+langchain-openai 1.6.7·openai 3.24.0(httpx2)으로 127.0.0.1 빈 포트의 가짜 서버와 실제 HTTP 왕복. A7~A10·A12를 여기서 고정했다.
+
+- A7: `bind_tools(contract.TOOLS)` 요청의 `tools`가 파일 JSON과 키 순서까지 같고 `tool_choice`·`parallel_tool_calls`·`developer` 역할이 없음(설계대로). 본문 키는 `model, messages, tools, stream(false), temperature(0.0), max_completion_tokens(384)`. `max_tokens`는 보내지 않음(mlx는 `max_completion_tokens`를 먼저 읽음, server.py:1307)
+- A8: `logit_bias={151657: -100}` → JSON 문자열 키 `{"151657": -100}`(설계대로, mlx가 int로 바꿈). `extra_body={"top_k": 20}`은 본문 최상위로. base_url을 바꾸면 `stream_usage` 기본이 꺼져 `stream_options`를 보내지 않음
+- A9: ToolMessage는 `role·content·tool_call_id`만 직렬화(artifact 없음, 설계대로). tool_calls가 있는 AIMessage의 빈 content는 `null`로, arguments는 `ensure_ascii=False` JSON 문자열(한글 그대로)
+- A10: `response_metadata["finish_reason"]`, 병렬 content `"\n"`, uuid id, JSON이 아닌 arguments → invalid_tool_calls, 객체가 아닌 JSON → ValidationError(M0 노트와 같음), `<tool_call>` 텍스트 → normalize 직접 파싱. 스트리밍은 서버의 마지막 청크(합친 메시지)에 finish_reason이 있고 langchain이 덧붙이는 `chunk_position="last"` 청크는 비어 있음
+- A12: openai 3.24.0 + httpx2 왕복 정상. `max_retries=0`이면 500·끊김·타임아웃 모두 요청 1번. `OPENAI_API_KEY`·`OPENAI_BASE_URL`·`LANGSMITH_GATEWAY` 환경 변수가 있어도 명시한 base_url·더미 키가 이김(langchain_core `_gateway`의 우선순위)
+- 설계 6.3·조사 2 '서버 KeyError로 헤더 뒤 연결 끊김 → APIConnectionError' → mlx 비스트리밍은 헤더를 버퍼에만 두고 생성이 끝나야 보내서, 생성 중 예외면 **아무것도 오지 않은 채** 끊김 → APIConnectionError(맞음, RetryPolicy 대상). 그런데 200 헤더를 보낸 뒤 본문 없이 끊기면(HTTP/1.0) httpx2가 빈 본문으로 읽고 openai가 **`json.JSONDecodeError`를 그대로** 올림(APIError가 아님) → route 노드 밖으로 새서 그래프가 죽었음 → `normalize.is_model_error`가 이 예외를 모델 오류(`bad_response`, 재시도 없음)로 분류해 fallback (`test_headers_then_close_is_json_error_not_connection_error`, `test_graph_headers_then_close_goes_fallback_instead_of_crashing`)
+- 스트리밍(M2 답변)에서 헤더 뒤 끊기면 `[DONE]` 없이 청크 0개 → langchain-core가 `ValueError("No generation chunks were returned")` → M2 answer_llm은 이것을 가드 실패로 보고 템플릿으로 가야 함 (`test_stream_cut_after_headers_raises_no_chunks`)
+- 템플릿 스냅샷: 실제 ChatOpenAI 요청을 training/.venv의 jinja2·tokenizers로 Qwen 템플릿에 넣으면(transformers와 같은 jinja 환경을 옮김, transformers·mlx·torch는 import 안 함) human_style 첫 레코드의 앞부분과 **바이트까지 같음**, 1,293토큰(설계 '약 1,287'), `<|im_start|>` 3·`<|im_end|>` 2·`<tool_call>` 2(템플릿 안내문의 것). 특수 토큰 문자열을 섞은 발화도 정제 뒤에는 개수가 같음(주입 0) (`tests/test_template_snapshot.py`, 스냅샷 `tests/fixtures/router_prompt_snapshot.json`)

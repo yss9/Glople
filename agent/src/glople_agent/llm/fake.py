@@ -214,6 +214,8 @@ RULE_DEMOS: tuple[RuleDemo, ...] = (
     RuleDemo("부산 이번 주말 날씨 어때?", "tool", "get_weather(미지원 결과)"),
     RuleDemo("고마워", "direct", "감사 정형 문장"),
     RuleDemo("(잘림) 강릉 2박 3일 경포대랑 안목해변 일정 저장해줘", "plan", "length → max_tokens 768 재시도에서 정상"),
+    RuleDemo("(지어냄) 나랑 비슷한 여행자 루트 보고 싶은데 ENTP 남자임", "clarify",
+             "v1처럼 age 30을 지어냄 → 근거 검사(M1)가 나이 되묻기"),
 )
 
 _PARTICLES = tuple(sorted(("에서", "에게", "이랑", "하고", "쪽에", "쪽", "근처", "에", "의", "은", "는", "을", "를"),
@@ -234,7 +236,9 @@ _WHEN_PATTERNS = (
 )
 _DAY_WORDS = (("당일치기", 1), ("하루", 1), ("이틀", 2), ("사흘", 3), ("나흘", 4), ("일주일", 7))
 _TITLE_RE = re.compile(r"['‘\"“]([^'’\"”]+)['’\"”]\s*(?:(?:이)?라는\s*)?(?:이름으로|으로|로)?")
-_MARKER_RE = re.compile(r"^\s*\((깨짐|잘림|끊김|지연)\)\s*")
+_MARKER_RE = re.compile(r"^\s*\((깨짐|잘림|끊김|지연|지어냄)\)\s*")
+# '(지어냄)' 표시: v1 LoRA가 실제로 지어낸 값(design.md 5.5의 2번, revamp-todo.md:156)
+_INVENTED_ROUTE_ARGS = {"age": 30, "gender": "여성", "mbti": "ENFP"}
 _RETRY_MAX_TOKENS = 768
 
 
@@ -267,6 +271,7 @@ class RuleScript:
     - 문장에 '깨진' 또는 앞에 '(깨짐)': 빈 호출 + finish_reason=tool_calls (재시도해도 같음 → fallback)
     - 앞에 '(잘림)': finish_reason=length. max_tokens≥768로 다시 부르면 표시를 뗀 문장으로 규칙을 탐
     - 앞에 '(끊김)': APIConnectionError, '(지연)': APITimeoutError
+    - 앞에 '(지어냄)': 유사 여행자 루트에서 발화에 없는 나이·성별·MBTI를 지어 채움(v1 실제 오답 흉내 → M1 근거 검사가 잡음)
     맞는 규칙이 없으면 학습한 열린 되묻기 문장(OPEN_CLARIFY_ANSWER)을 낸다.
     """
 
@@ -277,6 +282,7 @@ class RuleScript:
             ((word, category) for category, words in self.texts["CATEGORY_WORDS"].items() for word in words),
             key=lambda wc: len(wc[0]), reverse=True)
         self._keywords = sorted(contract.KEYWORDS, key=len, reverse=True)
+        self._inventing = False
         self._rules: tuple[Callable[[str], AIMessage | None], ...] = (
             self._off_topic, self._thanks, self._ability, self._plan, self._routes, self._detail_and_reviews,
             self._weather, self._reviews, self._detail, self._gloplers, self._search, self._keywords_rule,
@@ -294,6 +300,12 @@ class RuleScript:
                 raise connection_error()
             if kind == "지연":
                 raise timeout_error()
+            if kind == "지어냄":
+                self._inventing = True
+                try:
+                    return self.respond(rest)
+                finally:
+                    self._inventing = False
             if (kwargs.get("max_tokens") or 0) < _RETRY_MAX_TOKENS:  # 잘림: 첫 시도만
                 return from_server(None, None, "length")
             text = rest
@@ -380,6 +392,9 @@ class RuleScript:
                 if alias in text:
                     args["mbti"] = mbti
                     break
+        if self._inventing:
+            args = {**_INVENTED_ROUTE_ARGS, **args}   # 빠진 값을 지어 채움(순서는 도구 스키마 순)
+            args = {k: args[k] for k in ("age", "gender", "mbti")}
         return self._call(("recommend_similar_traveler_routes", args))
 
     def _detail_and_reviews(self, text):

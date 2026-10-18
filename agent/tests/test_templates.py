@@ -186,9 +186,10 @@ def test_join_answers_rules():
     ("recommend_by_keywords", {"keywords": ["맛집"]}, "그 취향으로 찾은 곳이 없어요. 목록에 없어 반영하지 못한 키워드: 맛집."),
     ("search_reviews", {"query": "리스본"}, "아직 리스본 후기가 없어요."),
     ("search_gloplers", {"hashtag": "혼행"}, "혼행 글로플러 2명을 찾았어요: 맨해튼러(미국), 눈길여행(일본)."),
+    # M1: 순서는 가짜 Spring이 흉내 낸 실제 서버 규칙(6차원 코사인 유사도↓, UserInfoRecommendationService)
     ("recommend_similar_traveler_routes", {"age": 28, "gender": "남성", "mbti": "ENTP"},
      "나이·성별·MBTI가 비슷한 여행자 3명의 루트를 찾았어요: 20대 남성 ENTP(제주·부산·강릉), "
-     "30대 남성 ENTJ(도쿄·오사카·교토), 20대 남성 INTP(울릉도·독도·포항)."),
+     "20대 남성 INTP(울릉도·독도·포항), 30대 남성 ENTJ(도쿄·오사카·교토)."),
     ("recommend_similar_traveler_routes", {"age": 90, "gender": "여성", "mbti": "ENFP"}, "비슷한 여행자를 찾지 못했어요."),
     ("search_destinations", {"region": "강릉", "category": "숙박"}, "지역별 여행지 검색은 아직 준비 중이에요."),
     ("get_weather", {"region": "부산"}, "날씨 정보는 아직 연결하지 않았어요."),

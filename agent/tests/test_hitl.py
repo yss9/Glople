@@ -259,12 +259,24 @@ def test_model_suggested_places_are_not_saved(make_graph, agent_context):
 
 
 def test_all_places_invented_asks_for_places(make_graph, agent_context):
+    # M1: 근거 검사가 validate에서 먼저 막는다(v1 실제 오답 '울진 일정 → 장소 3개 지어냄'과 같은 꼴).
+    # 일수도 발화에 없으므로 학습 정답과 같은 '며칠 일정으로, 어떤 장소를 …' 되묻기
     raw = tool_call_message([("create_travel_plan", {"region": "울진", "days": 2, "places": ["지어낸 곳"]})])
     kit = make_graph(QuirkScript([raw]))
     r = kit.turn("울진 가는데 일정으로 남겨두고 싶어요", agent_context)
-    assert r.done and r.interrupts == () and r.final_text == tpl.CLARIFY["plan_places"]
-    assert r.path == ["start_turn", "route", "validate", "plan_prepare", "finish"]
-    assert unpaired_calls(kit.values()["messages"]) == []
+    assert r.done and r.interrupts == () and r.final_text == tpl.CLARIFY["plan_days_places"]
+    assert r.path == ["start_turn", "route", "validate", "clarify", "finish"]
+    assert unpaired_calls(kit.values()["messages"]) == [] and kit.store.save_count == 0
+    v = kit.values()["verdicts"][0]
+    assert v["reason"] == "grounding" and v["grounding"]["issues"] == ["clarify:days", "clarify:places"]
+
+
+def test_invented_places_with_grounded_days_ask_places_only(make_graph, agent_context):
+    raw = tool_call_message([("create_travel_plan", {"region": "울진", "days": 3, "places": ["지어낸 곳"]})])
+    kit = make_graph(QuirkScript([raw]))
+    r = kit.turn("울진 2박 3일 일정으로 남겨두고 싶어요", agent_context)
+    assert r.final_text == tpl.CLARIFY["plan_places"] and r.reply_kind == "clarify"
+    assert kit.values()["memory"]["pending_clarify"]["reason"] == "clarify:places"
 
 
 def test_server_error_is_retried_once_then_saves(make_graph, agent_context):

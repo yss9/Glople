@@ -20,6 +20,7 @@ from pydantic import ValidationError
 from glople_agent.answer.templates import error_message, status_message
 from glople_agent.sanitize import clean_text
 from glople_agent.state import Card, CardKind, ResultStatus
+from glople_agent.tools.spring import SpringError
 
 MAX_CONTENT_CHARS = 1000   # 도구당 content 상한(한글 약 1,000자 ≈ 800토큰)
 MAX_LLM_ITEMS = 5          # 어댑터가 더 넘겨도 LLM에는 5개까지
@@ -129,8 +130,10 @@ def make_result(tool: str, status: ResultStatus, items: Sequence[Mapping[str, An
 
 
 def classify_error(e: BaseException) -> ErrorCode:
-    if isinstance(e, ToolBackendError):
+    if isinstance(e, ToolBackendError | SpringError):
         return e.code
+    if isinstance(e, PermissionError):   # 허용 목록 밖 경로(우리 코드의 실수) → 요청 거절로
+        return "bad_request"
     if isinstance(e, ToolInvocationError | ValidationError):
         return "bad_request"
     if isinstance(e, TimeoutError | httpx.TimeoutException):

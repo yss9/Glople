@@ -1,11 +1,15 @@
-"""CLI(M0): 그래프를 직접 부른다(서비스는 M5).
+"""CLI: 그래프를 직접 부른다(서비스는 M5).
 
     python -m glople_agent.cli graph                       # draw_mermaid() 텍스트
     python -m glople_agent.cli chat --fake rules           # REPL: 노드 진행 줄·카드 요약·답·확인 카드 y/n/e
     python -m glople_agent.cli chat --fake oracle --anon   # 정답 재생 라우터, 비로그인
-    python -m glople_agent.cli replay --data v2-test,human # 정답 재생 표
+    python -m glople_agent.cli chat --trajectory           # 턴마다 궤적 한 줄(var/trajectories/, 토큰·사용자 id·원문 없음)
+    python -m glople_agent.cli replay --data v2-test,human # 정답 재생 표(v2-train도 가능)
+    python -m glople_agent.cli tool recommend_by_keywords '{"keywords": ["바다"]}' --fixture   # LLM용 JSON과 카드 JSON
+    python -m glople_agent.cli grounding                   # 근거 검사 측정(정답 막힘·예측 오답 잡음)
 
-user_id·토큰은 고정 테스트 값이다(실제 JWT를 받지 않음). 모델 서버·Spring에 접속하지 않는다.
+user_id·토큰은 고정 테스트 값이다(실제 JWT를 받지 않음). 모델 서버·Spring에 접속하지 않는다
+(tool --live만 GLOPLE_SPRING_BASE_URL로 공개 API를 부른다. 오너가 IDOR 점검 뒤 직접 실행).
 """
 import os
 
@@ -19,13 +23,16 @@ import sys  # noqa: E402
 import uuid  # noqa: E402
 from collections.abc import Sequence  # noqa: E402
 from datetime import datetime  # noqa: E402
+from pathlib import Path  # noqa: E402
 from typing import TextIO  # noqa: E402
 from zoneinfo import ZoneInfo  # noqa: E402
 
 from langgraph.checkpoint.memory import InMemorySaver  # noqa: E402
 
 from glople_agent.answer.templates import PLAN_PREVIOUS_CANCELLED, tool_label  # noqa: E402
+from glople_agent.config import load_settings  # noqa: E402
 from glople_agent.context import AgentContext, BearerToken  # noqa: E402
+from glople_agent.eval.trajectory import JsonlTrajectorySink, format_line  # noqa: E402
 from glople_agent.graph import (InterruptNotPending, InvalidResume, TurnResult, build_graph,  # noqa: E402
                                 cancel_pending, fake_deps, mermaid, new_thread_id, resume, run_config, run_turn)
 from glople_agent.llm.fake import OracleScript, RuleScript  # noqa: E402
@@ -68,12 +75,13 @@ class ChatSession:
     """표준입력 한 줄 = 한 마디. 확인 카드가 떠 있으면 y/n/e로 답한다(다른 말을 하면 카드를 닫고 새 턴)."""
 
     def __init__(self, fake: str = "rules", *, user: str | None = CLI_USER, inp: TextIO | None = None,
-                 out: TextIO | None = None):
+                 out: TextIO | None = None, trajectory: JsonlTrajectorySink | None = None):
         self.inp = inp or sys.stdin
         self.out = out or sys.stdout
         self.store = InMemoryPlanStore()
+        self.trajectory = trajectory   # 옵트인(--trajectory). 없으면 궤적을 파일에 쓰지 않음
         self.deps = fake_deps(build_script(fake), backend=FakeBackend(), store=self.store,
-                              retry_initial_interval=0.5)
+                              retry_initial_interval=0.5, sink=trajectory)
         self.graph = build_graph(self.deps, InMemorySaver())
         self.user = user
         self.thread = new_thread_id()
@@ -113,6 +121,11 @@ class ChatSession:
         path = " → ".join(result.path)
         if result.pending is not None:
             path += " → review(확인 대기)"
+        values = result.values or {}
+        if values.get("router_input") and values.get("router_input") != values.get("user_text") \
+                and result.path[:1] == ["start_turn"]:
+            # M1 후속 발화: 되묻기 답 이어 붙이기·지시어 풀이가 라우터에 넣은 한 마디를 바꿈(원문 메시지는 그대로)
+            self.say(f"  라우터 입력: {values['router_input']}")
         self.say(f"  경로: {path}")
         if result.error == "recursion":
             self.say("  (GraphRecursionError: recursion_limit 25를 넘음)")
@@ -120,6 +133,8 @@ class ChatSession:
             self.show_confirm(result.pending.value)
         elif result.final_text:
             self.say(f"도우미> {result.final_text}   [{result.reply_kind}]")
+            if self.trajectory is not None and self.trajectory.last is not None:
+                self.say(f"  궤적: {format_line(self.trajectory.last)}")
 
     def show_confirm(self, value: dict) -> None:
         d = value["draft"]
@@ -209,7 +224,7 @@ class ChatSession:
 
     def run(self) -> int:
         who = f"user={self.user}" if self.user else "비로그인"
-        self.say(f"Glople 도우미 M0 (가짜 모델·가짜 백엔드, {who}). {HELP}")
+        self.say(f"Glople 도우미 M1 (가짜 모델·가짜 Spring, {who}). {HELP}")
         while True:
             line = self.read("나> ")
             if line is None:
@@ -240,12 +255,26 @@ def cmd_graph(args, out: TextIO) -> int:
 
 
 def cmd_chat(args, out: TextIO) -> int:
-    return ChatSession(args.fake, user=None if args.anon else args.user, out=out).run()
+    sink = None
+    if args.trajectory is not None:
+        sink = JsonlTrajectorySink(Path(args.trajectory) if args.trajectory else None)
+    return ChatSession(args.fake, user=None if args.anon else args.user, out=out, trajectory=sink).run()
 
 
 def cmd_replay(args, out: TextIO) -> int:
-    from glople_agent.eval.replay import format_report, replay
+    from glople_agent.eval.replay import format_prediction_replays, format_report, replay, replay_predictions
 
+    if args.predictions:
+        from glople_agent.eval.grounding_eval import PREDICTION_SETS
+
+        names = [n.strip() for n in args.predictions.split(",") if n.strip()]
+        unknown = [n for n in names if n not in PREDICTION_SETS]
+        if unknown:
+            print(f"모르는 예측 이름: {unknown} (가능: {', '.join(PREDICTION_SETS)})", file=out)
+            return 2
+        reps = [replay_predictions(n, PREDICTION_SETS[n]) for n in names if PREDICTION_SETS[n].is_file()]
+        print(format_prediction_replays(reps), file=out)
+        return 1 if any(r.errors or r.correct_changed for r in reps) else 0
     report = replay(args.data.split(","), check_request=not args.no_check_request)
     print(format_report(report), file=out)
     if not report.total:
@@ -253,24 +282,66 @@ def cmd_replay(args, out: TextIO) -> int:
     return 1 if report.errors or report.unexpected else 0
 
 
+def cmd_tool(args, out: TextIO) -> int:
+    from glople_agent.tools.tool_report import inspect_tool
+
+    try:
+        raw_args = json.loads(args.args)
+    except ValueError as e:
+        print(f"인자 JSON을 읽지 못했어요: {e}", file=out)
+        return 2
+    now = datetime.fromisoformat(args.now) if args.now else datetime.now(KST)
+    if now.tzinfo is None:
+        now = now.replace(tzinfo=KST)
+    base_url = load_settings().spring_base_url if args.live else None
+    report = inspect_tool(args.name, raw_args, utterance=args.say, now=now, live_base_url=base_url)
+    print(report.format(), file=out)
+    return report.exit_code
+
+
+def cmd_grounding(args, out: TextIO) -> int:
+    from glople_agent.eval.grounding_eval import format_report, run
+
+    golds, preds, missing = run()
+    print(format_report(golds, preds, missing, details=args.details), file=out)
+    bad = sum(g.blocked + g.changed for g in golds) + sum(len(p.correct_flagged) + p.broken() for p in preds)
+    return 1 if bad else 0
+
+
 def parser() -> argparse.ArgumentParser:
-    p = argparse.ArgumentParser(prog="python -m glople_agent.cli", description="Glople 에이전트 M0 CLI")
+    p = argparse.ArgumentParser(prog="python -m glople_agent.cli", description="Glople 에이전트 CLI(M1)")
     sub = p.add_subparsers(dest="command", required=True)
     sub.add_parser("graph", help="그래프 mermaid 텍스트")
     chat = sub.add_parser("chat", help="대화(REPL)")
     chat.add_argument("--fake", choices=("rules", "oracle"), default="rules", help="가짜 라우터 스크립트")
     chat.add_argument("--user", default=CLI_USER, help="고정 테스트 user_id")
     chat.add_argument("--anon", action="store_true", help="비로그인(일정 저장 불가)")
+    chat.add_argument("--trajectory", nargs="?", const="", default=None, metavar="DIR",
+                      help="턴마다 궤적 한 줄을 남김(기본 agent/var/trajectories/, 토큰·사용자 id·원문 없음)")
     rep = sub.add_parser("replay", help="정답 재생 표")
-    rep.add_argument("--data", default="v2-test,human", help="쉼표로: v2-test, v2-valid, human")
+    rep.add_argument("--data", default="v2-test,human", help="쉼표로: v2-train, v2-valid, v2-test, human")
     rep.add_argument("--no-check-request", action="store_true", help="라우터 요청 모양 검사 끄기")
+    rep.add_argument("--predictions", default=None,
+                     help="모델 예측 재생(쉼표로: v1-human, v2-human, v1-v2test, v2-v2test). 주면 --data는 무시")
+    tool = sub.add_parser("tool", help="도구 하나 실행: LLM용 JSON과 카드 JSON을 나란히")
+    tool.add_argument("name", help="도구 이름(읽기 도구 7개)")
+    tool.add_argument("args", help="인자 JSON, 예: '{\"keywords\": [\"바다\"]}'")
+    where = tool.add_mutually_exclusive_group()
+    where.add_argument("--fixture", action="store_true", default=True, help="가짜 Spring(기본, 네트워크 없음)")
+    where.add_argument("--live", action="store_true", help="GLOPLE_SPRING_BASE_URL의 공개 API(오너가 직접)")
+    tool.add_argument("--say", default=None, help="발화를 주면 validate와 같은 근거 검사를 먼저 보여 줌")
+    tool.add_argument("--now", default=None, help="기준 시각 ISO(나이 → 생년월일), 기본 지금")
+    gr = sub.add_parser("grounding", help="근거 검사 측정 표(정답 막힘·예측 오답 잡음)")
+    gr.add_argument("--details", action="store_true", help="걸린 발화 목록도")
     return p
 
 
 def main(argv: Sequence[str] | None = None, out: TextIO | None = None) -> int:
     args = parser().parse_args(argv)
     out = out or sys.stdout
-    return {"graph": cmd_graph, "chat": cmd_chat, "replay": cmd_replay}[args.command](args, out)
+    commands = {"graph": cmd_graph, "chat": cmd_chat, "replay": cmd_replay, "tool": cmd_tool,
+                "grounding": cmd_grounding}
+    return commands[args.command](args, out)
 
 
 if __name__ == "__main__":

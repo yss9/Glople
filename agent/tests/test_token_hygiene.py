@@ -95,11 +95,14 @@ def test_sentinel_never_leaves_context(scenario, sentinel_raw, agent_context):
         "궤적 sink": repr(kit.sink).encode(),
         "저장된 일정": repr(kit.store.list_plans(agent_context.user_id)).encode(),
         "가짜 백엔드 호출": repr(kit.backend.calls).encode(),
+        "Spring으로 나간 HTTP 요청(M1)": repr(kit.backend.fixture.requests).encode(),
     }
     for name, blob in places.items():
         for needle in needles:
             assert needle.encode() not in blob, f"{name}에 {needle!r}"
     assert "Retrying task route" in log_text   # 로그 캡처가 실제로 동작했는지
+    # M1: 읽기 도구는 공개 API만 부르고 Authorization을 붙이지 않는다(SpringClient + 어댑터, 10.1)
+    assert kit.backend.fixture.requests and not any(r.has_authorization for r in kit.backend.fixture.requests)
     # 사용자 id도 state·체크포인트에는 없음(context로만)
     assert agent_context.user_id.encode() not in stored
 

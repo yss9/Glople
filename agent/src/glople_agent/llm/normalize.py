@@ -225,10 +225,16 @@ def _is_bad_tool_call_shape(exc: BaseException) -> bool:
     return isinstance(exc, pydantic.ValidationError) and exc.title in ("AIMessage", "AIMessageChunk")
 
 
+def _is_unreadable_response(exc: BaseException) -> bool:
+    # 200 헤더 뒤 본문 없이 끊기면(HTTP/1.0) openai 3.24.0이 응답 JSON을 읽다 JSONDecodeError를 그대로 올린다
+    # (test_pins_openai_http.py::test_headers_then_close_is_json_error_not_connection_error)
+    return isinstance(exc, json.JSONDecodeError)
+
+
 def is_model_error(exc: BaseException) -> bool:
     """route 노드가 잡아서 RouterOutcome으로 바꿀 예외인지(우리 코드의 버그는 잡지 않는다)."""
     return (is_model_connection_error(exc) or is_model_timeout_error(exc)
-            or isinstance(exc, openai.APIError) or _is_bad_tool_call_shape(exc))
+            or isinstance(exc, openai.APIError) or _is_bad_tool_call_shape(exc) or _is_unreadable_response(exc))
 
 
 def normalize_router_error(exc: BaseException) -> RouterOutcome:
@@ -245,4 +251,6 @@ def normalize_router_error(exc: BaseException) -> RouterOutcome:
                                              "retry_policy": False})
     if isinstance(exc, openai.APIError):
         return RouterOutcome("error", None, {**base, "error": "server", "retry_policy": False})
+    if _is_unreadable_response(exc):
+        return RouterOutcome("error", None, {**base, "error": "bad_response", "retry_policy": False})
     return RouterOutcome("error", None, {**base, "error": "unknown", "retry_policy": False})

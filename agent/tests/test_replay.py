@@ -1,7 +1,8 @@
-"""정답 재생(design.md 14.2 test_replay): OracleScript로 v2 test 300 + human_style 90을 그래프에 흘린다.
+"""정답 재생(design.md 14.2 test_replay): OracleScript로 v2 train·test + human_style을 그래프에 흘린다.
 
-M0 검사는 스키마 수준이라 정답 호출은 하나도 막히지 않고(validate 통과), 텍스트 정답은 direct_reply로 간다.
-human_style은 저장소에 커밋돼 있어 늘 돌고, v2 test는 training/data가 있을 때만 돈다.
+M1부터 validate에 근거 검사가 붙었다. 그래도 정답 호출은 하나도 막히지 않고(validate 통과, 인자도 그대로),
+텍스트 정답은 direct_reply로 간다(설계 13절 M1: 정답 3,289호출 막힘 0).
+human_style은 저장소에 커밋돼 있어 늘 돌고, v2는 training/data가 있을 때만 돈다.
 """
 import pytest
 
@@ -41,6 +42,14 @@ def test_v2_test_and_human_style_replay():
     report = replay(["v2-test", "human"])
     _check(report, 390)
     assert report.reply_counts()["direct"] == sum(not r.case.is_call for r in report.results)
+
+
+@pytest.mark.needs_training_data("tool_calling_v2/train.jsonl")
+def test_v2_train_replay_with_grounding_blocks_nothing():
+    # train 3,000건(호출 2,913) 전부: 근거 검사를 거쳐도 막힘·인자 변경 0(13~15초)
+    report = replay(["v2-train"])
+    _check(report, 3000)
+    assert sum(r.calls for r in report.results) == 2913
 
 
 def test_replay_matches_oracle_answers_exactly():

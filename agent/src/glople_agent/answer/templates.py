@@ -5,6 +5,7 @@
 - 조사는 build_tool_dataset.py와 같은 규칙(마지막 글자 받침, 영문·숫자는 읽는 소리)이다. 학습 스크립트는 import하지 않는다.
 - 이 모듈은 tools·graph를 import하지 않는다(도구 쪽이 여기 문장을 가져다 쓴다).
 """
+import re
 from collections.abc import Iterable, Mapping, Sequence
 from typing import Any
 
@@ -129,6 +130,39 @@ def clarify_plan(missing: Iterable[str]) -> str:
         if need <= covers:
             return CLARIFY[key]
     raise AssertionError("도달하지 않음")
+
+
+# labeling_rules.md에 없는 문장(M1 근거 검사): 지역 해석이 모호할 때 후보를 보여 주며 묻는다(design.md 7절)
+CLARIFY_REGION_CHOICE = "{candidates} 중 어느 곳을 말씀하시는 건가요?"
+
+
+def clarify_region_choice(candidates: Sequence[str]) -> str:
+    """모호한 지역(광주광역시 / 경기 광주시)의 후보 되묻기."""
+    if len(candidates) < 2:
+        raise ValueError("후보가 둘 이상이어야 합니다")
+    names = list(candidates)
+    joined = josa(names[0], "과/와") + " " + names[1] if len(names) == 2 else ", ".join(names)
+    return CLARIFY_REGION_CHOICE.format(candidates=joined)
+
+
+_CLARIFY_FRAMES = (
+    ("search_region", re.compile(r"^어느 지역의 .+[을를] 찾아드릴까요\?$")),
+    ("routes", re.compile(r"^비슷한 여행자를 찾으려면 .+[이가] 필요해요\. 알려주시겠어요\?$")),
+    ("region_choice", re.compile(r"^.+ 중 어느 곳을 말씀하시는 건가요\?$")),
+)
+
+
+def clarify_kind(text: str | None) -> str | None:
+    """되묻기 문장이면 그 종류(CLARIFY·CLARIFY_EXTRA 키나 틀 이름), 아니면 None.
+    라우터가 직접 낸 되묻기(direct_reply)를 알아보고 다음 턴에 발화를 이어 붙일지 정할 때 쓴다(M1)."""
+    t = " ".join((text or "").split())
+    for key, value in (*CLARIFY.items(), *CLARIFY_EXTRA.items()):
+        if t == value:
+            return key
+    for key, pattern in _CLARIFY_FRAMES:
+        if pattern.match(t):
+            return key
+    return None
 
 
 def clarify_for(tool: str, missing: Iterable[str] = (), *, category_word: str | None = None) -> str | None:

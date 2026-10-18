@@ -20,9 +20,11 @@ from glople_agent.graph.build import build_graph, fake_deps, new_thread_id, resu
 from glople_agent.graph.nodes import router_message
 from glople_agent.llm.fake import OracleCase, OracleScript, load_oracle_cases
 from glople_agent.plan import InMemoryPlanStore
+from glople_agent.sanitize import clean_text
 from glople_agent.tools.fake_backend import FakeBackend
 
 DATASETS: dict[str, Path] = {
+    "v2-train": contract.V2_TRAIN_PATH,
     "v2-test": contract.V2_TEST_PATH,
     "v2-valid": contract.V2_DATA_DIR / "valid.jsonl",
     "human": contract.HUMAN_STYLE_PATH,
@@ -201,4 +203,101 @@ def format_report(report: ReplayReport) -> str:
         lines += ["", "정답과 다르거나 예외가 난 발화(앞 10개):"]
         for r in (report.errors + [u for u in report.unexpected if not u.error])[:10]:
             lines.append(f"- {r.case.source}:{r.case.line} {r.case.utterance!r} → {r.category} {r.error or ''}".rstrip())
+    return "\n".join(lines)
+
+
+# --- 모델 예측 재생(M1): 학습 평가가 남긴 모델 출력을 라우터 답으로 그래프에 흘린다 ---------------------
+
+class PredictionScript:
+    """predictions.jsonl의 출력(<tool_call> 텍스트)을 서버가 냈을 모양(tool_calls / 텍스트)으로 돌려주는 라우터."""
+
+    def __init__(self, rows: Sequence[dict]):
+        from glople_agent.eval.scoring import parse_output
+
+        self._parse = parse_output
+        self.by_user: dict[str, dict] = {}
+        for row in rows:
+            self.by_user.setdefault(row["user"], row)
+            self.by_user.setdefault(clean_text(row["user"]), row)
+
+    def __call__(self, messages, kwargs):
+        from glople_agent.llm.fake import from_server, last_human_text, server_tool_call, text_message
+
+        text = last_human_text(messages)
+        row = self.by_user.get(text) or self.by_user.get(clean_text(text))
+        if row is None:
+            raise KeyError(text)
+        calls, invalid = self._parse(row.get("output") or "")
+        if not calls and not invalid:
+            return text_message(row.get("output") or "")
+        raw = [server_tool_call(c["name"], c["arguments"]) for c in calls]
+        if invalid:   # 깨진 블록은 서버가 버린 것처럼(호출 없음 + finish_reason=tool_calls)
+            return from_server("\n" * max(len(raw) - 1, 0) or None, raw, "tool_calls")
+        return from_server("\n" * (len(raw) - 1) or None, raw, "tool_calls")
+
+
+@dataclass
+class PredictionReplay:
+    name: str
+    total: int = 0
+    before_correct: int = 0
+    after_correct: int = 0
+    correct_changed: int = 0      # 정답이었는데 그래프를 지나며 바뀜(0이어야 함)
+    wrong_fixed: int = 0
+    errors: int = 0
+    categories: Counter = field(default_factory=Counter)
+
+
+def replay_predictions(name: str, path: Path) -> PredictionReplay:
+    """예측 출력을 그래프(route → validate → …)에 흘려, validate 뒤 실제로 실행된 호출로 다시 채점한다.
+    eval/grounding_eval.py(함수 단위)와 같은 숫자가 나와야 한다(test_grounding_eval)."""
+    from glople_agent.eval.grounding_eval import effective_args
+    from glople_agent.eval.scoring import canonical
+
+    rows = contract.read_jsonl(path)
+    script = PredictionScript(rows)
+    deps = fake_deps(script, backend=FakeBackend(today=REPLAY_NOW.date()), store=InMemoryPlanStore())
+    graph = build_graph(deps, InMemorySaver())
+    ctx = AgentContext(user_id="replay-user", bearer=BearerToken(REPLAY_TOKEN), request_id="replay",
+                       now=REPLAY_NOW, seed=0)
+    rep = PredictionReplay(name)
+    for row in rows:
+        rep.total += 1
+        correct = str(row.get("correct")) == "True"
+        rep.before_correct += correct
+        try:
+            thread = new_thread_id()
+            turn = run_turn(graph, thread, row["user"], ctx)
+            path_nodes = list(turn.path)
+            values = turn.values
+            ai = router_message(values) if "tools" in path_nodes or "plan_prepare" in path_nodes else None
+            text = values.get("router_input", "")
+            executed = [{"name": tc["name"], "arguments": effective_args(tc["name"], tc["args"], text)}
+                        for tc in (ai.tool_calls if ai is not None else [])]
+            if turn.pending is not None:
+                resume(graph, thread, {"decision": "reject"}, ctx, interrupt_id=turn.pending.id)
+            expected = row.get("expected")
+            if isinstance(expected, list):
+                ok = canonical(executed) == canonical(expected)
+            else:
+                ok = not executed
+            rep.after_correct += ok
+            rep.correct_changed += correct and not ok
+            rep.wrong_fixed += (not correct) and ok
+            cat = ("plan" if "plan_prepare" in path_nodes else "clarify" if "clarify" in path_nodes
+                   else "direct" if "direct_reply" in path_nodes else "fallback" if "fallback" in path_nodes
+                   else "tool" if "tools" in path_nodes else "other")
+            rep.categories[cat] += 1
+        except Exception:  # noqa: BLE001 - 재생은 예외를 세어 표로 보여 준다
+            rep.errors += 1
+    return rep
+
+
+def format_prediction_replays(reps: Sequence[PredictionReplay]) -> str:
+    lines = ["| 예측 | 건수 | 검증 전 정답 | 그래프 지난 뒤 정답 | 고쳐서 정답 | 정답→오답 | 예외 | 경로 |",
+             "|---|---|---|---|---|---|---|---|"]
+    for r in reps:
+        cats = ", ".join(f"{k} {v}" for k, v in sorted(r.categories.items(), key=lambda kv: -kv[1]))
+        lines.append(f"| {r.name} | {r.total} | {r.before_correct} | {r.after_correct} | {r.wrong_fixed} | "
+                     f"{r.correct_changed} | {r.errors} | {cats} |")
     return "\n".join(lines)

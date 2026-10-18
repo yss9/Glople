@@ -903,3 +903,58 @@ def test_new_input_while_interrupt_pending_drops_it(plan_run):
     assert second.interrupts[0].id != first.interrupts[0].id
     assert [i.id for i in app.get_state(cfg).interrupts] == [second.interrupts[0].id]
     assert second.value["log"] == ["plan_prepare", "plan_prepare"] and rec.answers == []
+
+
+# ---------------------------------------------------------------- M1: 도구에 실행 문맥 넘기기
+
+class _StrictArgs(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    q: str
+
+
+@dataclass
+class _Ctx:
+    now: str
+
+
+def _one_tool_graph(tool):
+    g = StateGraph(_ToolState, context_schema=_Ctx)
+    g.add_node("tools", ToolNode([tool], handle_tool_errors=True))
+    g.add_edge(START, "tools")
+    g.add_edge("tools", END)
+    return g.compile()
+
+
+class _ToolState(TypedDict):
+    messages: Annotated[list[AnyMessage], add_messages]
+
+
+def _call_q():
+    return {"messages": [AIMessage("", tool_calls=[{"name": "t", "args": {"q": "x"}, "id": "c1"}])]}
+
+
+def test_tool_runtime_injection_breaks_extra_forbid_args_schema():
+    # ToolNode는 runtime(ToolRuntime)을 args에 넣은 채 args_schema로 검증한다 → extra="forbid"면 ToolInvocationError
+    # (메시지가 비어 있음). 그래서 registry는 ToolRuntime 인자 대신 langgraph.runtime.get_runtime()을 쓴다(api-notes M1)
+    from langgraph.prebuilt import ToolRuntime
+
+    def run(runtime: ToolRuntime = None, **kw: Any) -> str:
+        return f"ok {kw} {getattr(runtime, 'context', None)}"
+
+    tool = StructuredTool.from_function(func=run, name="t", description="d", args_schema=_StrictArgs)
+    out = _one_tool_graph(tool).invoke(_call_q(), context=_Ctx("NOW"))
+    msg = out["messages"][-1]
+    assert msg.status == "error" and "ToolInvocationError" in msg.content and "NOW" not in msg.content
+
+
+def test_get_runtime_inside_tool_under_toolnode_sees_context():
+    from langgraph.runtime import get_runtime
+
+    def run(**kw: Any) -> str:
+        return f"ok {kw['q']} {get_runtime().context.now}"
+
+    tool = StructuredTool.from_function(func=run, name="t", description="d", args_schema=_StrictArgs)
+    out = _one_tool_graph(tool).invoke(_call_q(), context=_Ctx("NOW"))
+    assert out["messages"][-1].content == "ok x NOW"
+    with pytest.raises(RuntimeError):   # 그래프 밖(실행 config 없음)에서는 RuntimeError → registry가 None으로
+        get_runtime()
