@@ -1,0 +1,5365 @@
+{
+ "_note": "학습 전용 가짜 데이터(v4). rows는 Glople POST /api/search 응답(KeywordResultDTO 배열)과 같은 모양이다. 설명문(info)은 모두 지어낸 자리 표시자다. keyword_masks는 서버 DB의 키워드 마스크를 흉내 낸 값이다. 에이전트 평가용 fixture(agent/tests/fixtures/backend)와 장소 이름이 겹치지 않는다.",
+ "endpoint": "POST /api/search",
+ "rows": [
+  {
+   "id": 30001,
+   "country": "대한민국",
+   "location": "서울특별시 종로구",
+   "destName": "경복궁",
+   "info": "TYPE3-SENTINEL-v4 설명문 자리 표시자입니다(행 30001). 학습용으로 지어낸 문장이며 TourAPI 원문이 아닙니다.",
+   "source": "TOUR_API",
+   "copyrightType": "Type3",
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30002,
+   "country": "대한민국",
+   "location": "서울특별시 종로구",
+   "destName": "북촌한옥마을",
+   "info": "TYPE3-SENTINEL-v4 설명문 자리 표시자입니다(행 30002). 학습용으로 지어낸 문장이며 TourAPI 원문이 아닙니다.",
+   "source": "TOUR_API",
+   "copyrightType": "Type3",
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30003,
+   "country": "대한민국",
+   "location": "서울특별시 중구",
+   "destName": "명동",
+   "info": "TYPE3-SENTINEL-v4 설명문 자리 표시자입니다(행 30003). 학습용으로 지어낸 문장이며 TourAPI 원문이 아닙니다.",
+   "source": "TOUR_API",
+   "copyrightType": "Type3",
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30004,
+   "country": "대한민국",
+   "location": "서울특별시 종로구",
+   "destName": "인사동",
+   "info": "TYPE3-SENTINEL-v4 설명문 자리 표시자입니다(행 30004). 학습용으로 지어낸 문장이며 TourAPI 원문이 아닙니다.",
+   "source": "TOUR_API",
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30005,
+   "country": "대한민국",
+   "location": "서울특별시 종로구",
+   "destName": "창덕궁",
+   "info": "서울특별시 종로구의 관광지입니다.",
+   "source": "TOUR_API",
+   "copyrightType": "Type3",
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "SUMMARY"
+  },
+  {
+   "id": 30006,
+   "country": "대한민국",
+   "location": "서울특별시 중구",
+   "destName": "덕수궁",
+   "info": "서울특별시 중구의 관광지입니다.",
+   "source": "TOUR_API",
+   "copyrightType": "Type3",
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "SUMMARY"
+  },
+  {
+   "id": 30007,
+   "country": "대한민국",
+   "location": "서울특별시 중구",
+   "destName": "명동성당",
+   "info": "서울특별시 중구의 관광지입니다.",
+   "source": "TOUR_API",
+   "copyrightType": "Type3",
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "SUMMARY"
+  },
+  {
+   "id": 30008,
+   "country": "대한민국",
+   "location": "서울특별시 송파구",
+   "destName": "롯데월드타워",
+   "info": "TYPE3-SENTINEL-v4 설명문 자리 표시자입니다(행 30008). 학습용으로 지어낸 문장이며 TourAPI 원문이 아닙니다.",
+   "source": "TOUR_API",
+   "copyrightType": "Type3",
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30009,
+   "country": "대한민국",
+   "location": "서울특별시 성동구",
+   "destName": "서울숲",
+   "info": "서울특별시 성동구의 관광지입니다.",
+   "source": "TOUR_API",
+   "copyrightType": "Type3",
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "SUMMARY"
+  },
+  {
+   "id": 30010,
+   "country": "대한민국",
+   "location": "서울특별시 종로구",
+   "destName": "청계천",
+   "info": "서울특별시 종로구의 관광지입니다.",
+   "source": "TOUR_API",
+   "copyrightType": "Type3",
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "SUMMARY"
+  },
+  {
+   "id": 30011,
+   "country": "대한민국",
+   "location": "서울특별시 종로구",
+   "destName": "국립현대미술관 서울관",
+   "info": "TYPE1-DESC-v4 설명 자리 표시자입니다(행 30011). 학습용으로 지어낸 문장입니다.",
+   "source": "TOUR_API",
+   "copyrightType": "Type1",
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30012,
+   "country": "대한민국",
+   "location": "서울특별시 종로구",
+   "destName": "낙산공원",
+   "info": "서울특별시 종로구의 관광지입니다.",
+   "source": "TOUR_API",
+   "copyrightType": "Type3",
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "SUMMARY"
+  },
+  {
+   "id": 30013,
+   "country": "대한민국",
+   "location": "서울특별시 중구",
+   "destName": "동대문디자인플라자",
+   "info": "TYPE1-DESC-v4 설명 자리 표시자입니다(행 30013). 학습용으로 지어낸 문장입니다.",
+   "source": "TOUR_API",
+   "copyrightType": "Type1",
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30014,
+   "country": "대한민국",
+   "location": "서울특별시 강북구",
+   "destName": "북한산",
+   "info": "서울특별시 강북구의 관광지입니다.",
+   "source": "TOUR_API",
+   "copyrightType": "Type3",
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "SUMMARY"
+  },
+  {
+   "id": 30015,
+   "country": "대한민국",
+   "location": "서울특별시 송파구",
+   "destName": "잠실종합운동장",
+   "info": "TYPE3-SENTINEL-v4 설명문 자리 표시자입니다(행 30015). 학습용으로 지어낸 문장이며 TourAPI 원문이 아닙니다.",
+   "source": "TOUR_API",
+   "copyrightType": "Type3",
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30018,
+   "country": "대한민국",
+   "location": "부산광역시 중구",
+   "destName": "자갈치시장",
+   "info": "TYPE3-SENTINEL-v4 설명문 자리 표시자입니다(행 30018). 학습용으로 지어낸 문장이며 TourAPI 원문이 아닙니다.",
+   "source": "TOUR_API",
+   "copyrightType": "Type3",
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30019,
+   "country": "대한민국",
+   "location": "부산광역시 해운대구",
+   "destName": "송정해수욕장",
+   "info": "부산광역시 해운대구의 레포츠입니다.",
+   "source": "TOUR_API",
+   "copyrightType": "Type3",
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "SUMMARY"
+  },
+  {
+   "id": 30020,
+   "country": "대한민국",
+   "location": "부산광역시 영도구",
+   "destName": "흰여울문화마을",
+   "info": "TYPE3-SENTINEL-v4 설명문 자리 표시자입니다(행 30020). 학습용으로 지어낸 문장이며 TourAPI 원문이 아닙니다.",
+   "source": "TOUR_API",
+   "copyrightType": "Type3",
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30021,
+   "country": "대한민국",
+   "location": "부산광역시 남구",
+   "destName": "오륙도 스카이워크",
+   "info": "부산광역시 남구의 관광지입니다.",
+   "source": "TOUR_API",
+   "copyrightType": "Type3",
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "SUMMARY"
+  },
+  {
+   "id": 30022,
+   "country": "대한민국",
+   "location": "부산광역시 사하구",
+   "destName": "다대포해수욕장",
+   "info": "부산광역시 사하구의 관광지입니다.",
+   "source": "TOUR_API",
+   "copyrightType": "Type3",
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "SUMMARY"
+  },
+  {
+   "id": 30023,
+   "country": "대한민국",
+   "location": "부산광역시 남구",
+   "destName": "이기대 해안산책로",
+   "info": "TYPE3-SENTINEL-v4 설명문 자리 표시자입니다(행 30023). 학습용으로 지어낸 문장이며 TourAPI 원문이 아닙니다.",
+   "source": "TOUR_API",
+   "copyrightType": "Type3",
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30025,
+   "country": "대한민국",
+   "location": "부산광역시 영도구",
+   "destName": "영도대교",
+   "info": "TYPE1-DESC-v4 설명 자리 표시자입니다(행 30025). 학습용으로 지어낸 문장입니다.",
+   "source": "TOUR_API",
+   "copyrightType": "Type1",
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30026,
+   "country": "대한민국",
+   "location": "부산광역시 사하구",
+   "destName": "을숙도 철새공원",
+   "info": "TYPE3-SENTINEL-v4 설명문 자리 표시자입니다(행 30026). 학습용으로 지어낸 문장이며 TourAPI 원문이 아닙니다.",
+   "source": "TOUR_API",
+   "copyrightType": "Type3",
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30027,
+   "country": "대한민국",
+   "location": "제주특별자치도 제주시",
+   "destName": "한라산",
+   "info": "TYPE1-DESC-v4 설명 자리 표시자입니다(행 30027). 학습용으로 지어낸 문장입니다.",
+   "source": "TOUR_API",
+   "copyrightType": "Type1",
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30028,
+   "country": "대한민국",
+   "location": "제주특별자치도 제주시",
+   "destName": "협재해수욕장",
+   "info": "TYPE1-DESC-v4 설명 자리 표시자입니다(행 30028). 학습용으로 지어낸 문장입니다.",
+   "source": "TOUR_API",
+   "copyrightType": "Type1",
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30029,
+   "country": "대한민국",
+   "location": "제주특별자치도 서귀포시",
+   "destName": "섭지코지",
+   "info": "TYPE3-SENTINEL-v4 설명문 자리 표시자입니다(행 30029). 학습용으로 지어낸 문장이며 TourAPI 원문이 아닙니다.",
+   "source": "TOUR_API",
+   "copyrightType": "Type3",
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30030,
+   "country": "대한민국",
+   "location": "제주특별자치도 제주시",
+   "destName": "사려니숲길",
+   "info": "제주특별자치도 제주시의 관광지입니다.",
+   "source": "TOUR_API",
+   "copyrightType": "Type3",
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "SUMMARY"
+  },
+  {
+   "id": 30031,
+   "country": "대한민국",
+   "location": "제주특별자치도 서귀포시",
+   "destName": "천지연폭포",
+   "info": "제주특별자치도 서귀포시의 관광지입니다.",
+   "source": "TOUR_API",
+   "copyrightType": "Type3",
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "SUMMARY"
+  },
+  {
+   "id": 30032,
+   "country": "대한민국",
+   "location": "제주특별자치도 제주시",
+   "destName": "만장굴",
+   "info": "TYPE3-SENTINEL-v4 설명문 자리 표시자입니다(행 30032). 학습용으로 지어낸 문장이며 TourAPI 원문이 아닙니다.",
+   "source": "TOUR_API",
+   "copyrightType": "Type3",
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30033,
+   "country": "대한민국",
+   "location": "제주특별자치도 서귀포시",
+   "destName": "정방폭포",
+   "info": "제주특별자치도 서귀포시의 관광지입니다.",
+   "source": "TOUR_API",
+   "copyrightType": "Type3",
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "SUMMARY"
+  },
+  {
+   "id": 30034,
+   "country": "대한민국",
+   "location": "제주특별자치도 제주시",
+   "destName": "함덕해수욕장",
+   "info": "TYPE3-SENTINEL-v4 설명문 자리 표시자입니다(행 30034). 학습용으로 지어낸 문장이며 TourAPI 원문이 아닙니다.",
+   "source": "TOUR_API",
+   "copyrightType": "Type3",
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30035,
+   "country": "대한민국",
+   "location": "제주특별자치도 제주시",
+   "destName": "새별오름",
+   "info": "TYPE3-SENTINEL-v4 설명문 자리 표시자입니다(행 30035). 학습용으로 지어낸 문장이며 TourAPI 원문이 아닙니다.",
+   "source": "TOUR_API",
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30036,
+   "country": "대한민국",
+   "location": "제주특별자치도 제주시",
+   "destName": "제주 동문시장",
+   "info": "제주특별자치도 제주시의 쇼핑입니다.",
+   "source": "TOUR_API",
+   "copyrightType": "Type3",
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "SUMMARY"
+  },
+  {
+   "id": 30037,
+   "country": "대한민국",
+   "location": "제주특별자치도 서귀포시",
+   "destName": "용머리해안",
+   "info": "TYPE3-SENTINEL-v4 설명문 자리 표시자입니다(행 30037). 학습용으로 지어낸 문장이며 TourAPI 원문이 아닙니다.",
+   "source": "TOUR_API",
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30038,
+   "country": "대한민국",
+   "location": "제주특별자치도 서귀포시",
+   "destName": "쇠소깍",
+   "info": "TYPE3-SENTINEL-v4 설명문 자리 표시자입니다(행 30038). 학습용으로 지어낸 문장이며 TourAPI 원문이 아닙니다.",
+   "source": "TOUR_API",
+   "copyrightType": "Type3",
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30039,
+   "country": "대한민국",
+   "location": "제주특별자치도 서귀포시",
+   "destName": "주상절리대",
+   "info": "TYPE3-SENTINEL-v4 설명문 자리 표시자입니다(행 30039). 학습용으로 지어낸 문장이며 TourAPI 원문이 아닙니다.",
+   "source": "TOUR_API",
+   "copyrightType": "Type3",
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30040,
+   "country": "대한민국",
+   "location": "제주특별자치도 제주시",
+   "destName": "산굼부리",
+   "info": "제주특별자치도 제주시의 관광지입니다.",
+   "source": "TOUR_API",
+   "copyrightType": "Type3",
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "SUMMARY"
+  },
+  {
+   "id": 30041,
+   "country": "대한민국",
+   "location": "제주특별자치도 제주시",
+   "destName": "한림공원",
+   "info": "제주특별자치도 제주시의 관광지입니다.",
+   "source": "TOUR_API",
+   "copyrightType": "Type3",
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "SUMMARY"
+  },
+  {
+   "id": 30042,
+   "country": "대한민국",
+   "location": "제주특별자치도 서귀포시",
+   "destName": "문섬",
+   "info": "TYPE3-SENTINEL-v4 설명문 자리 표시자입니다(행 30042). 학습용으로 지어낸 문장이며 TourAPI 원문이 아닙니다.",
+   "source": "TOUR_API",
+   "copyrightType": "Type3",
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30045,
+   "country": "대한민국",
+   "location": "강원특별자치도 강릉시",
+   "destName": "경포대",
+   "info": "TYPE1-DESC-v4 설명 자리 표시자입니다(행 30045). 학습용으로 지어낸 문장입니다.",
+   "source": "TOUR_API",
+   "copyrightType": "Type1",
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30046,
+   "country": "대한민국",
+   "location": "강원특별자치도 강릉시",
+   "destName": "주문진수산시장",
+   "info": "TYPE1-DESC-v4 설명 자리 표시자입니다(행 30046). 학습용으로 지어낸 문장입니다.",
+   "source": "TOUR_API",
+   "copyrightType": "Type1",
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30048,
+   "country": "대한민국",
+   "location": "강원특별자치도 강릉시",
+   "destName": "강문해변",
+   "info": "TYPE3-SENTINEL-v4 설명문 자리 표시자입니다(행 30048). 학습용으로 지어낸 문장이며 TourAPI 원문이 아닙니다.",
+   "source": "TOUR_API",
+   "copyrightType": "Type3",
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30049,
+   "country": "대한민국",
+   "location": "강원특별자치도 강릉시",
+   "destName": "안반데기",
+   "info": "TYPE3-SENTINEL-v4 설명문 자리 표시자입니다(행 30049). 학습용으로 지어낸 문장이며 TourAPI 원문이 아닙니다.",
+   "source": "TOUR_API",
+   "copyrightType": "Type3",
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30050,
+   "country": "대한민국",
+   "location": "경상북도 경주시",
+   "destName": "석굴암",
+   "info": "경상북도 경주시의 관광지입니다.",
+   "source": "TOUR_API",
+   "copyrightType": "Type3",
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "SUMMARY"
+  },
+  {
+   "id": 30051,
+   "country": "대한민국",
+   "location": "경상북도 경주시",
+   "destName": "동궁과 월지",
+   "info": "경상북도 경주시의 관광지입니다.",
+   "source": "TOUR_API",
+   "copyrightType": "Type3",
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "SUMMARY"
+  },
+  {
+   "id": 30052,
+   "country": "대한민국",
+   "location": "경상북도 경주시",
+   "destName": "첨성대",
+   "info": "경상북도 경주시의 관광지입니다.",
+   "source": "TOUR_API",
+   "copyrightType": "Type3",
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "SUMMARY"
+  },
+  {
+   "id": 30053,
+   "country": "대한민국",
+   "location": "경상북도 경주시",
+   "destName": "황리단길",
+   "info": "경상북도 경주시의 관광지입니다.",
+   "source": "TOUR_API",
+   "copyrightType": "Type3",
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "SUMMARY"
+  },
+  {
+   "id": 30054,
+   "country": "대한민국",
+   "location": "경상북도 경주시",
+   "destName": "대릉원",
+   "info": "TYPE3-SENTINEL-v4 설명문 자리 표시자입니다(행 30054). 학습용으로 지어낸 문장이며 TourAPI 원문이 아닙니다.",
+   "source": "TOUR_API",
+   "copyrightType": "Type3",
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30055,
+   "country": "대한민국",
+   "location": "경상북도 경주시",
+   "destName": "양동마을",
+   "info": "TYPE3-SENTINEL-v4 설명문 자리 표시자입니다(행 30055). 학습용으로 지어낸 문장이며 TourAPI 원문이 아닙니다.",
+   "source": "TOUR_API",
+   "copyrightType": "Type3",
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30056,
+   "country": "대한민국",
+   "location": "경상북도 경주시",
+   "destName": "국립경주박물관",
+   "info": "TYPE3-SENTINEL-v4 설명문 자리 표시자입니다(행 30056). 학습용으로 지어낸 문장이며 TourAPI 원문이 아닙니다.",
+   "source": "TOUR_API",
+   "copyrightType": "Type3",
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30057,
+   "country": "대한민국",
+   "location": "경상북도 경주시",
+   "destName": "보문호",
+   "info": "경상북도 경주시의 관광지입니다.",
+   "source": "TOUR_API",
+   "copyrightType": "Type3",
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "SUMMARY"
+  },
+  {
+   "id": 30058,
+   "country": "대한민국",
+   "location": "경상북도 경주시",
+   "destName": "분황사",
+   "info": "경상북도 경주시의 관광지입니다.",
+   "source": "TOUR_API",
+   "copyrightType": "Type3",
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "SUMMARY"
+  },
+  {
+   "id": 30059,
+   "country": "대한민국",
+   "location": "전북특별자치도 전주시",
+   "destName": "전주한옥마을",
+   "info": "전북특별자치도 전주시의 관광지입니다.",
+   "source": "TOUR_API",
+   "copyrightType": "Type3",
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "SUMMARY"
+  },
+  {
+   "id": 30060,
+   "country": "대한민국",
+   "location": "전북특별자치도 전주시",
+   "destName": "경기전",
+   "info": "전북특별자치도 전주시의 관광지입니다.",
+   "source": "TOUR_API",
+   "copyrightType": "Type3",
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "SUMMARY"
+  },
+  {
+   "id": 30061,
+   "country": "대한민국",
+   "location": "전북특별자치도 전주시",
+   "destName": "남부시장",
+   "info": "전북특별자치도 전주시의 쇼핑입니다.",
+   "source": "TOUR_API",
+   "copyrightType": "Type3",
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "SUMMARY"
+  },
+  {
+   "id": 30062,
+   "country": "대한민국",
+   "location": "전북특별자치도 전주시",
+   "destName": "오목대",
+   "info": "TYPE1-DESC-v4 설명 자리 표시자입니다(행 30062). 학습용으로 지어낸 문장입니다.",
+   "source": "TOUR_API",
+   "copyrightType": "Type1",
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30063,
+   "country": "대한민국",
+   "location": "전북특별자치도 전주시",
+   "destName": "자만벽화마을",
+   "info": "전북특별자치도 전주시의 관광지입니다.",
+   "source": "TOUR_API",
+   "copyrightType": "Type3",
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "SUMMARY"
+  },
+  {
+   "id": 30064,
+   "country": "대한민국",
+   "location": "전북특별자치도 전주시",
+   "destName": "전동성당",
+   "info": "TYPE3-SENTINEL-v4 설명문 자리 표시자입니다(행 30064). 학습용으로 지어낸 문장이며 TourAPI 원문이 아닙니다.",
+   "source": "TOUR_API",
+   "copyrightType": "Type3",
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30065,
+   "country": "대한민국",
+   "location": "전라남도 여수시",
+   "destName": "돌산공원",
+   "info": "TYPE3-SENTINEL-v4 설명문 자리 표시자입니다(행 30065). 학습용으로 지어낸 문장이며 TourAPI 원문이 아닙니다.",
+   "source": "TOUR_API",
+   "copyrightType": "Type3",
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30066,
+   "country": "대한민국",
+   "location": "전라남도 여수시",
+   "destName": "오동도",
+   "info": "TYPE3-SENTINEL-v4 설명문 자리 표시자입니다(행 30066). 학습용으로 지어낸 문장이며 TourAPI 원문이 아닙니다.",
+   "source": "TOUR_API",
+   "copyrightType": "Type3",
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30067,
+   "country": "대한민국",
+   "location": "전라남도 여수시",
+   "destName": "향일암",
+   "info": "TYPE3-SENTINEL-v4 설명문 자리 표시자입니다(행 30067). 학습용으로 지어낸 문장이며 TourAPI 원문이 아닙니다.",
+   "source": "TOUR_API",
+   "copyrightType": "Type3",
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30068,
+   "country": "대한민국",
+   "location": "전라남도 여수시",
+   "destName": "여수해상케이블카",
+   "info": "TYPE1-DESC-v4 설명 자리 표시자입니다(행 30068). 학습용으로 지어낸 문장입니다.",
+   "source": "TOUR_API",
+   "copyrightType": "Type1",
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30069,
+   "country": "대한민국",
+   "location": "전라남도 여수시",
+   "destName": "이순신광장",
+   "info": "TYPE1-DESC-v4 설명 자리 표시자입니다(행 30069). 학습용으로 지어낸 문장입니다.",
+   "source": "TOUR_API",
+   "copyrightType": "Type1",
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30070,
+   "country": "대한민국",
+   "location": "강원특별자치도 속초시",
+   "destName": "영금정",
+   "info": "TYPE1-DESC-v4 설명 자리 표시자입니다(행 30070). 학습용으로 지어낸 문장입니다.",
+   "source": "TOUR_API",
+   "copyrightType": "Type1",
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30071,
+   "country": "대한민국",
+   "location": "강원특별자치도 속초시",
+   "destName": "아바이마을",
+   "info": "TYPE3-SENTINEL-v4 설명문 자리 표시자입니다(행 30071). 학습용으로 지어낸 문장이며 TourAPI 원문이 아닙니다.",
+   "source": "TOUR_API",
+   "copyrightType": "Type3",
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30072,
+   "country": "대한민국",
+   "location": "강원특별자치도 속초시",
+   "destName": "청초호",
+   "info": "강원특별자치도 속초시의 관광지입니다.",
+   "source": "TOUR_API",
+   "copyrightType": "Type3",
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "SUMMARY"
+  },
+  {
+   "id": 30073,
+   "country": "대한민국",
+   "location": "강원특별자치도 속초시",
+   "destName": "속초관광수산시장",
+   "info": "TYPE3-SENTINEL-v4 설명문 자리 표시자입니다(행 30073). 학습용으로 지어낸 문장이며 TourAPI 원문이 아닙니다.",
+   "source": "TOUR_API",
+   "copyrightType": "Type3",
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30074,
+   "country": "대한민국",
+   "location": "강원특별자치도 속초시",
+   "destName": "대포항",
+   "info": "TYPE1-DESC-v4 설명 자리 표시자입니다(행 30074). 학습용으로 지어낸 문장입니다.",
+   "source": "TOUR_API",
+   "copyrightType": "Type1",
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30075,
+   "country": "대한민국",
+   "location": "강원특별자치도 속초시",
+   "destName": "설악산",
+   "info": "강원특별자치도 속초시의 관광지입니다.",
+   "source": "TOUR_API",
+   "copyrightType": "Type3",
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "SUMMARY"
+  },
+  {
+   "id": 30076,
+   "country": "대한민국",
+   "location": "인천광역시 중구",
+   "destName": "월미도",
+   "info": "인천광역시 중구의 관광지입니다.",
+   "source": "TOUR_API",
+   "copyrightType": "Type3",
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "SUMMARY"
+  },
+  {
+   "id": 30077,
+   "country": "대한민국",
+   "location": "인천광역시 중구",
+   "destName": "인천 차이나타운",
+   "info": "인천광역시 중구의 관광지입니다.",
+   "source": "TOUR_API",
+   "copyrightType": "Type3",
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "SUMMARY"
+  },
+  {
+   "id": 30078,
+   "country": "대한민국",
+   "location": "인천광역시 연수구",
+   "destName": "송도 센트럴파크",
+   "info": "인천광역시 연수구의 관광지입니다.",
+   "source": "TOUR_API",
+   "copyrightType": "Type3",
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "SUMMARY"
+  },
+  {
+   "id": 30079,
+   "country": "대한민국",
+   "location": "인천광역시 중구",
+   "destName": "을왕리해수욕장",
+   "info": "TYPE1-DESC-v4 설명 자리 표시자입니다(행 30079). 학습용으로 지어낸 문장입니다.",
+   "source": "TOUR_API",
+   "copyrightType": "Type1",
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30080,
+   "country": "대한민국",
+   "location": "대구광역시 중구",
+   "destName": "서문시장",
+   "info": "TYPE3-SENTINEL-v4 설명문 자리 표시자입니다(행 30080). 학습용으로 지어낸 문장이며 TourAPI 원문이 아닙니다.",
+   "source": "TOUR_API",
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30081,
+   "country": "대한민국",
+   "location": "대구광역시 중구",
+   "destName": "김광석 다시그리기길",
+   "info": "TYPE3-SENTINEL-v4 설명문 자리 표시자입니다(행 30081). 학습용으로 지어낸 문장이며 TourAPI 원문이 아닙니다.",
+   "source": "TOUR_API",
+   "copyrightType": "Type3",
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30082,
+   "country": "대한민국",
+   "location": "대구광역시 남구",
+   "destName": "앞산 전망대",
+   "info": "대구광역시 남구의 관광지입니다.",
+   "source": "TOUR_API",
+   "copyrightType": "Type3",
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "SUMMARY"
+  },
+  {
+   "id": 30083,
+   "country": "대한민국",
+   "location": "대구광역시 동구",
+   "destName": "팔공산",
+   "info": "대구광역시 동구의 관광지입니다.",
+   "source": "TOUR_API",
+   "copyrightType": "Type3",
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "SUMMARY"
+  },
+  {
+   "id": 30084,
+   "country": "대한민국",
+   "location": "대구광역시 달서구",
+   "destName": "이월드",
+   "info": "대구광역시 달서구의 레포츠입니다.",
+   "source": "TOUR_API",
+   "copyrightType": "Type3",
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "SUMMARY"
+  },
+  {
+   "id": 30086,
+   "country": "대한민국",
+   "location": "광주광역시 북구",
+   "destName": "무등산",
+   "info": "광주광역시 북구의 관광지입니다.",
+   "source": "TOUR_API",
+   "copyrightType": "Type3",
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "SUMMARY"
+  },
+  {
+   "id": 30087,
+   "country": "대한민국",
+   "location": "광주광역시 남구",
+   "destName": "양림동 펭귄마을",
+   "info": "광주광역시 남구의 관광지입니다.",
+   "source": "TOUR_API",
+   "copyrightType": "Type3",
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "SUMMARY"
+  },
+  {
+   "id": 30088,
+   "country": "대한민국",
+   "location": "대전광역시 서구",
+   "destName": "한밭수목원",
+   "info": "TYPE3-SENTINEL-v4 설명문 자리 표시자입니다(행 30088). 학습용으로 지어낸 문장이며 TourAPI 원문이 아닙니다.",
+   "source": "TOUR_API",
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30089,
+   "country": "대한민국",
+   "location": "대전광역시 유성구",
+   "destName": "대전 엑스포 과학공원",
+   "info": "TYPE3-SENTINEL-v4 설명문 자리 표시자입니다(행 30089). 학습용으로 지어낸 문장이며 TourAPI 원문이 아닙니다.",
+   "source": "TOUR_API",
+   "copyrightType": "Type3",
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30090,
+   "country": "대한민국",
+   "location": "대전광역시 서구",
+   "destName": "장태산 자연휴양림",
+   "info": "TYPE3-SENTINEL-v4 설명문 자리 표시자입니다(행 30090). 학습용으로 지어낸 문장이며 TourAPI 원문이 아닙니다.",
+   "source": "TOUR_API",
+   "copyrightType": "Type3",
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30091,
+   "country": "대한민국",
+   "location": "대전광역시 유성구",
+   "destName": "유성온천",
+   "info": "대전광역시 유성구의 관광지입니다.",
+   "source": "TOUR_API",
+   "copyrightType": "Type3",
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "SUMMARY"
+  },
+  {
+   "id": 30092,
+   "country": "대한민국",
+   "location": "강원특별자치도 춘천시",
+   "destName": "소양강 스카이워크",
+   "info": "TYPE3-SENTINEL-v4 설명문 자리 표시자입니다(행 30092). 학습용으로 지어낸 문장이며 TourAPI 원문이 아닙니다.",
+   "source": "TOUR_API",
+   "copyrightType": "Type3",
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30093,
+   "country": "대한민국",
+   "location": "강원특별자치도 춘천시",
+   "destName": "김유정 문학촌",
+   "info": "TYPE1-DESC-v4 설명 자리 표시자입니다(행 30093). 학습용으로 지어낸 문장입니다.",
+   "source": "TOUR_API",
+   "copyrightType": "Type1",
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30094,
+   "country": "대한민국",
+   "location": "강원특별자치도 춘천시",
+   "destName": "의암호",
+   "info": "TYPE3-SENTINEL-v4 설명문 자리 표시자입니다(행 30094). 학습용으로 지어낸 문장이며 TourAPI 원문이 아닙니다.",
+   "source": "TOUR_API",
+   "copyrightType": "Type3",
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30095,
+   "country": "대한민국",
+   "location": "강원특별자치도 춘천시",
+   "destName": "레고랜드 코리아",
+   "info": "TYPE3-SENTINEL-v4 설명문 자리 표시자입니다(행 30095). 학습용으로 지어낸 문장이며 TourAPI 원문이 아닙니다.",
+   "source": "TOUR_API",
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30096,
+   "country": "대한민국",
+   "location": "강원특별자치도 춘천시",
+   "destName": "남이섬",
+   "info": "TYPE3-SENTINEL-v4 설명문 자리 표시자입니다(행 30096). 학습용으로 지어낸 문장이며 TourAPI 원문이 아닙니다.",
+   "source": "TOUR_API",
+   "copyrightType": "Type3",
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30097,
+   "country": "대한민국",
+   "location": "경상남도 통영시",
+   "destName": "동피랑마을",
+   "info": "TYPE1-DESC-v4 설명 자리 표시자입니다(행 30097). 학습용으로 지어낸 문장입니다.",
+   "source": "TOUR_API",
+   "copyrightType": "Type1",
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30098,
+   "country": "대한민국",
+   "location": "경상남도 통영시",
+   "destName": "미륵산",
+   "info": "TYPE1-DESC-v4 설명 자리 표시자입니다(행 30098). 학습용으로 지어낸 문장입니다.",
+   "source": "TOUR_API",
+   "copyrightType": "Type1",
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30099,
+   "country": "대한민국",
+   "location": "경상남도 통영시",
+   "destName": "통영 중앙시장",
+   "info": "경상남도 통영시의 쇼핑입니다.",
+   "source": "TOUR_API",
+   "copyrightType": "Type3",
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "SUMMARY"
+  },
+  {
+   "id": 30100,
+   "country": "대한민국",
+   "location": "경상남도 통영시",
+   "destName": "소매물도",
+   "info": "TYPE3-SENTINEL-v4 설명문 자리 표시자입니다(행 30100). 학습용으로 지어낸 문장이며 TourAPI 원문이 아닙니다.",
+   "source": "TOUR_API",
+   "copyrightType": "Type3",
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30101,
+   "country": "대한민국",
+   "location": "경상남도 통영시",
+   "destName": "한산도",
+   "info": "TYPE3-SENTINEL-v4 설명문 자리 표시자입니다(행 30101). 학습용으로 지어낸 문장이며 TourAPI 원문이 아닙니다.",
+   "source": "TOUR_API",
+   "copyrightType": "Type3",
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30102,
+   "country": "대한민국",
+   "location": "경상남도 통영시",
+   "destName": "이순신공원",
+   "info": "TYPE3-SENTINEL-v4 설명문 자리 표시자입니다(행 30102). 학습용으로 지어낸 문장이며 TourAPI 원문이 아닙니다.",
+   "source": "TOUR_API",
+   "copyrightType": "Type3",
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30103,
+   "country": "대한민국",
+   "location": "경상북도 안동시",
+   "destName": "도산서원",
+   "info": "TYPE3-SENTINEL-v4 설명문 자리 표시자입니다(행 30103). 학습용으로 지어낸 문장이며 TourAPI 원문이 아닙니다.",
+   "source": "TOUR_API",
+   "copyrightType": "Type3",
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30104,
+   "country": "대한민국",
+   "location": "경상북도 안동시",
+   "destName": "봉정사",
+   "info": "경상북도 안동시의 관광지입니다.",
+   "source": "TOUR_API",
+   "copyrightType": "Type3",
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "SUMMARY"
+  },
+  {
+   "id": 30105,
+   "country": "대한민국",
+   "location": "경상북도 안동시",
+   "destName": "안동 찜닭골목",
+   "info": "TYPE3-SENTINEL-v4 설명문 자리 표시자입니다(행 30105). 학습용으로 지어낸 문장이며 TourAPI 원문이 아닙니다.",
+   "source": "TOUR_API",
+   "copyrightType": "Type3",
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30106,
+   "country": "대한민국",
+   "location": "경상북도 포항시",
+   "destName": "호미곶",
+   "info": "TYPE3-SENTINEL-v4 설명문 자리 표시자입니다(행 30106). 학습용으로 지어낸 문장이며 TourAPI 원문이 아닙니다.",
+   "source": "TOUR_API",
+   "copyrightType": "Type3",
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30107,
+   "country": "대한민국",
+   "location": "경상북도 포항시",
+   "destName": "영일대해수욕장",
+   "info": "경상북도 포항시의 관광지입니다.",
+   "source": "TOUR_API",
+   "copyrightType": "Type3",
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "SUMMARY"
+  },
+  {
+   "id": 30108,
+   "country": "대한민국",
+   "location": "경상북도 포항시",
+   "destName": "스페이스워크",
+   "info": "TYPE3-SENTINEL-v4 설명문 자리 표시자입니다(행 30108). 학습용으로 지어낸 문장이며 TourAPI 원문이 아닙니다.",
+   "source": "TOUR_API",
+   "copyrightType": "Type3",
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30109,
+   "country": "대한민국",
+   "location": "경상북도 포항시",
+   "destName": "죽도시장",
+   "info": "TYPE3-SENTINEL-v4 설명문 자리 표시자입니다(행 30109). 학습용으로 지어낸 문장이며 TourAPI 원문이 아닙니다.",
+   "source": "TOUR_API",
+   "copyrightType": "Type3",
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30110,
+   "country": "대한민국",
+   "location": "경상남도 남해군",
+   "destName": "독일마을",
+   "info": "TYPE3-SENTINEL-v4 설명문 자리 표시자입니다(행 30110). 학습용으로 지어낸 문장이며 TourAPI 원문이 아닙니다.",
+   "source": "TOUR_API",
+   "copyrightType": "Type3",
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30111,
+   "country": "대한민국",
+   "location": "경상남도 남해군",
+   "destName": "보리암",
+   "info": "경상남도 남해군의 관광지입니다.",
+   "source": "TOUR_API",
+   "copyrightType": "Type3",
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "SUMMARY"
+  },
+  {
+   "id": 30112,
+   "country": "대한민국",
+   "location": "경상남도 남해군",
+   "destName": "상주은모래비치",
+   "info": "TYPE3-SENTINEL-v4 설명문 자리 표시자입니다(행 30112). 학습용으로 지어낸 문장이며 TourAPI 원문이 아닙니다.",
+   "source": "TOUR_API",
+   "copyrightType": "Type3",
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30113,
+   "country": "대한민국",
+   "location": "경상남도 창원시",
+   "destName": "주남저수지",
+   "info": "TYPE3-SENTINEL-v4 설명문 자리 표시자입니다(행 30113). 학습용으로 지어낸 문장이며 TourAPI 원문이 아닙니다.",
+   "source": "TOUR_API",
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30114,
+   "country": "대한민국",
+   "location": "강원특별자치도 양양군",
+   "destName": "낙산사",
+   "info": "강원특별자치도 양양군의 관광지입니다.",
+   "source": "TOUR_API",
+   "copyrightType": "Type3",
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "SUMMARY"
+  },
+  {
+   "id": 30116,
+   "country": "대한민국",
+   "location": "강원특별자치도 양양군",
+   "destName": "하조대",
+   "info": "강원특별자치도 양양군의 관광지입니다.",
+   "source": "TOUR_API",
+   "copyrightType": "Type3",
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "SUMMARY"
+  },
+  {
+   "id": 30117,
+   "country": "대한민국",
+   "location": "강원특별자치도 양양군",
+   "destName": "죽도해변",
+   "info": "강원특별자치도 양양군의 레포츠입니다.",
+   "source": "TOUR_API",
+   "copyrightType": "Type3",
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "SUMMARY"
+  },
+  {
+   "id": 30118,
+   "country": "대한민국",
+   "location": "경기도 가평군",
+   "destName": "아침고요수목원",
+   "info": "경기도 가평군의 관광지입니다.",
+   "source": "TOUR_API",
+   "copyrightType": "Type3",
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "SUMMARY"
+  },
+  {
+   "id": 30119,
+   "country": "대한민국",
+   "location": "경기도 가평군",
+   "destName": "자라섬",
+   "info": "TYPE3-SENTINEL-v4 설명문 자리 표시자입니다(행 30119). 학습용으로 지어낸 문장이며 TourAPI 원문이 아닙니다.",
+   "source": "TOUR_API",
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30120,
+   "country": "대한민국",
+   "location": "경기도 가평군",
+   "destName": "가평 레일파크",
+   "info": "TYPE1-DESC-v4 설명 자리 표시자입니다(행 30120). 학습용으로 지어낸 문장입니다.",
+   "source": "TOUR_API",
+   "copyrightType": "Type1",
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30121,
+   "country": "대한민국",
+   "location": "충청북도 단양군",
+   "destName": "도담삼봉",
+   "info": "TYPE1-DESC-v4 설명 자리 표시자입니다(행 30121). 학습용으로 지어낸 문장입니다.",
+   "source": "TOUR_API",
+   "copyrightType": "Type1",
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30122,
+   "country": "대한민국",
+   "location": "충청북도 단양군",
+   "destName": "만천하스카이워크",
+   "info": "TYPE3-SENTINEL-v4 설명문 자리 표시자입니다(행 30122). 학습용으로 지어낸 문장이며 TourAPI 원문이 아닙니다.",
+   "source": "TOUR_API",
+   "copyrightType": "Type3",
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30123,
+   "country": "대한민국",
+   "location": "충청북도 단양군",
+   "destName": "고수동굴",
+   "info": "충청북도 단양군의 관광지입니다.",
+   "source": "TOUR_API",
+   "copyrightType": "Type3",
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "SUMMARY"
+  },
+  {
+   "id": 30124,
+   "country": "대한민국",
+   "location": "충청북도 단양군",
+   "destName": "단양강 잔도",
+   "info": "TYPE3-SENTINEL-v4 설명문 자리 표시자입니다(행 30124). 학습용으로 지어낸 문장이며 TourAPI 원문이 아닙니다.",
+   "source": "TOUR_API",
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30125,
+   "country": "대한민국",
+   "location": "경기도 수원시",
+   "destName": "수원 화성",
+   "info": "경기도 수원시의 관광지입니다.",
+   "source": "TOUR_API",
+   "copyrightType": "Type3",
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "SUMMARY"
+  },
+  {
+   "id": 30126,
+   "country": "대한민국",
+   "location": "경기도 수원시",
+   "destName": "화성행궁",
+   "info": "경기도 수원시의 관광지입니다.",
+   "source": "TOUR_API",
+   "copyrightType": "Type3",
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "SUMMARY"
+  },
+  {
+   "id": 30127,
+   "country": "대한민국",
+   "location": "경기도 수원시",
+   "destName": "행궁동 벽화마을",
+   "info": "경기도 수원시의 관광지입니다.",
+   "source": "TOUR_API",
+   "copyrightType": "Type3",
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "SUMMARY"
+  },
+  {
+   "id": 30128,
+   "country": "대한민국",
+   "location": "경기도 수원시",
+   "destName": "광교호수공원",
+   "info": "TYPE3-SENTINEL-v4 설명문 자리 표시자입니다(행 30128). 학습용으로 지어낸 문장이며 TourAPI 원문이 아닙니다.",
+   "source": "TOUR_API",
+   "copyrightType": "Type3",
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30129,
+   "country": "대한민국",
+   "location": "경기도 용인시",
+   "destName": "에버랜드",
+   "info": "경기도 용인시의 레포츠입니다.",
+   "source": "TOUR_API",
+   "copyrightType": "Type3",
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "SUMMARY"
+  },
+  {
+   "id": 30130,
+   "country": "대한민국",
+   "location": "강원특별자치도 평창군",
+   "destName": "대관령 양떼목장",
+   "info": "TYPE1-DESC-v4 설명 자리 표시자입니다(행 30130). 학습용으로 지어낸 문장입니다.",
+   "source": "TOUR_API",
+   "copyrightType": "Type1",
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30131,
+   "country": "대한민국",
+   "location": "강원특별자치도 평창군",
+   "destName": "오대산 국립공원",
+   "info": "TYPE3-SENTINEL-v4 설명문 자리 표시자입니다(행 30131). 학습용으로 지어낸 문장이며 TourAPI 원문이 아닙니다.",
+   "source": "TOUR_API",
+   "copyrightType": "Type3",
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30132,
+   "country": "대한민국",
+   "location": "강원특별자치도 평창군",
+   "destName": "알펜시아 리조트",
+   "info": "강원특별자치도 평창군의 레포츠입니다.",
+   "source": "TOUR_API",
+   "copyrightType": "Type3",
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "SUMMARY"
+  },
+  {
+   "id": 30133,
+   "country": "대한민국",
+   "location": "강원특별자치도 평창군",
+   "destName": "발왕산 관광케이블카",
+   "info": "강원특별자치도 평창군의 관광지입니다.",
+   "source": "TOUR_API",
+   "copyrightType": "Type3",
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "SUMMARY"
+  },
+  {
+   "id": 30134,
+   "country": "대한민국",
+   "location": "강원특별자치도 정선군",
+   "destName": "화암동굴",
+   "info": "TYPE3-SENTINEL-v4 설명문 자리 표시자입니다(행 30134). 학습용으로 지어낸 문장이며 TourAPI 원문이 아닙니다.",
+   "source": "TOUR_API",
+   "copyrightType": "Type3",
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30135,
+   "country": "대한민국",
+   "location": "강원특별자치도 정선군",
+   "destName": "병방치 스카이워크",
+   "info": "강원특별자치도 정선군의 관광지입니다.",
+   "source": "TOUR_API",
+   "copyrightType": "Type3",
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "SUMMARY"
+  },
+  {
+   "id": 30136,
+   "country": "대한민국",
+   "location": "강원특별자치도 정선군",
+   "destName": "정선 레일바이크",
+   "info": "TYPE3-SENTINEL-v4 설명문 자리 표시자입니다(행 30136). 학습용으로 지어낸 문장이며 TourAPI 원문이 아닙니다.",
+   "source": "TOUR_API",
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30137,
+   "country": "대한민국",
+   "location": "강원특별자치도 정선군",
+   "destName": "정선 아리랑시장",
+   "info": "TYPE3-SENTINEL-v4 설명문 자리 표시자입니다(행 30137). 학습용으로 지어낸 문장이며 TourAPI 원문이 아닙니다.",
+   "source": "TOUR_API",
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30138,
+   "country": "대한민국",
+   "location": "경기도 파주시",
+   "destName": "헤이리 예술마을",
+   "info": "TYPE3-SENTINEL-v4 설명문 자리 표시자입니다(행 30138). 학습용으로 지어낸 문장이며 TourAPI 원문이 아닙니다.",
+   "source": "TOUR_API",
+   "copyrightType": "Type3",
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30139,
+   "country": "대한민국",
+   "location": "경기도 파주시",
+   "destName": "임진각",
+   "info": "TYPE3-SENTINEL-v4 설명문 자리 표시자입니다(행 30139). 학습용으로 지어낸 문장이며 TourAPI 원문이 아닙니다.",
+   "source": "TOUR_API",
+   "copyrightType": "Type3",
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30140,
+   "country": "대한민국",
+   "location": "경기도 파주시",
+   "destName": "마장호수 출렁다리",
+   "info": "TYPE1-DESC-v4 설명 자리 표시자입니다(행 30140). 학습용으로 지어낸 문장입니다.",
+   "source": "TOUR_API",
+   "copyrightType": "Type1",
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30141,
+   "country": "대한민국",
+   "location": "경기도 파주시",
+   "destName": "파주 출판도시",
+   "info": "경기도 파주시의 관광지입니다.",
+   "source": "TOUR_API",
+   "copyrightType": "Type3",
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "SUMMARY"
+  },
+  {
+   "id": 30142,
+   "country": "대한민국",
+   "location": "충청남도 부여군",
+   "destName": "궁남지",
+   "info": "TYPE1-DESC-v4 설명 자리 표시자입니다(행 30142). 학습용으로 지어낸 문장입니다.",
+   "source": "TOUR_API",
+   "copyrightType": "Type1",
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30143,
+   "country": "대한민국",
+   "location": "충청남도 부여군",
+   "destName": "정림사지",
+   "info": "TYPE1-DESC-v4 설명 자리 표시자입니다(행 30143). 학습용으로 지어낸 문장입니다.",
+   "source": "TOUR_API",
+   "copyrightType": "Type1",
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30144,
+   "country": "대한민국",
+   "location": "충청남도 부여군",
+   "destName": "부소산성",
+   "info": "TYPE3-SENTINEL-v4 설명문 자리 표시자입니다(행 30144). 학습용으로 지어낸 문장이며 TourAPI 원문이 아닙니다.",
+   "source": "TOUR_API",
+   "copyrightType": "Type3",
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30145,
+   "country": "대한민국",
+   "location": "경상북도 문경시",
+   "destName": "문경새재 도립공원",
+   "info": "경상북도 문경시의 관광지입니다.",
+   "source": "TOUR_API",
+   "copyrightType": "Type3",
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "SUMMARY"
+  },
+  {
+   "id": 30146,
+   "country": "대한민국",
+   "location": "경상북도 문경시",
+   "destName": "진남교반",
+   "info": "TYPE3-SENTINEL-v4 설명문 자리 표시자입니다(행 30146). 학습용으로 지어낸 문장이며 TourAPI 원문이 아닙니다.",
+   "source": "TOUR_API",
+   "copyrightType": "Type3",
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30147,
+   "country": "대한민국",
+   "location": "경상북도 문경시",
+   "destName": "문경 석탄박물관",
+   "info": "TYPE1-DESC-v4 설명 자리 표시자입니다(행 30147). 학습용으로 지어낸 문장입니다.",
+   "source": "TOUR_API",
+   "copyrightType": "Type1",
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30148,
+   "country": "대한민국",
+   "location": "충청북도 청주시",
+   "destName": "상당산성",
+   "info": "충청북도 청주시의 관광지입니다.",
+   "source": "TOUR_API",
+   "copyrightType": "Type3",
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "SUMMARY"
+  },
+  {
+   "id": 30149,
+   "country": "대한민국",
+   "location": "충청북도 청주시",
+   "destName": "수암골",
+   "info": "TYPE3-SENTINEL-v4 설명문 자리 표시자입니다(행 30149). 학습용으로 지어낸 문장이며 TourAPI 원문이 아닙니다.",
+   "source": "TOUR_API",
+   "copyrightType": "Type3",
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30150,
+   "country": "대한민국",
+   "location": "충청북도 청주시",
+   "destName": "국립현대미술관 청주",
+   "info": "충청북도 청주시의 문화시설입니다.",
+   "source": "TOUR_API",
+   "copyrightType": "Type3",
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "SUMMARY"
+  },
+  {
+   "id": 30151,
+   "country": "대한민국",
+   "location": "경상북도 울진군",
+   "destName": "덕구온천",
+   "info": "경상북도 울진군의 관광지입니다.",
+   "source": "TOUR_API",
+   "copyrightType": "Type3",
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "SUMMARY"
+  },
+  {
+   "id": 30153,
+   "country": "일본",
+   "location": "일본 도쿄",
+   "destName": "시부야 스크램블 교차로",
+   "info": "일본 도쿄에 있는 관광지입니다.",
+   "source": "WIKIDATA",
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "SUMMARY"
+  },
+  {
+   "id": 30154,
+   "country": "일본",
+   "location": "일본 도쿄",
+   "destName": "도쿄타워",
+   "info": "일본 도쿄에 있는 관광지입니다.",
+   "source": "WIKIDATA",
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "SUMMARY"
+  },
+  {
+   "id": 30155,
+   "country": "일본",
+   "location": "일본 도쿄",
+   "destName": "신주쿠 교엔",
+   "info": "일본 도쿄에 있는 관광지입니다.",
+   "source": "WIKIDATA",
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "SUMMARY"
+  },
+  {
+   "id": 30156,
+   "country": "일본",
+   "location": "일본 도쿄",
+   "destName": "스카이트리",
+   "info": "일본 도쿄에 있는 관광지입니다.",
+   "source": "WIKIDATA",
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "SUMMARY"
+  },
+  {
+   "id": 30158,
+   "country": "일본",
+   "location": "일본 도쿄",
+   "destName": "우에노 공원",
+   "info": "일본 도쿄에 있는 문화시설입니다.",
+   "source": "WIKIDATA",
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "SUMMARY"
+  },
+  {
+   "id": 30159,
+   "country": "일본",
+   "location": "일본 도쿄",
+   "destName": "오다이바",
+   "info": "WIKI-DESC-v4 설명 자리 표시자입니다(행 30159). 위키백과 도입부를 흉내 낸 학습용 문장입니다.",
+   "source": null,
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30160,
+   "country": "일본",
+   "location": "일본 도쿄",
+   "destName": "츠키지 장외시장",
+   "info": "WIKI-DESC-v4 설명 자리 표시자입니다(행 30160). 위키백과 도입부를 흉내 낸 학습용 문장입니다.",
+   "source": null,
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30161,
+   "country": "일본",
+   "location": "일본 오사카",
+   "destName": "도톤보리",
+   "info": "일본 오사카에 있는 관광지입니다.",
+   "source": "WIKIDATA",
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "SUMMARY"
+  },
+  {
+   "id": 30162,
+   "country": "일본",
+   "location": "일본 오사카",
+   "destName": "오사카성",
+   "info": "WIKI-DESC-v4 설명 자리 표시자입니다(행 30162). 위키백과 도입부를 흉내 낸 학습용 문장입니다.",
+   "source": null,
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30163,
+   "country": "일본",
+   "location": "일본 오사카",
+   "destName": "유니버설 스튜디오 재팬",
+   "info": "WIKI-DESC-v4 설명 자리 표시자입니다(행 30163). 위키백과 도입부를 흉내 낸 학습용 문장입니다.",
+   "source": "WIKIDATA",
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30164,
+   "country": "일본",
+   "location": "일본 오사카",
+   "destName": "구로몬 시장",
+   "info": "WIKI-DESC-v4 설명 자리 표시자입니다(행 30164). 위키백과 도입부를 흉내 낸 학습용 문장입니다.",
+   "source": "WIKIDATA",
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30165,
+   "country": "일본",
+   "location": "일본 오사카",
+   "destName": "신세카이",
+   "info": "일본 오사카에 있는 관광지입니다.",
+   "source": "WIKIDATA",
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "SUMMARY"
+  },
+  {
+   "id": 30166,
+   "country": "일본",
+   "location": "일본 오사카",
+   "destName": "우메다 공중정원",
+   "info": "WIKI-DESC-v4 설명 자리 표시자입니다(행 30166). 위키백과 도입부를 흉내 낸 학습용 문장입니다.",
+   "source": "WIKIDATA",
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30167,
+   "country": "일본",
+   "location": "일본 오사카",
+   "destName": "가이유칸",
+   "info": "일본 오사카에 있는 관광지입니다.",
+   "source": "WIKIDATA",
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "SUMMARY"
+  },
+  {
+   "id": 30168,
+   "country": "일본",
+   "location": "일본 후쿠오카",
+   "destName": "다자이후 텐만구",
+   "info": "WIKI-DESC-v4 설명 자리 표시자입니다(행 30168). 위키백과 도입부를 흉내 낸 학습용 문장입니다.",
+   "source": null,
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30169,
+   "country": "일본",
+   "location": "일본 후쿠오카",
+   "destName": "오호리 공원",
+   "info": "일본 후쿠오카에 있는 관광지입니다.",
+   "source": "WIKIDATA",
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "SUMMARY"
+  },
+  {
+   "id": 30170,
+   "country": "일본",
+   "location": "일본 후쿠오카",
+   "destName": "캐널시티 하카타",
+   "info": "일본 후쿠오카에 있는 관광지입니다.",
+   "source": "WIKIDATA",
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "SUMMARY"
+  },
+  {
+   "id": 30171,
+   "country": "일본",
+   "location": "일본 후쿠오카",
+   "destName": "나카스 포장마차 거리",
+   "info": "일본 후쿠오카에 있는 쇼핑입니다.",
+   "source": "WIKIDATA",
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "SUMMARY"
+  },
+  {
+   "id": 30172,
+   "country": "일본",
+   "location": "일본 후쿠오카",
+   "destName": "모모치 해변",
+   "info": "WIKI-DESC-v4 설명 자리 표시자입니다(행 30172). 위키백과 도입부를 흉내 낸 학습용 문장입니다.",
+   "source": null,
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30173,
+   "country": "일본",
+   "location": "일본 후쿠오카",
+   "destName": "후쿠오카 타워",
+   "info": "일본 후쿠오카에 있는 관광지입니다.",
+   "source": "WIKIDATA",
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "SUMMARY"
+  },
+  {
+   "id": 30174,
+   "country": "일본",
+   "location": "일본 교토",
+   "destName": "후시미 이나리 신사",
+   "info": "WIKI-DESC-v4 설명 자리 표시자입니다(행 30174). 위키백과 도입부를 흉내 낸 학습용 문장입니다.",
+   "source": null,
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30175,
+   "country": "일본",
+   "location": "일본 교토",
+   "destName": "기요미즈데라",
+   "info": "WIKI-DESC-v4 설명 자리 표시자입니다(행 30175). 위키백과 도입부를 흉내 낸 학습용 문장입니다.",
+   "source": "WIKIDATA",
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30176,
+   "country": "일본",
+   "location": "일본 교토",
+   "destName": "아라시야마 대나무숲",
+   "info": "일본 교토에 있는 관광지입니다.",
+   "source": "WIKIDATA",
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "SUMMARY"
+  },
+  {
+   "id": 30177,
+   "country": "일본",
+   "location": "일본 교토",
+   "destName": "긴카쿠지",
+   "info": "WIKI-DESC-v4 설명 자리 표시자입니다(행 30177). 위키백과 도입부를 흉내 낸 학습용 문장입니다.",
+   "source": "WIKIDATA",
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30178,
+   "country": "일본",
+   "location": "일본 교토",
+   "destName": "니조성",
+   "info": "WIKI-DESC-v4 설명 자리 표시자입니다(행 30178). 위키백과 도입부를 흉내 낸 학습용 문장입니다.",
+   "source": "WIKIDATA",
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30179,
+   "country": "일본",
+   "location": "일본 교토",
+   "destName": "기온 거리",
+   "info": "일본 교토에 있는 관광지입니다.",
+   "source": "WIKIDATA",
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "SUMMARY"
+  },
+  {
+   "id": 30180,
+   "country": "일본",
+   "location": "일본 교토",
+   "destName": "철학의 길",
+   "info": "WIKI-DESC-v4 설명 자리 표시자입니다(행 30180). 위키백과 도입부를 흉내 낸 학습용 문장입니다.",
+   "source": null,
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30181,
+   "country": "일본",
+   "location": "일본 벳푸",
+   "destName": "벳푸 지옥온천",
+   "info": "일본 벳푸에 있는 관광지입니다.",
+   "source": "WIKIDATA",
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "SUMMARY"
+  },
+  {
+   "id": 30182,
+   "country": "일본",
+   "location": "일본 시즈오카현",
+   "destName": "후지산",
+   "info": "일본 시즈오카현에 있는 관광지입니다.",
+   "source": "WIKIDATA",
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "SUMMARY"
+  },
+  {
+   "id": 30183,
+   "country": "프랑스",
+   "location": "프랑스 파리",
+   "destName": "루브르 박물관",
+   "info": "WIKI-DESC-v4 설명 자리 표시자입니다(행 30183). 위키백과 도입부를 흉내 낸 학습용 문장입니다.",
+   "source": "WIKIDATA",
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30184,
+   "country": "프랑스",
+   "location": "프랑스 파리",
+   "destName": "몽마르트르 언덕",
+   "info": "WIKI-DESC-v4 설명 자리 표시자입니다(행 30184). 위키백과 도입부를 흉내 낸 학습용 문장입니다.",
+   "source": "WIKIDATA",
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30185,
+   "country": "프랑스",
+   "location": "프랑스 파리",
+   "destName": "개선문",
+   "info": "프랑스 파리에 있는 관광지입니다.",
+   "source": "WIKIDATA",
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "SUMMARY"
+  },
+  {
+   "id": 30186,
+   "country": "프랑스",
+   "location": "프랑스 파리",
+   "destName": "노트르담 대성당",
+   "info": "프랑스 파리에 있는 관광지입니다.",
+   "source": "WIKIDATA",
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "SUMMARY"
+  },
+  {
+   "id": 30187,
+   "country": "프랑스",
+   "location": "프랑스 파리",
+   "destName": "오르세 미술관",
+   "info": "WIKI-DESC-v4 설명 자리 표시자입니다(행 30187). 위키백과 도입부를 흉내 낸 학습용 문장입니다.",
+   "source": "WIKIDATA",
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30188,
+   "country": "프랑스",
+   "location": "프랑스 파리",
+   "destName": "샹젤리제 거리",
+   "info": "WIKI-DESC-v4 설명 자리 표시자입니다(행 30188). 위키백과 도입부를 흉내 낸 학습용 문장입니다.",
+   "source": "WIKIDATA",
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30189,
+   "country": "프랑스",
+   "location": "프랑스 베르사유",
+   "destName": "베르사유 궁전",
+   "info": "WIKI-DESC-v4 설명 자리 표시자입니다(행 30189). 위키백과 도입부를 흉내 낸 학습용 문장입니다.",
+   "source": "WIKIDATA",
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30190,
+   "country": "이탈리아",
+   "location": "이탈리아 로마",
+   "destName": "콜로세움",
+   "info": "이탈리아 로마에 있는 관광지입니다.",
+   "source": "WIKIDATA",
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "SUMMARY"
+  },
+  {
+   "id": 30191,
+   "country": "이탈리아",
+   "location": "이탈리아 로마",
+   "destName": "트레비 분수",
+   "info": "WIKI-DESC-v4 설명 자리 표시자입니다(행 30191). 위키백과 도입부를 흉내 낸 학습용 문장입니다.",
+   "source": "WIKIDATA",
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30192,
+   "country": "이탈리아",
+   "location": "이탈리아 로마",
+   "destName": "바티칸 박물관",
+   "info": "WIKI-DESC-v4 설명 자리 표시자입니다(행 30192). 위키백과 도입부를 흉내 낸 학습용 문장입니다.",
+   "source": "WIKIDATA",
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30193,
+   "country": "이탈리아",
+   "location": "이탈리아 로마",
+   "destName": "판테온",
+   "info": "이탈리아 로마에 있는 관광지입니다.",
+   "source": "WIKIDATA",
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "SUMMARY"
+  },
+  {
+   "id": 30194,
+   "country": "이탈리아",
+   "location": "이탈리아 로마",
+   "destName": "스페인 광장",
+   "info": "이탈리아 로마에 있는 관광지입니다.",
+   "source": "WIKIDATA",
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "SUMMARY"
+  },
+  {
+   "id": 30195,
+   "country": "이탈리아",
+   "location": "이탈리아 로마",
+   "destName": "포로 로마노",
+   "info": "이탈리아 로마에 있는 관광지입니다.",
+   "source": "WIKIDATA",
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "SUMMARY"
+  },
+  {
+   "id": 30196,
+   "country": "이탈리아",
+   "location": "이탈리아 로마",
+   "destName": "산탄젤로 성",
+   "info": "WIKI-DESC-v4 설명 자리 표시자입니다(행 30196). 위키백과 도입부를 흉내 낸 학습용 문장입니다.",
+   "source": "WIKIDATA",
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30197,
+   "country": "이탈리아",
+   "location": "이탈리아 로마",
+   "destName": "트라스테베레",
+   "info": "WIKI-DESC-v4 설명 자리 표시자입니다(행 30197). 위키백과 도입부를 흉내 낸 학습용 문장입니다.",
+   "source": null,
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30198,
+   "country": "이탈리아",
+   "location": "이탈리아 베네치아",
+   "destName": "산마르코 광장",
+   "info": "WIKI-DESC-v4 설명 자리 표시자입니다(행 30198). 위키백과 도입부를 흉내 낸 학습용 문장입니다.",
+   "source": null,
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30199,
+   "country": "이탈리아",
+   "location": "이탈리아 베네치아",
+   "destName": "리알토 다리",
+   "info": "이탈리아 베네치아에 있는 관광지입니다.",
+   "source": "WIKIDATA",
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "SUMMARY"
+  },
+  {
+   "id": 30200,
+   "country": "이탈리아",
+   "location": "이탈리아 베네치아",
+   "destName": "부라노 섬",
+   "info": "WIKI-DESC-v4 설명 자리 표시자입니다(행 30200). 위키백과 도입부를 흉내 낸 학습용 문장입니다.",
+   "source": "WIKIDATA",
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30201,
+   "country": "이탈리아",
+   "location": "이탈리아 베네치아",
+   "destName": "카날 그란데",
+   "info": "이탈리아 베네치아에 있는 관광지입니다.",
+   "source": "WIKIDATA",
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "SUMMARY"
+  },
+  {
+   "id": 30202,
+   "country": "스페인",
+   "location": "스페인 바르셀로나",
+   "destName": "사그라다 파밀리아",
+   "info": "스페인 바르셀로나에 있는 관광지입니다.",
+   "source": "WIKIDATA",
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "SUMMARY"
+  },
+  {
+   "id": 30203,
+   "country": "스페인",
+   "location": "스페인 바르셀로나",
+   "destName": "구엘 공원",
+   "info": "스페인 바르셀로나에 있는 관광지입니다.",
+   "source": "WIKIDATA",
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "SUMMARY"
+  },
+  {
+   "id": 30204,
+   "country": "스페인",
+   "location": "스페인 바르셀로나",
+   "destName": "카사 바트요",
+   "info": "WIKI-DESC-v4 설명 자리 표시자입니다(행 30204). 위키백과 도입부를 흉내 낸 학습용 문장입니다.",
+   "source": null,
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30205,
+   "country": "스페인",
+   "location": "스페인 바르셀로나",
+   "destName": "람블라스 거리",
+   "info": "WIKI-DESC-v4 설명 자리 표시자입니다(행 30205). 위키백과 도입부를 흉내 낸 학습용 문장입니다.",
+   "source": null,
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30206,
+   "country": "스페인",
+   "location": "스페인 바르셀로나",
+   "destName": "몬주익 언덕",
+   "info": "WIKI-DESC-v4 설명 자리 표시자입니다(행 30206). 위키백과 도입부를 흉내 낸 학습용 문장입니다.",
+   "source": "WIKIDATA",
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30207,
+   "country": "스페인",
+   "location": "스페인 바르셀로나",
+   "destName": "바르셀로네타 해변",
+   "info": "WIKI-DESC-v4 설명 자리 표시자입니다(행 30207). 위키백과 도입부를 흉내 낸 학습용 문장입니다.",
+   "source": "WIKIDATA",
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30208,
+   "country": "스페인",
+   "location": "스페인 바르셀로나",
+   "destName": "보케리아 시장",
+   "info": "스페인 바르셀로나에 있는 쇼핑입니다.",
+   "source": "WIKIDATA",
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "SUMMARY"
+  },
+  {
+   "id": 30209,
+   "country": "스페인",
+   "location": "스페인 바르셀로나",
+   "destName": "카사 밀라",
+   "info": "WIKI-DESC-v4 설명 자리 표시자입니다(행 30209). 위키백과 도입부를 흉내 낸 학습용 문장입니다.",
+   "source": "WIKIDATA",
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30210,
+   "country": "스페인",
+   "location": "스페인 마드리드",
+   "destName": "프라도 미술관",
+   "info": "스페인 마드리드에 있는 문화시설입니다.",
+   "source": "WIKIDATA",
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "SUMMARY"
+  },
+  {
+   "id": 30211,
+   "country": "스페인",
+   "location": "스페인 마드리드",
+   "destName": "레티로 공원",
+   "info": "스페인 마드리드에 있는 관광지입니다.",
+   "source": "WIKIDATA",
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "SUMMARY"
+  },
+  {
+   "id": 30212,
+   "country": "스페인",
+   "location": "스페인 마드리드",
+   "destName": "마요르 광장",
+   "info": "스페인 마드리드에 있는 관광지입니다.",
+   "source": "WIKIDATA",
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "SUMMARY"
+  },
+  {
+   "id": 30213,
+   "country": "스페인",
+   "location": "스페인 마드리드",
+   "destName": "마드리드 왕궁",
+   "info": "WIKI-DESC-v4 설명 자리 표시자입니다(행 30213). 위키백과 도입부를 흉내 낸 학습용 문장입니다.",
+   "source": null,
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30214,
+   "country": "스페인",
+   "location": "스페인 마드리드",
+   "destName": "산 미구엘 시장",
+   "info": "스페인 마드리드에 있는 쇼핑입니다.",
+   "source": "WIKIDATA",
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "SUMMARY"
+  },
+  {
+   "id": 30215,
+   "country": "영국",
+   "location": "영국 런던",
+   "destName": "대영박물관",
+   "info": "영국 런던에 있는 문화시설입니다.",
+   "source": "WIKIDATA",
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "SUMMARY"
+  },
+  {
+   "id": 30216,
+   "country": "영국",
+   "location": "영국 런던",
+   "destName": "타워 브리지",
+   "info": "영국 런던에 있는 관광지입니다.",
+   "source": "WIKIDATA",
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "SUMMARY"
+  },
+  {
+   "id": 30217,
+   "country": "영국",
+   "location": "영국 런던",
+   "destName": "버킹엄 궁전",
+   "info": "WIKI-DESC-v4 설명 자리 표시자입니다(행 30217). 위키백과 도입부를 흉내 낸 학습용 문장입니다.",
+   "source": null,
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30218,
+   "country": "영국",
+   "location": "영국 런던",
+   "destName": "빅벤",
+   "info": "영국 런던에 있는 관광지입니다.",
+   "source": "WIKIDATA",
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "SUMMARY"
+  },
+  {
+   "id": 30219,
+   "country": "영국",
+   "location": "영국 런던",
+   "destName": "런던아이",
+   "info": "WIKI-DESC-v4 설명 자리 표시자입니다(행 30219). 위키백과 도입부를 흉내 낸 학습용 문장입니다.",
+   "source": null,
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30220,
+   "country": "영국",
+   "location": "영국 런던",
+   "destName": "하이드 파크",
+   "info": "영국 런던에 있는 관광지입니다.",
+   "source": "WIKIDATA",
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "SUMMARY"
+  },
+  {
+   "id": 30221,
+   "country": "영국",
+   "location": "영국 런던",
+   "destName": "코벤트 가든",
+   "info": "WIKI-DESC-v4 설명 자리 표시자입니다(행 30221). 위키백과 도입부를 흉내 낸 학습용 문장입니다.",
+   "source": null,
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30222,
+   "country": "영국",
+   "location": "영국 런던",
+   "destName": "그리니치 천문대",
+   "info": "영국 런던에 있는 관광지입니다.",
+   "source": "WIKIDATA",
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "SUMMARY"
+  },
+  {
+   "id": 30223,
+   "country": "태국",
+   "location": "태국 방콕",
+   "destName": "왕궁",
+   "info": "WIKI-DESC-v4 설명 자리 표시자입니다(행 30223). 위키백과 도입부를 흉내 낸 학습용 문장입니다.",
+   "source": null,
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30224,
+   "country": "태국",
+   "location": "태국 방콕",
+   "destName": "왓 포",
+   "info": "WIKI-DESC-v4 설명 자리 표시자입니다(행 30224). 위키백과 도입부를 흉내 낸 학습용 문장입니다.",
+   "source": null,
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30225,
+   "country": "태국",
+   "location": "태국 방콕",
+   "destName": "왓 아룬",
+   "info": "WIKI-DESC-v4 설명 자리 표시자입니다(행 30225). 위키백과 도입부를 흉내 낸 학습용 문장입니다.",
+   "source": null,
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30226,
+   "country": "태국",
+   "location": "태국 방콕",
+   "destName": "카오산 로드",
+   "info": "WIKI-DESC-v4 설명 자리 표시자입니다(행 30226). 위키백과 도입부를 흉내 낸 학습용 문장입니다.",
+   "source": "WIKIDATA",
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30227,
+   "country": "태국",
+   "location": "태국 방콕",
+   "destName": "짜뚜짝 시장",
+   "info": "WIKI-DESC-v4 설명 자리 표시자입니다(행 30227). 위키백과 도입부를 흉내 낸 학습용 문장입니다.",
+   "source": null,
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30228,
+   "country": "태국",
+   "location": "태국 방콕",
+   "destName": "아이콘시암",
+   "info": "WIKI-DESC-v4 설명 자리 표시자입니다(행 30228). 위키백과 도입부를 흉내 낸 학습용 문장입니다.",
+   "source": null,
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30229,
+   "country": "태국",
+   "location": "태국 방콕",
+   "destName": "담넌사두억 수상시장",
+   "info": "WIKI-DESC-v4 설명 자리 표시자입니다(행 30229). 위키백과 도입부를 흉내 낸 학습용 문장입니다.",
+   "source": null,
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30230,
+   "country": "베트남",
+   "location": "베트남 다낭",
+   "destName": "미케비치",
+   "info": "베트남 다낭에 있는 레포츠입니다.",
+   "source": "WIKIDATA",
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "SUMMARY"
+  },
+  {
+   "id": 30231,
+   "country": "베트남",
+   "location": "베트남 다낭",
+   "destName": "오행산",
+   "info": "WIKI-DESC-v4 설명 자리 표시자입니다(행 30231). 위키백과 도입부를 흉내 낸 학습용 문장입니다.",
+   "source": null,
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30232,
+   "country": "베트남",
+   "location": "베트남 다낭",
+   "destName": "용다리",
+   "info": "WIKI-DESC-v4 설명 자리 표시자입니다(행 30232). 위키백과 도입부를 흉내 낸 학습용 문장입니다.",
+   "source": "WIKIDATA",
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30233,
+   "country": "베트남",
+   "location": "베트남 다낭",
+   "destName": "한시장",
+   "info": "베트남 다낭에 있는 쇼핑입니다.",
+   "source": "WIKIDATA",
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "SUMMARY"
+  },
+  {
+   "id": 30234,
+   "country": "베트남",
+   "location": "베트남 다낭",
+   "destName": "린응사",
+   "info": "베트남 다낭에 있는 관광지입니다.",
+   "source": "WIKIDATA",
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "SUMMARY"
+  },
+  {
+   "id": 30235,
+   "country": "베트남",
+   "location": "베트남 하노이",
+   "destName": "호안끼엠 호수",
+   "info": "WIKI-DESC-v4 설명 자리 표시자입니다(행 30235). 위키백과 도입부를 흉내 낸 학습용 문장입니다.",
+   "source": null,
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30236,
+   "country": "베트남",
+   "location": "베트남 하노이",
+   "destName": "문묘",
+   "info": "베트남 하노이에 있는 관광지입니다.",
+   "source": "WIKIDATA",
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "SUMMARY"
+  },
+  {
+   "id": 30237,
+   "country": "베트남",
+   "location": "베트남 하노이",
+   "destName": "하노이 기찻길 마을",
+   "info": "WIKI-DESC-v4 설명 자리 표시자입니다(행 30237). 위키백과 도입부를 흉내 낸 학습용 문장입니다.",
+   "source": "WIKIDATA",
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30238,
+   "country": "베트남",
+   "location": "베트남 하노이",
+   "destName": "탕롱 황성",
+   "info": "WIKI-DESC-v4 설명 자리 표시자입니다(행 30238). 위키백과 도입부를 흉내 낸 학습용 문장입니다.",
+   "source": null,
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30239,
+   "country": "베트남",
+   "location": "베트남 꽝닌성",
+   "destName": "하롱베이",
+   "info": "베트남 꽝닌성에 있는 관광지입니다.",
+   "source": "WIKIDATA",
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "SUMMARY"
+  },
+  {
+   "id": 30240,
+   "country": "대만",
+   "location": "대만 타이베이",
+   "destName": "스린 야시장",
+   "info": "대만 타이베이에 있는 쇼핑입니다.",
+   "source": "WIKIDATA",
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "SUMMARY"
+  },
+  {
+   "id": 30241,
+   "country": "대만",
+   "location": "대만 타이베이",
+   "destName": "국립고궁박물원",
+   "info": "WIKI-DESC-v4 설명 자리 표시자입니다(행 30241). 위키백과 도입부를 흉내 낸 학습용 문장입니다.",
+   "source": "WIKIDATA",
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30242,
+   "country": "대만",
+   "location": "대만 타이베이",
+   "destName": "중정기념당",
+   "info": "WIKI-DESC-v4 설명 자리 표시자입니다(행 30242). 위키백과 도입부를 흉내 낸 학습용 문장입니다.",
+   "source": "WIKIDATA",
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30243,
+   "country": "대만",
+   "location": "대만 신베이",
+   "destName": "지우펀",
+   "info": "대만 신베이에 있는 관광지입니다.",
+   "source": "WIKIDATA",
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "SUMMARY"
+  },
+  {
+   "id": 30244,
+   "country": "대만",
+   "location": "대만 신베이",
+   "destName": "단수이",
+   "info": "WIKI-DESC-v4 설명 자리 표시자입니다(행 30244). 위키백과 도입부를 흉내 낸 학습용 문장입니다.",
+   "source": "WIKIDATA",
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30245,
+   "country": "대만",
+   "location": "대만 화롄",
+   "destName": "타이루거 협곡",
+   "info": "WIKI-DESC-v4 설명 자리 표시자입니다(행 30245). 위키백과 도입부를 흉내 낸 학습용 문장입니다.",
+   "source": null,
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30246,
+   "country": "미국",
+   "location": "미국 뉴욕",
+   "destName": "센트럴 파크",
+   "info": "미국 뉴욕에 있는 관광지입니다.",
+   "source": "WIKIDATA",
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "SUMMARY"
+  },
+  {
+   "id": 30247,
+   "country": "미국",
+   "location": "미국 뉴욕",
+   "destName": "자유의 여신상",
+   "info": "WIKI-DESC-v4 설명 자리 표시자입니다(행 30247). 위키백과 도입부를 흉내 낸 학습용 문장입니다.",
+   "source": null,
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30248,
+   "country": "미국",
+   "location": "미국 뉴욕",
+   "destName": "브루클린 브리지",
+   "info": "WIKI-DESC-v4 설명 자리 표시자입니다(행 30248). 위키백과 도입부를 흉내 낸 학습용 문장입니다.",
+   "source": "WIKIDATA",
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30249,
+   "country": "미국",
+   "location": "미국 뉴욕",
+   "destName": "타임스스퀘어",
+   "info": "WIKI-DESC-v4 설명 자리 표시자입니다(행 30249). 위키백과 도입부를 흉내 낸 학습용 문장입니다.",
+   "source": "WIKIDATA",
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30250,
+   "country": "미국",
+   "location": "미국 뉴욕",
+   "destName": "메트로폴리탄 미술관",
+   "info": "미국 뉴욕에 있는 문화시설입니다.",
+   "source": "WIKIDATA",
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "SUMMARY"
+  },
+  {
+   "id": 30251,
+   "country": "미국",
+   "location": "미국 뉴욕",
+   "destName": "하이라인",
+   "info": "WIKI-DESC-v4 설명 자리 표시자입니다(행 30251). 위키백과 도입부를 흉내 낸 학습용 문장입니다.",
+   "source": "WIKIDATA",
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30252,
+   "country": "미국",
+   "location": "미국 뉴욕",
+   "destName": "엠파이어 스테이트 빌딩",
+   "info": "미국 뉴욕에 있는 관광지입니다.",
+   "source": "WIKIDATA",
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "SUMMARY"
+  },
+  {
+   "id": 30253,
+   "country": "미국",
+   "location": "미국 하와이",
+   "destName": "와이키키 해변",
+   "info": "미국 하와이에 있는 레포츠입니다.",
+   "source": "WIKIDATA",
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "SUMMARY"
+  },
+  {
+   "id": 30254,
+   "country": "미국",
+   "location": "미국 하와이",
+   "destName": "다이아몬드 헤드",
+   "info": "WIKI-DESC-v4 설명 자리 표시자입니다(행 30254). 위키백과 도입부를 흉내 낸 학습용 문장입니다.",
+   "source": null,
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30255,
+   "country": "미국",
+   "location": "미국 하와이",
+   "destName": "하나우마 베이",
+   "info": "미국 하와이에 있는 관광지입니다.",
+   "source": "WIKIDATA",
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "SUMMARY"
+  },
+  {
+   "id": 30256,
+   "country": "미국",
+   "location": "미국 하와이",
+   "destName": "하와이 화산 국립공원",
+   "info": "미국 하와이에 있는 관광지입니다.",
+   "source": "WIKIDATA",
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "SUMMARY"
+  },
+  {
+   "id": 30257,
+   "country": "미국",
+   "location": "미국 하와이",
+   "destName": "노스쇼어",
+   "info": "WIKI-DESC-v4 설명 자리 표시자입니다(행 30257). 위키백과 도입부를 흉내 낸 학습용 문장입니다.",
+   "source": null,
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30258,
+   "country": "미국",
+   "location": "미국 샌프란시스코",
+   "destName": "금문교",
+   "info": "WIKI-DESC-v4 설명 자리 표시자입니다(행 30258). 위키백과 도입부를 흉내 낸 학습용 문장입니다.",
+   "source": null,
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30259,
+   "country": "미국",
+   "location": "미국 샌프란시스코",
+   "destName": "피셔맨스 워프",
+   "info": "미국 샌프란시스코에 있는 관광지입니다.",
+   "source": "WIKIDATA",
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "SUMMARY"
+  },
+  {
+   "id": 30260,
+   "country": "미국",
+   "location": "미국 샌프란시스코",
+   "destName": "알카트라즈 섬",
+   "info": "미국 샌프란시스코에 있는 관광지입니다.",
+   "source": "WIKIDATA",
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "SUMMARY"
+  },
+  {
+   "id": 30261,
+   "country": "미국",
+   "location": "미국 샌프란시스코",
+   "destName": "롬바드 스트리트",
+   "info": "WIKI-DESC-v4 설명 자리 표시자입니다(행 30261). 위키백과 도입부를 흉내 낸 학습용 문장입니다.",
+   "source": "WIKIDATA",
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30262,
+   "country": "미국",
+   "location": "미국 캘리포니아주",
+   "destName": "요세미티 국립공원",
+   "info": "WIKI-DESC-v4 설명 자리 표시자입니다(행 30262). 위키백과 도입부를 흉내 낸 학습용 문장입니다.",
+   "source": "WIKIDATA",
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30264,
+   "country": "호주",
+   "location": "호주 시드니",
+   "destName": "오페라 하우스",
+   "info": "호주 시드니에 있는 관광지입니다.",
+   "source": "WIKIDATA",
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "SUMMARY"
+  },
+  {
+   "id": 30265,
+   "country": "호주",
+   "location": "호주 시드니",
+   "destName": "본다이 비치",
+   "info": "WIKI-DESC-v4 설명 자리 표시자입니다(행 30265). 위키백과 도입부를 흉내 낸 학습용 문장입니다.",
+   "source": "WIKIDATA",
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30266,
+   "country": "호주",
+   "location": "호주 시드니",
+   "destName": "하버 브리지",
+   "info": "호주 시드니에 있는 관광지입니다.",
+   "source": "WIKIDATA",
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "SUMMARY"
+  },
+  {
+   "id": 30267,
+   "country": "호주",
+   "location": "호주 시드니",
+   "destName": "타롱가 동물원",
+   "info": "WIKI-DESC-v4 설명 자리 표시자입니다(행 30267). 위키백과 도입부를 흉내 낸 학습용 문장입니다.",
+   "source": null,
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30268,
+   "country": "호주",
+   "location": "호주 뉴사우스웨일스주",
+   "destName": "블루마운틴 국립공원",
+   "info": "호주 뉴사우스웨일스주에 있는 관광지입니다.",
+   "source": "WIKIDATA",
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "SUMMARY"
+  },
+  {
+   "id": 30269,
+   "country": "호주",
+   "location": "호주 퀸즐랜드주",
+   "destName": "그레이트 배리어 리프",
+   "info": "WIKI-DESC-v4 설명 자리 표시자입니다(행 30269). 위키백과 도입부를 흉내 낸 학습용 문장입니다.",
+   "source": null,
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30270,
+   "country": "인도네시아",
+   "location": "인도네시아 발리",
+   "destName": "따나롯 사원",
+   "info": "인도네시아 발리에 있는 관광지입니다.",
+   "source": "WIKIDATA",
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "SUMMARY"
+  },
+  {
+   "id": 30271,
+   "country": "인도네시아",
+   "location": "인도네시아 발리",
+   "destName": "울루와뚜 사원",
+   "info": "WIKI-DESC-v4 설명 자리 표시자입니다(행 30271). 위키백과 도입부를 흉내 낸 학습용 문장입니다.",
+   "source": "WIKIDATA",
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30272,
+   "country": "인도네시아",
+   "location": "인도네시아 발리",
+   "destName": "꾸따 해변",
+   "info": "인도네시아 발리에 있는 레포츠입니다.",
+   "source": "WIKIDATA",
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "SUMMARY"
+  },
+  {
+   "id": 30273,
+   "country": "인도네시아",
+   "location": "인도네시아 발리",
+   "destName": "뜨갈랄랑 계단식 논",
+   "info": "인도네시아 발리에 있는 관광지입니다.",
+   "source": "WIKIDATA",
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "SUMMARY"
+  },
+  {
+   "id": 30274,
+   "country": "인도네시아",
+   "location": "인도네시아 발리",
+   "destName": "바투르 화산",
+   "info": "인도네시아 발리에 있는 관광지입니다.",
+   "source": "WIKIDATA",
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "SUMMARY"
+  },
+  {
+   "id": 30275,
+   "country": "싱가포르",
+   "location": "싱가포르",
+   "destName": "가든스 바이 더 베이",
+   "info": "싱가포르에 있는 관광지입니다.",
+   "source": "WIKIDATA",
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "SUMMARY"
+  },
+  {
+   "id": 30276,
+   "country": "싱가포르",
+   "location": "싱가포르",
+   "destName": "마리나 베이 샌즈",
+   "info": "싱가포르에 있는 관광지입니다.",
+   "source": "WIKIDATA",
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "SUMMARY"
+  },
+  {
+   "id": 30277,
+   "country": "싱가포르",
+   "location": "싱가포르",
+   "destName": "센토사섬",
+   "info": "싱가포르에 있는 레포츠입니다.",
+   "source": "WIKIDATA",
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "SUMMARY"
+  },
+  {
+   "id": 30278,
+   "country": "싱가포르",
+   "location": "싱가포르",
+   "destName": "머라이언 공원",
+   "info": "싱가포르에 있는 관광지입니다.",
+   "source": "WIKIDATA",
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "SUMMARY"
+  },
+  {
+   "id": 30279,
+   "country": "싱가포르",
+   "location": "싱가포르",
+   "destName": "싱가포르 동물원",
+   "info": "WIKI-DESC-v4 설명 자리 표시자입니다(행 30279). 위키백과 도입부를 흉내 낸 학습용 문장입니다.",
+   "source": "WIKIDATA",
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30280,
+   "country": "싱가포르",
+   "location": "싱가포르",
+   "destName": "싱가포르 차이나타운",
+   "info": "WIKI-DESC-v4 설명 자리 표시자입니다(행 30280). 위키백과 도입부를 흉내 낸 학습용 문장입니다.",
+   "source": null,
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30281,
+   "country": "홍콩",
+   "location": "홍콩",
+   "destName": "빅토리아 피크",
+   "info": "WIKI-DESC-v4 설명 자리 표시자입니다(행 30281). 위키백과 도입부를 흉내 낸 학습용 문장입니다.",
+   "source": null,
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30282,
+   "country": "홍콩",
+   "location": "홍콩",
+   "destName": "침사추이 해변 산책로",
+   "info": "WIKI-DESC-v4 설명 자리 표시자입니다(행 30282). 위키백과 도입부를 흉내 낸 학습용 문장입니다.",
+   "source": "WIKIDATA",
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30283,
+   "country": "홍콩",
+   "location": "홍콩",
+   "destName": "몽콕 야시장",
+   "info": "WIKI-DESC-v4 설명 자리 표시자입니다(행 30283). 위키백과 도입부를 흉내 낸 학습용 문장입니다.",
+   "source": null,
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30284,
+   "country": "홍콩",
+   "location": "홍콩",
+   "destName": "천단대불",
+   "info": "WIKI-DESC-v4 설명 자리 표시자입니다(행 30284). 위키백과 도입부를 흉내 낸 학습용 문장입니다.",
+   "source": "WIKIDATA",
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30285,
+   "country": "체코",
+   "location": "체코 프라하",
+   "destName": "프라하성",
+   "info": "WIKI-DESC-v4 설명 자리 표시자입니다(행 30285). 위키백과 도입부를 흉내 낸 학습용 문장입니다.",
+   "source": "WIKIDATA",
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30286,
+   "country": "체코",
+   "location": "체코 프라하",
+   "destName": "카를교",
+   "info": "체코 프라하에 있는 관광지입니다.",
+   "source": "WIKIDATA",
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "SUMMARY"
+  },
+  {
+   "id": 30287,
+   "country": "체코",
+   "location": "체코 프라하",
+   "destName": "천문시계",
+   "info": "체코 프라하에 있는 관광지입니다.",
+   "source": "WIKIDATA",
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "SUMMARY"
+  },
+  {
+   "id": 30288,
+   "country": "체코",
+   "location": "체코 프라하",
+   "destName": "구시가지 광장",
+   "info": "WIKI-DESC-v4 설명 자리 표시자입니다(행 30288). 위키백과 도입부를 흉내 낸 학습용 문장입니다.",
+   "source": null,
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30289,
+   "country": "체코",
+   "location": "체코 프라하",
+   "destName": "비셰흐라드",
+   "info": "WIKI-DESC-v4 설명 자리 표시자입니다(행 30289). 위키백과 도입부를 흉내 낸 학습용 문장입니다.",
+   "source": null,
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30290,
+   "country": "체코",
+   "location": "체코 프라하",
+   "destName": "페트린 전망대",
+   "info": "WIKI-DESC-v4 설명 자리 표시자입니다(행 30290). 위키백과 도입부를 흉내 낸 학습용 문장입니다.",
+   "source": null,
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30291,
+   "country": "튀르키예",
+   "location": "튀르키예 이스탄불",
+   "destName": "아야 소피아",
+   "info": "WIKI-DESC-v4 설명 자리 표시자입니다(행 30291). 위키백과 도입부를 흉내 낸 학습용 문장입니다.",
+   "source": "WIKIDATA",
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30292,
+   "country": "튀르키예",
+   "location": "튀르키예 이스탄불",
+   "destName": "블루 모스크",
+   "info": "WIKI-DESC-v4 설명 자리 표시자입니다(행 30292). 위키백과 도입부를 흉내 낸 학습용 문장입니다.",
+   "source": null,
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30293,
+   "country": "튀르키예",
+   "location": "튀르키예 이스탄불",
+   "destName": "그랜드 바자르",
+   "info": "WIKI-DESC-v4 설명 자리 표시자입니다(행 30293). 위키백과 도입부를 흉내 낸 학습용 문장입니다.",
+   "source": null,
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30294,
+   "country": "튀르키예",
+   "location": "튀르키예 이스탄불",
+   "destName": "갈라타 탑",
+   "info": "WIKI-DESC-v4 설명 자리 표시자입니다(행 30294). 위키백과 도입부를 흉내 낸 학습용 문장입니다.",
+   "source": null,
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30295,
+   "country": "튀르키예",
+   "location": "튀르키예 이스탄불",
+   "destName": "보스포루스 해협",
+   "info": "WIKI-DESC-v4 설명 자리 표시자입니다(행 30295). 위키백과 도입부를 흉내 낸 학습용 문장입니다.",
+   "source": "WIKIDATA",
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30296,
+   "country": "중국",
+   "location": "중국 상하이",
+   "destName": "와이탄",
+   "info": "중국 상하이에 있는 관광지입니다.",
+   "source": "WIKIDATA",
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "SUMMARY"
+  },
+  {
+   "id": 30297,
+   "country": "중국",
+   "location": "중국 상하이",
+   "destName": "예원",
+   "info": "WIKI-DESC-v4 설명 자리 표시자입니다(행 30297). 위키백과 도입부를 흉내 낸 학습용 문장입니다.",
+   "source": null,
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30298,
+   "country": "중국",
+   "location": "중국 상하이",
+   "destName": "동방명주",
+   "info": "WIKI-DESC-v4 설명 자리 표시자입니다(행 30298). 위키백과 도입부를 흉내 낸 학습용 문장입니다.",
+   "source": "WIKIDATA",
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30299,
+   "country": "중국",
+   "location": "중국 상하이",
+   "destName": "주자자오 수향마을",
+   "info": "중국 상하이에 있는 관광지입니다.",
+   "source": "WIKIDATA",
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "SUMMARY"
+  },
+  {
+   "id": 30300,
+   "country": "네덜란드",
+   "location": "네덜란드 암스테르담",
+   "destName": "레이크스 국립미술관",
+   "info": "네덜란드 암스테르담에 있는 문화시설입니다.",
+   "source": "WIKIDATA",
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "SUMMARY"
+  },
+  {
+   "id": 30301,
+   "country": "네덜란드",
+   "location": "네덜란드 암스테르담",
+   "destName": "반 고흐 미술관",
+   "info": "네덜란드 암스테르담에 있는 문화시설입니다.",
+   "source": "WIKIDATA",
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "SUMMARY"
+  },
+  {
+   "id": 30302,
+   "country": "네덜란드",
+   "location": "네덜란드 암스테르담",
+   "destName": "안네 프랑크의 집",
+   "info": "네덜란드 암스테르담에 있는 문화시설입니다.",
+   "source": "WIKIDATA",
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "SUMMARY"
+  },
+  {
+   "id": 30303,
+   "country": "네덜란드",
+   "location": "네덜란드 암스테르담",
+   "destName": "암스테르담 운하 지구",
+   "info": "WIKI-DESC-v4 설명 자리 표시자입니다(행 30303). 위키백과 도입부를 흉내 낸 학습용 문장입니다.",
+   "source": "WIKIDATA",
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30304,
+   "country": "네덜란드",
+   "location": "네덜란드 잔담",
+   "destName": "잔세스칸스",
+   "info": "WIKI-DESC-v4 설명 자리 표시자입니다(행 30304). 위키백과 도입부를 흉내 낸 학습용 문장입니다.",
+   "source": "WIKIDATA",
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30305,
+   "country": "아랍에미리트",
+   "location": "아랍에미리트 두바이",
+   "destName": "부르즈 할리파",
+   "info": "아랍에미리트 두바이에 있는 관광지입니다.",
+   "source": "WIKIDATA",
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "SUMMARY"
+  },
+  {
+   "id": 30306,
+   "country": "아랍에미리트",
+   "location": "아랍에미리트 두바이",
+   "destName": "두바이 몰",
+   "info": "WIKI-DESC-v4 설명 자리 표시자입니다(행 30306). 위키백과 도입부를 흉내 낸 학습용 문장입니다.",
+   "source": null,
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30307,
+   "country": "아랍에미리트",
+   "location": "아랍에미리트 두바이",
+   "destName": "두바이 사막 사파리",
+   "info": "WIKI-DESC-v4 설명 자리 표시자입니다(행 30307). 위키백과 도입부를 흉내 낸 학습용 문장입니다.",
+   "source": null,
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30308,
+   "country": "아랍에미리트",
+   "location": "아랍에미리트 두바이",
+   "destName": "팜 주메이라",
+   "info": "WIKI-DESC-v4 설명 자리 표시자입니다(행 30308). 위키백과 도입부를 흉내 낸 학습용 문장입니다.",
+   "source": null,
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30309,
+   "country": "아랍에미리트",
+   "location": "아랍에미리트 두바이",
+   "destName": "두바이 크릭",
+   "info": "WIKI-DESC-v4 설명 자리 표시자입니다(행 30309). 위키백과 도입부를 흉내 낸 학습용 문장입니다.",
+   "source": "WIKIDATA",
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30310,
+   "country": "아랍에미리트",
+   "location": "아랍에미리트 아부다비",
+   "destName": "셰이크 자이드 그랜드 모스크",
+   "info": "아랍에미리트 아부다비에 있는 관광지입니다.",
+   "source": "WIKIDATA",
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "SUMMARY"
+  },
+  {
+   "id": 30311,
+   "country": "말레이시아",
+   "location": "말레이시아 쿠알라룸푸르",
+   "destName": "페트로나스 트윈 타워",
+   "info": "말레이시아 쿠알라룸푸르에 있는 관광지입니다.",
+   "source": "WIKIDATA",
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "SUMMARY"
+  },
+  {
+   "id": 30312,
+   "country": "말레이시아",
+   "location": "말레이시아 쿠알라룸푸르",
+   "destName": "메르데카 광장",
+   "info": "말레이시아 쿠알라룸푸르에 있는 관광지입니다.",
+   "source": "WIKIDATA",
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "SUMMARY"
+  },
+  {
+   "id": 30313,
+   "country": "말레이시아",
+   "location": "말레이시아 쿠알라룸푸르",
+   "destName": "잘란 알로 야시장",
+   "info": "WIKI-DESC-v4 설명 자리 표시자입니다(행 30313). 위키백과 도입부를 흉내 낸 학습용 문장입니다.",
+   "source": null,
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30314,
+   "country": "말레이시아",
+   "location": "말레이시아 슬랑오르주",
+   "destName": "바투 동굴",
+   "info": "WIKI-DESC-v4 설명 자리 표시자입니다(행 30314). 위키백과 도입부를 흉내 낸 학습용 문장입니다.",
+   "source": null,
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30315,
+   "country": "말레이시아",
+   "location": "말레이시아 파항주",
+   "destName": "타만 네가라 국립공원",
+   "info": "WIKI-DESC-v4 설명 자리 표시자입니다(행 30315). 위키백과 도입부를 흉내 낸 학습용 문장입니다.",
+   "source": null,
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30316,
+   "country": "스위스",
+   "location": "스위스 취리히",
+   "destName": "취리히 호수",
+   "info": "WIKI-DESC-v4 설명 자리 표시자입니다(행 30316). 위키백과 도입부를 흉내 낸 학습용 문장입니다.",
+   "source": "WIKIDATA",
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30317,
+   "country": "스위스",
+   "location": "스위스 취리히",
+   "destName": "그로스뮌스터",
+   "info": "WIKI-DESC-v4 설명 자리 표시자입니다(행 30317). 위키백과 도입부를 흉내 낸 학습용 문장입니다.",
+   "source": "WIKIDATA",
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30318,
+   "country": "스위스",
+   "location": "스위스 취리히",
+   "destName": "위틀리베르크 전망대",
+   "info": "WIKI-DESC-v4 설명 자리 표시자입니다(행 30318). 위키백과 도입부를 흉내 낸 학습용 문장입니다.",
+   "source": "WIKIDATA",
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "DESCRIPTION"
+  },
+  {
+   "id": 30319,
+   "country": "스위스",
+   "location": "스위스 베른주",
+   "destName": "융프라우요흐",
+   "info": "스위스 베른주에 있는 관광지입니다.",
+   "source": "WIKIDATA",
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "SUMMARY"
+  },
+  {
+   "id": 30320,
+   "country": "요르단",
+   "location": "요르단",
+   "destName": "와디 럼",
+   "info": "요르단에 있는 관광지입니다.",
+   "source": "WIKIDATA",
+   "copyrightType": null,
+   "sourceUrl": null,
+   "license": null,
+   "infoKind": "SUMMARY"
+  }
+ ],
+ "keyword_masks": {
+  "30001": [
+   "역사",
+   "건축",
+   "전통",
+   "문화",
+   "역사적 건축",
+   "역사적인 장소"
+  ],
+  "30002": [
+   "전통 마을",
+   "전통",
+   "문화",
+   "건축"
+  ],
+  "30003": [
+   "도시",
+   "시장",
+   "음식"
+  ],
+  "30004": [
+   "전통",
+   "예술",
+   "문화",
+   "시장"
+  ],
+  "30005": [
+   "유네스코",
+   "역사",
+   "정원",
+   "전통",
+   "역사적 건축"
+  ],
+  "30006": [
+   "역사",
+   "건축",
+   "야경",
+   "역사적 건축"
+  ],
+  "30007": [
+   "성당",
+   "역사적 건축",
+   "건축"
+  ],
+  "30008": [
+   "전망대",
+   "랜드마크",
+   "도시",
+   "야경"
+  ],
+  "30009": [
+   "자연",
+   "정원",
+   "야외 활동"
+  ],
+  "30010": [
+   "도시",
+   "야경",
+   "강"
+  ],
+  "30011": [
+   "미술관",
+   "예술",
+   "문화"
+  ],
+  "30012": [
+   "야경",
+   "성벽",
+   "역사"
+  ],
+  "30013": [
+   "건축",
+   "도시",
+   "예술",
+   "랜드마크"
+  ],
+  "30014": [
+   "산",
+   "등산",
+   "국립공원",
+   "하이킹 코스"
+  ],
+  "30015": [
+   "스포츠",
+   "공연",
+   "축제"
+  ],
+  "30018": [
+   "시장",
+   "음식",
+   "바다"
+  ],
+  "30019": [
+   "서핑",
+   "해변",
+   "바다"
+  ],
+  "30020": [
+   "해안",
+   "문화",
+   "경치"
+  ],
+  "30021": [
+   "전망대",
+   "해안",
+   "바다",
+   "경치"
+  ],
+  "30022": [
+   "해변",
+   "하늘",
+   "경치"
+  ],
+  "30023": [
+   "해안",
+   "하이킹 코스",
+   "바위"
+  ],
+  "30025": [
+   "랜드마크",
+   "역사",
+   "야경"
+  ],
+  "30026": [
+   "철새",
+   "자연",
+   "강"
+  ],
+  "30027": [
+   "산",
+   "등산",
+   "국립공원",
+   "화산",
+   "설경"
+  ],
+  "30028": [
+   "해변",
+   "바다",
+   "수영",
+   "섬"
+  ],
+  "30029": [
+   "해안",
+   "경치",
+   "바다"
+  ],
+  "30030": [
+   "자연",
+   "트레킹",
+   "하이킹 코스"
+  ],
+  "30031": [
+   "폭포",
+   "자연",
+   "야경"
+  ],
+  "30032": [
+   "동굴",
+   "화산",
+   "유네스코",
+   "탐험"
+  ],
+  "30033": [
+   "폭포",
+   "바다",
+   "해안"
+  ],
+  "30034": [
+   "해변",
+   "바다",
+   "수영",
+   "휴양지"
+  ],
+  "30035": [
+   "하이킹",
+   "축제",
+   "경치",
+   "화산",
+   "야외 활동"
+  ],
+  "30036": [
+   "시장",
+   "음식"
+  ],
+  "30037": [
+   "해안",
+   "바위",
+   "경치"
+  ],
+  "30038": [
+   "카누",
+   "보트",
+   "강",
+   "바다"
+  ],
+  "30039": [
+   "바위",
+   "해안",
+   "화산"
+  ],
+  "30040": [
+   "화산",
+   "자연",
+   "경치"
+  ],
+  "30041": [
+   "식물원",
+   "정원",
+   "동굴"
+  ],
+  "30042": [
+   "다이빙",
+   "섬",
+   "산호",
+   "해양"
+  ],
+  "30045": [
+   "호수",
+   "역사",
+   "경치"
+  ],
+  "30046": [
+   "시장",
+   "음식",
+   "해양"
+  ],
+  "30048": [
+   "해변",
+   "바다",
+   "서핑"
+  ],
+  "30049": [
+   "하늘",
+   "설경",
+   "경치"
+  ],
+  "30050": [
+   "불교",
+   "불상",
+   "유네스코",
+   "역사",
+   "사찰"
+  ],
+  "30051": [
+   "야경",
+   "역사",
+   "고대 유적",
+   "정원"
+  ],
+  "30052": [
+   "역사",
+   "고대 유적",
+   "기념물",
+   "하늘"
+  ],
+  "30053": [
+   "도시",
+   "음식",
+   "전통"
+  ],
+  "30054": [
+   "고대 유적",
+   "역사",
+   "유적"
+  ],
+  "30055": [
+   "전통 마을",
+   "유네스코",
+   "전통"
+  ],
+  "30056": [
+   "박물관",
+   "역사",
+   "문화"
+  ],
+  "30057": [
+   "호수",
+   "휴양지",
+   "경치"
+  ],
+  "30058": [
+   "탑",
+   "사찰",
+   "불교",
+   "고대 유적"
+  ],
+  "30059": [
+   "전통 마을",
+   "전통",
+   "음식",
+   "문화"
+  ],
+  "30060": [
+   "역사",
+   "전통",
+   "역사적 건축"
+  ],
+  "30061": [
+   "시장",
+   "음식",
+   "야경"
+  ],
+  "30062": [
+   "전망대",
+   "역사",
+   "경치"
+  ],
+  "30063": [
+   "예술",
+   "문화"
+  ],
+  "30064": [
+   "성당",
+   "건축",
+   "역사적 건축",
+   "역사"
+  ],
+  "30065": [
+   "야경",
+   "전망대"
+  ],
+  "30066": [
+   "섬",
+   "해안",
+   "자연"
+  ],
+  "30067": [
+   "사찰",
+   "불교",
+   "바다",
+   "해안"
+  ],
+  "30068": [
+   "바다",
+   "야경",
+   "하늘",
+   "경치"
+  ],
+  "30069": [
+   "역사",
+   "기념물",
+   "도시"
+  ],
+  "30070": [
+   "해안",
+   "바위",
+   "경치"
+  ],
+  "30071": [
+   "전통 마을",
+   "음식",
+   "보트"
+  ],
+  "30072": [
+   "호수",
+   "야경"
+  ],
+  "30073": [
+   "시장",
+   "음식"
+  ],
+  "30074": [
+   "음식",
+   "바다",
+   "시장"
+  ],
+  "30075": [
+   "산",
+   "등산",
+   "국립공원",
+   "설경",
+   "하이킹"
+  ],
+  "30076": [
+   "바다",
+   "야경",
+   "섬"
+  ],
+  "30077": [
+   "다문화",
+   "음식",
+   "문화"
+  ],
+  "30078": [
+   "도시",
+   "운하",
+   "보트",
+   "정원"
+  ],
+  "30079": [
+   "해변",
+   "바다",
+   "하늘"
+  ],
+  "30080": [
+   "시장",
+   "음식",
+   "야경"
+  ],
+  "30081": [
+   "예술",
+   "공연",
+   "문화"
+  ],
+  "30082": [
+   "전망대",
+   "야경",
+   "산"
+  ],
+  "30083": [
+   "산",
+   "등산",
+   "불교",
+   "불상"
+  ],
+  "30084": [
+   "레크리에이션",
+   "야경",
+   "축제"
+  ],
+  "30086": [
+   "산",
+   "국립공원",
+   "등산",
+   "바위"
+  ],
+  "30087": [
+   "예술",
+   "전통 마을",
+   "문화"
+  ],
+  "30088": [
+   "식물원",
+   "정원",
+   "자연"
+  ],
+  "30089": [
+   "랜드마크",
+   "레크리에이션",
+   "야경"
+  ],
+  "30090": [
+   "자연",
+   "하이킹",
+   "캠핑",
+   "야외 활동"
+  ],
+  "30091": [
+   "온천",
+   "온천욕",
+   "휴양지"
+  ],
+  "30092": [
+   "강",
+   "전망대",
+   "야경"
+  ],
+  "30093": [
+   "문화",
+   "역사",
+   "전통"
+  ],
+  "30094": [
+   "호수",
+   "카누",
+   "보트",
+   "자연"
+  ],
+  "30095": [
+   "레크리에이션",
+   "축제",
+   "공연"
+  ],
+  "30096": [
+   "섬",
+   "자연",
+   "강",
+   "축제"
+  ],
+  "30097": [
+   "예술",
+   "경치",
+   "바다"
+  ],
+  "30098": [
+   "산",
+   "전망대",
+   "바다",
+   "섬",
+   "경치"
+  ],
+  "30099": [
+   "시장",
+   "음식",
+   "해양"
+  ],
+  "30100": [
+   "섬",
+   "바다",
+   "해안",
+   "경치"
+  ],
+  "30101": [
+   "섬",
+   "역사",
+   "바다"
+  ],
+  "30102": [
+   "역사",
+   "기념물",
+   "바다"
+  ],
+  "30103": [
+   "유네스코",
+   "전통",
+   "역사",
+   "역사적 건축"
+  ],
+  "30104": [
+   "사찰",
+   "불교",
+   "유네스코",
+   "역사"
+  ],
+  "30105": [
+   "음식",
+   "시장"
+  ],
+  "30106": [
+   "바다",
+   "하늘",
+   "기념물",
+   "해안"
+  ],
+  "30107": [
+   "해변",
+   "야경",
+   "바다"
+  ],
+  "30108": [
+   "전망대",
+   "야경",
+   "랜드마크",
+   "예술"
+  ],
+  "30109": [
+   "시장",
+   "음식",
+   "해양"
+  ],
+  "30110": [
+   "다문화",
+   "전통 마을",
+   "경치"
+  ],
+  "30111": [
+   "사찰",
+   "불교",
+   "산",
+   "바다"
+  ],
+  "30112": [
+   "해변",
+   "바다",
+   "수영"
+  ],
+  "30113": [
+   "철새",
+   "호수",
+   "자연"
+  ],
+  "30114": [
+   "사찰",
+   "불교",
+   "바다",
+   "해안"
+  ],
+  "30116": [
+   "해안",
+   "바위",
+   "경치"
+  ],
+  "30117": [
+   "서핑",
+   "해변"
+  ],
+  "30118": [
+   "식물원",
+   "정원",
+   "축제",
+   "야경"
+  ],
+  "30119": [
+   "캠핑",
+   "축제",
+   "공연",
+   "섬",
+   "야외 활동"
+  ],
+  "30120": [
+   "철도 여행",
+   "기차",
+   "레크리에이션"
+  ],
+  "30121": [
+   "강",
+   "바위",
+   "경치"
+  ],
+  "30122": [
+   "전망대",
+   "하늘",
+   "강",
+   "레크리에이션"
+  ],
+  "30123": [
+   "동굴",
+   "탐험",
+   "자연"
+  ],
+  "30124": [
+   "강",
+   "하이킹 코스",
+   "경치"
+  ],
+  "30125": [
+   "성",
+   "성벽",
+   "유네스코",
+   "역사",
+   "역사적 건축"
+  ],
+  "30126": [
+   "역사",
+   "전통",
+   "축제"
+  ],
+  "30127": [
+   "예술",
+   "문화"
+  ],
+  "30128": [
+   "호수",
+   "야경",
+   "자연"
+  ],
+  "30129": [
+   "동물",
+   "호랑이",
+   "레크리에이션",
+   "축제"
+  ],
+  "30130": [
+   "동물",
+   "자연",
+   "경치",
+   "설경"
+  ],
+  "30131": [
+   "산",
+   "국립공원",
+   "등산",
+   "사찰"
+  ],
+  "30132": [
+   "스포츠",
+   "설경",
+   "휴양지"
+  ],
+  "30133": [
+   "전망대",
+   "설산",
+   "하늘"
+  ],
+  "30134": [
+   "동굴",
+   "탐험",
+   "역사"
+  ],
+  "30135": [
+   "전망대",
+   "강",
+   "경치"
+  ],
+  "30136": [
+   "철도 여행",
+   "기차",
+   "레크리에이션"
+  ],
+  "30137": [
+   "시장",
+   "음식",
+   "전통"
+  ],
+  "30138": [
+   "예술",
+   "문화",
+   "공연"
+  ],
+  "30139": [
+   "역사",
+   "기념물",
+   "역사적인 장소"
+  ],
+  "30140": [
+   "호수",
+   "하이킹",
+   "레크리에이션"
+  ],
+  "30141": [
+   "건축",
+   "문화",
+   "도시"
+  ],
+  "30142": [
+   "정원",
+   "역사",
+   "축제",
+   "호수"
+  ],
+  "30143": [
+   "유네스코",
+   "탑",
+   "고대 유적",
+   "불교"
+  ],
+  "30144": [
+   "성벽",
+   "역사",
+   "고대 유적",
+   "산"
+  ],
+  "30145": [
+   "하이킹 코스",
+   "역사",
+   "성벽",
+   "자연"
+  ],
+  "30146": [
+   "강",
+   "경치",
+   "기차"
+  ],
+  "30147": [
+   "박물관",
+   "역사",
+   "기차"
+  ],
+  "30148": [
+   "성벽",
+   "성",
+   "역사",
+   "하이킹"
+  ],
+  "30149": [
+   "예술",
+   "야경",
+   "문화"
+  ],
+  "30150": [
+   "미술관",
+   "예술",
+   "건축"
+  ],
+  "30151": [
+   "온천",
+   "온천욕",
+   "자연"
+  ],
+  "30153": [
+   "도시",
+   "랜드마크",
+   "야경"
+  ],
+  "30154": [
+   "전망대",
+   "야경",
+   "랜드마크"
+  ],
+  "30155": [
+   "정원",
+   "자연",
+   "도시"
+  ],
+  "30156": [
+   "전망대",
+   "랜드마크",
+   "야경",
+   "하늘"
+  ],
+  "30158": [
+   "박물관",
+   "동물",
+   "정원"
+  ],
+  "30159": [
+   "바다",
+   "야경",
+   "레크리에이션"
+  ],
+  "30160": [
+   "시장",
+   "음식"
+  ],
+  "30161": [
+   "음식",
+   "야경",
+   "도시",
+   "운하"
+  ],
+  "30162": [
+   "성",
+   "역사",
+   "성벽",
+   "역사적 건축"
+  ],
+  "30163": [
+   "레크리에이션",
+   "공연",
+   "축제"
+  ],
+  "30164": [
+   "시장",
+   "음식"
+  ],
+  "30165": [
+   "도시",
+   "음식",
+   "야경"
+  ],
+  "30166": [
+   "전망대",
+   "야경",
+   "건축"
+  ],
+  "30167": [
+   "해양",
+   "동물",
+   "산호"
+  ],
+  "30168": [
+   "사원",
+   "역사",
+   "전통"
+  ],
+  "30169": [
+   "호수",
+   "정원",
+   "자연"
+  ],
+  "30170": [
+   "도시",
+   "운하",
+   "공연"
+  ],
+  "30171": [
+   "음식",
+   "야경",
+   "시장"
+  ],
+  "30172": [
+   "해변",
+   "바다",
+   "야경"
+  ],
+  "30173": [
+   "전망대",
+   "랜드마크",
+   "야경"
+  ],
+  "30174": [
+   "사원",
+   "전통",
+   "하이킹",
+   "역사"
+  ],
+  "30175": [
+   "사찰",
+   "불교",
+   "유네스코",
+   "역사적 건축"
+  ],
+  "30176": [
+   "자연",
+   "경치",
+   "트레킹"
+  ],
+  "30177": [
+   "사찰",
+   "정원",
+   "불교",
+   "유네스코"
+  ],
+  "30178": [
+   "성",
+   "유네스코",
+   "역사",
+   "정원"
+  ],
+  "30179": [
+   "전통",
+   "문화",
+   "공연",
+   "전통 마을"
+  ],
+  "30180": [
+   "하이킹 코스",
+   "강",
+   "자연"
+  ],
+  "30181": [
+   "온천",
+   "지열",
+   "온천욕"
+  ],
+  "30182": [
+   "설산",
+   "산",
+   "등산",
+   "화산"
+  ],
+  "30183": [
+   "박물관",
+   "예술",
+   "역사",
+   "조각"
+  ],
+  "30184": [
+   "예술",
+   "전망대",
+   "성당"
+  ],
+  "30185": [
+   "기념물",
+   "랜드마크",
+   "전망대",
+   "역사",
+   "아치"
+  ],
+  "30186": [
+   "대성당",
+   "성당",
+   "역사적 건축",
+   "건축"
+  ],
+  "30187": [
+   "미술관",
+   "예술",
+   "조각"
+  ],
+  "30188": [
+   "도시",
+   "랜드마크",
+   "축제"
+  ],
+  "30189": [
+   "역사",
+   "정원",
+   "유네스코",
+   "역사적 건축"
+  ],
+  "30190": [
+   "고대 유적",
+   "유적",
+   "역사",
+   "유네스코",
+   "랜드마크"
+  ],
+  "30191": [
+   "조각",
+   "랜드마크",
+   "예술"
+  ],
+  "30192": [
+   "박물관",
+   "예술",
+   "조각",
+   "대성당"
+  ],
+  "30193": [
+   "고대 유적",
+   "건축",
+   "역사적 건축"
+  ],
+  "30194": [
+   "도시",
+   "랜드마크",
+   "역사"
+  ],
+  "30195": [
+   "고대 유적",
+   "유적",
+   "역사적인 장소"
+  ],
+  "30196": [
+   "성",
+   "역사",
+   "강"
+  ],
+  "30197": [
+   "음식",
+   "도시",
+   "야경"
+  ],
+  "30198": [
+   "대성당",
+   "역사적 건축",
+   "랜드마크"
+  ],
+  "30199": [
+   "운하",
+   "랜드마크",
+   "역사"
+  ],
+  "30200": [
+   "섬",
+   "예술",
+   "전통 마을"
+  ],
+  "30201": [
+   "운하",
+   "보트",
+   "보트 투어"
+  ],
+  "30202": [
+   "대성당",
+   "건축",
+   "유네스코",
+   "랜드마크"
+  ],
+  "30203": [
+   "건축",
+   "예술",
+   "정원",
+   "유네스코"
+  ],
+  "30204": [
+   "건축",
+   "예술",
+   "역사적 건축"
+  ],
+  "30205": [
+   "도시",
+   "시장",
+   "공연"
+  ],
+  "30206": [
+   "전망대",
+   "공연",
+   "정원"
+  ],
+  "30207": [
+   "해변",
+   "바다",
+   "수영"
+  ],
+  "30208": [
+   "시장",
+   "음식"
+  ],
+  "30209": [
+   "건축",
+   "예술"
+  ],
+  "30210": [
+   "미술관",
+   "예술"
+  ],
+  "30211": [
+   "정원",
+   "호수",
+   "보트"
+  ],
+  "30212": [
+   "도시",
+   "역사",
+   "축제"
+  ],
+  "30213": [
+   "역사",
+   "건축",
+   "역사적 건축"
+  ],
+  "30214": [
+   "시장",
+   "음식"
+  ],
+  "30215": [
+   "박물관",
+   "역사",
+   "조각",
+   "문화"
+  ],
+  "30216": [
+   "랜드마크",
+   "강",
+   "역사적 건축",
+   "야경"
+  ],
+  "30217": [
+   "역사",
+   "건축",
+   "전통"
+  ],
+  "30218": [
+   "랜드마크",
+   "역사적 건축",
+   "기념물"
+  ],
+  "30219": [
+   "전망대",
+   "강",
+   "야경"
+  ],
+  "30220": [
+   "정원",
+   "자연",
+   "호수"
+  ],
+  "30221": [
+   "시장",
+   "공연",
+   "음식"
+  ],
+  "30222": [
+   "역사",
+   "하늘",
+   "유네스코"
+  ],
+  "30223": [
+   "역사",
+   "건축",
+   "사원",
+   "전통"
+  ],
+  "30224": [
+   "사원",
+   "불교",
+   "불상"
+  ],
+  "30225": [
+   "사원",
+   "불교",
+   "강",
+   "야경"
+  ],
+  "30226": [
+   "음식",
+   "도시",
+   "야경",
+   "시장"
+  ],
+  "30227": [
+   "시장",
+   "음식"
+  ],
+  "30228": [
+   "도시",
+   "강",
+   "야경"
+  ],
+  "30229": [
+   "시장",
+   "보트",
+   "운하",
+   "보트 투어"
+  ],
+  "30230": [
+   "해변",
+   "바다",
+   "수영",
+   "서핑"
+  ],
+  "30231": [
+   "산",
+   "동굴",
+   "불교",
+   "사원"
+  ],
+  "30232": [
+   "야경",
+   "랜드마크",
+   "강"
+  ],
+  "30233": [
+   "시장",
+   "음식"
+  ],
+  "30234": [
+   "사원",
+   "불교",
+   "불상",
+   "바다"
+  ],
+  "30235": [
+   "호수",
+   "도시",
+   "야경"
+  ],
+  "30236": [
+   "역사",
+   "전통",
+   "역사적 건축"
+  ],
+  "30237": [
+   "기차",
+   "도시",
+   "철도 여행"
+  ],
+  "30238": [
+   "유네스코",
+   "역사",
+   "고대 유적"
+  ],
+  "30239": [
+   "섬",
+   "바다",
+   "보트 투어",
+   "유네스코",
+   "동굴"
+  ],
+  "30240": [
+   "시장",
+   "음식",
+   "야경"
+  ],
+  "30241": [
+   "박물관",
+   "역사",
+   "예술"
+  ],
+  "30242": [
+   "기념물",
+   "역사",
+   "건축"
+  ],
+  "30243": [
+   "전통 마을",
+   "야경",
+   "경치"
+  ],
+  "30244": [
+   "강",
+   "하늘",
+   "야경"
+  ],
+  "30245": [
+   "협곡",
+   "국립공원",
+   "트레킹",
+   "바위"
+  ],
+  "30246": [
+   "정원",
+   "자연",
+   "도시"
+  ],
+  "30247": [
+   "기념물",
+   "랜드마크",
+   "섬",
+   "조각"
+  ],
+  "30248": [
+   "랜드마크",
+   "야경",
+   "강",
+   "역사적 건축"
+  ],
+  "30249": [
+   "도시",
+   "야경",
+   "공연"
+  ],
+  "30250": [
+   "미술관",
+   "예술",
+   "조각"
+  ],
+  "30251": [
+   "도시",
+   "정원",
+   "건축"
+  ],
+  "30252": [
+   "전망대",
+   "랜드마크",
+   "야경",
+   "건축"
+  ],
+  "30253": [
+   "해변",
+   "서핑",
+   "수영",
+   "휴양지"
+  ],
+  "30254": [
+   "화산",
+   "하이킹",
+   "전망대"
+  ],
+  "30255": [
+   "스노클링",
+   "산호",
+   "해양",
+   "바다"
+  ],
+  "30256": [
+   "화산",
+   "국립공원",
+   "지열",
+   "탐험"
+  ],
+  "30257": [
+   "서핑",
+   "해변",
+   "바다"
+  ],
+  "30258": [
+   "랜드마크",
+   "바다",
+   "경치"
+  ],
+  "30259": [
+   "음식",
+   "바다",
+   "해양"
+  ],
+  "30260": [
+   "섬",
+   "역사",
+   "역사적인 장소",
+   "보트 투어"
+  ],
+  "30261": [
+   "도시",
+   "경치"
+  ],
+  "30262": [
+   "국립공원",
+   "폭포",
+   "하이킹",
+   "바위",
+   "야생동물"
+  ],
+  "30264": [
+   "공연",
+   "건축",
+   "랜드마크",
+   "유네스코"
+  ],
+  "30265": [
+   "해변",
+   "서핑",
+   "수영",
+   "바다"
+  ],
+  "30266": [
+   "랜드마크",
+   "전망대",
+   "야경"
+  ],
+  "30267": [
+   "동물",
+   "야생동물"
+  ],
+  "30268": [
+   "국립공원",
+   "산",
+   "하이킹",
+   "협곡"
+  ],
+  "30269": [
+   "산호",
+   "다이빙",
+   "스노클링",
+   "해양"
+  ],
+  "30270": [
+   "사원",
+   "바다",
+   "해안",
+   "하늘"
+  ],
+  "30271": [
+   "사원",
+   "해안",
+   "공연",
+   "원숭이"
+  ],
+  "30272": [
+   "해변",
+   "서핑",
+   "휴양지"
+  ],
+  "30273": [
+   "자연",
+   "경치",
+   "전통"
+  ],
+  "30274": [
+   "화산",
+   "등산",
+   "하늘",
+   "온천"
+  ],
+  "30275": [
+   "정원",
+   "식물원",
+   "야경"
+  ],
+  "30276": [
+   "전망대",
+   "야경",
+   "수영",
+   "랜드마크"
+  ],
+  "30277": [
+   "섬",
+   "해변",
+   "레크리에이션",
+   "휴양지"
+  ],
+  "30278": [
+   "랜드마크",
+   "조각",
+   "야경"
+  ],
+  "30279": [
+   "동물",
+   "야생동물",
+   "열대우림",
+   "호랑이"
+  ],
+  "30280": [
+   "다문화",
+   "시장",
+   "음식"
+  ],
+  "30281": [
+   "전망대",
+   "야경",
+   "산"
+  ],
+  "30282": [
+   "야경",
+   "바다",
+   "도시"
+  ],
+  "30283": [
+   "시장",
+   "음식",
+   "야경"
+  ],
+  "30284": [
+   "불상",
+   "불교",
+   "섬"
+  ],
+  "30285": [
+   "성",
+   "역사",
+   "역사적 건축",
+   "성당"
+  ],
+  "30286": [
+   "역사",
+   "조각",
+   "강",
+   "야경"
+  ],
+  "30287": [
+   "역사",
+   "기념물",
+   "랜드마크"
+  ],
+  "30288": [
+   "도시",
+   "축제",
+   "역사적 건축"
+  ],
+  "30289": [
+   "성벽",
+   "역사",
+   "강"
+  ],
+  "30290": [
+   "전망대",
+   "정원",
+   "경치"
+  ],
+  "30291": [
+   "모스크",
+   "역사적 건축",
+   "유네스코",
+   "역사"
+  ],
+  "30292": [
+   "모스크",
+   "건축",
+   "역사"
+  ],
+  "30293": [
+   "시장",
+   "전통",
+   "다문화"
+  ],
+  "30294": [
+   "탑",
+   "전망대",
+   "야경"
+  ],
+  "30295": [
+   "보트 투어",
+   "바다",
+   "다문화",
+   "보트"
+  ],
+  "30296": [
+   "야경",
+   "강",
+   "역사적 건축"
+  ],
+  "30297": [
+   "정원",
+   "전통",
+   "역사"
+  ],
+  "30298": [
+   "전망대",
+   "랜드마크",
+   "야경"
+  ],
+  "30299": [
+   "운하",
+   "전통 마을",
+   "보트"
+  ],
+  "30300": [
+   "미술관",
+   "예술",
+   "역사"
+  ],
+  "30301": [
+   "미술관",
+   "예술"
+  ],
+  "30302": [
+   "역사",
+   "박물관",
+   "역사적인 장소"
+  ],
+  "30303": [
+   "운하",
+   "보트 투어",
+   "유네스코",
+   "보트"
+  ],
+  "30304": [
+   "전통 마을",
+   "전통",
+   "강"
+  ],
+  "30305": [
+   "전망대",
+   "랜드마크",
+   "건축",
+   "야경"
+  ],
+  "30306": [
+   "도시",
+   "레크리에이션",
+   "공연"
+  ],
+  "30307": [
+   "사막",
+   "사파리",
+   "낙타",
+   "탐험"
+  ],
+  "30308": [
+   "섬",
+   "해변",
+   "휴양지"
+  ],
+  "30309": [
+   "시장",
+   "보트",
+   "다문화"
+  ],
+  "30310": [
+   "모스크",
+   "건축",
+   "랜드마크"
+  ],
+  "30311": [
+   "랜드마크",
+   "전망대",
+   "야경",
+   "건축"
+  ],
+  "30312": [
+   "역사",
+   "기념물",
+   "도시"
+  ],
+  "30313": [
+   "시장",
+   "음식",
+   "야경"
+  ],
+  "30314": [
+   "동굴",
+   "사원",
+   "원숭이"
+  ],
+  "30315": [
+   "열대우림",
+   "국립공원",
+   "야생동물",
+   "트레킹",
+   "사파리"
+  ],
+  "30316": [
+   "호수",
+   "보트",
+   "경치"
+  ],
+  "30317": [
+   "대성당",
+   "역사",
+   "역사적 건축"
+  ],
+  "30318": [
+   "전망대",
+   "산",
+   "하이킹"
+  ],
+  "30319": [
+   "설산",
+   "기차",
+   "철도 여행",
+   "전망대"
+  ],
+  "30320": [
+   "사막",
+   "낙타",
+   "캠핑",
+   "하늘"
+  ]
+ }
+}

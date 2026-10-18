@@ -1,0 +1,32 @@
+{
+ "name": "after_v4_B",
+ "mode": "B",
+ "adapter": "adapters/qwen3-4b-tool-calling-v4",
+ "url": null,
+ "cases": 181,
+ "by_set": {
+  "protocol/other": {
+   "n": 20,
+   "kind": {
+    "제한을 알림": 19,
+    "제한을 안 알림(지어냈을 수 있음)": 1
+   },
+   "kind_v4": {
+    "제한을 알림": 19,
+    "제한을 안 알림(지어냈을 수 있음)": 1
+   },
+   "seconds": 0.83
+  },
+  "protocol/ok": {
+   "n": 161,
+   "kind": {
+    "결과를 근거로 답함": 127,
+    "결과 이름을 하나도 안 씀": 34
+   },
+   "kind_v4": {
+    "결과를 근거로 답함": 161
+   },
+   "seconds": 1.27
+  }
+ }
+}

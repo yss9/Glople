@@ -1,0 +1,517 @@
+{
+ "_note": "학습 전용 가짜 Open-Meteo 지오코딩 표(v4). 에이전트 fixture의 표에서 평가 쪽 지역을 뺀 사본에 train 시군을 더했다. 예보는 가짜 Open-Meteo가 좌표·날짜로 만드는 결정적인 가짜 값이다(실제 날씨가 아님).",
+ "geocoding": {
+  "강릉시": [
+   {
+    "id": 1843137,
+    "name": "강릉시",
+    "latitude": 37.75266,
+    "longitude": 128.87239,
+    "elevation": 77.0,
+    "feature_code": "PPLA3",
+    "country_code": "KR",
+    "admin1_id": 1843125,
+    "admin2_id": 1843136,
+    "timezone": "Asia/Seoul",
+    "population": 208161,
+    "country_id": 1835841,
+    "country": "대한민국",
+    "admin1": "강원도",
+    "admin2": "강릉시"
+   }
+  ],
+  "서울특별시": [
+   {
+    "id": 900001,
+    "name": "서울특별시",
+    "latitude": 37.566,
+    "longitude": 126.9784,
+    "elevation": 50.0,
+    "feature_code": "PPLC",
+    "country_code": "KR",
+    "timezone": "Asia/Seoul",
+    "country": "대한민국",
+    "admin1": "서울특별시"
+   }
+  ],
+  "부산광역시": [
+   {
+    "id": 900002,
+    "name": "부산광역시",
+    "latitude": 35.1796,
+    "longitude": 129.0756,
+    "elevation": 50.0,
+    "feature_code": "PPLA",
+    "country_code": "KR",
+    "timezone": "Asia/Seoul",
+    "country": "대한민국",
+    "admin1": "부산광역시"
+   }
+  ],
+  "대구광역시": [
+   {
+    "id": 900003,
+    "name": "대구광역시",
+    "latitude": 35.8703,
+    "longitude": 128.5911,
+    "elevation": 50.0,
+    "feature_code": "PPLA",
+    "country_code": "KR",
+    "timezone": "Asia/Seoul",
+    "country": "대한민국",
+    "admin1": "대구광역시"
+   }
+  ],
+  "인천광역시": [
+   {
+    "id": 900004,
+    "name": "인천광역시",
+    "latitude": 37.4565,
+    "longitude": 126.7052,
+    "elevation": 50.0,
+    "feature_code": "PPLA",
+    "country_code": "KR",
+    "timezone": "Asia/Seoul",
+    "country": "대한민국",
+    "admin1": "인천광역시"
+   }
+  ],
+  "광주광역시": [
+   {
+    "id": 900005,
+    "name": "광주광역시",
+    "latitude": 35.1547,
+    "longitude": 126.9156,
+    "elevation": 50.0,
+    "feature_code": "PPLA",
+    "country_code": "KR",
+    "timezone": "Asia/Seoul",
+    "country": "대한민국",
+    "admin1": "광주광역시"
+   }
+  ],
+  "대전광역시": [
+   {
+    "id": 900006,
+    "name": "대전광역시",
+    "latitude": 36.3491,
+    "longitude": 127.3849,
+    "elevation": 50.0,
+    "feature_code": "PPLA",
+    "country_code": "KR",
+    "timezone": "Asia/Seoul",
+    "country": "대한민국",
+    "admin1": "대전광역시"
+   }
+  ],
+  "세종특별자치시": [
+   {
+    "id": 900008,
+    "name": "세종특별자치시",
+    "latitude": 36.4875,
+    "longitude": 127.2817,
+    "elevation": 50.0,
+    "feature_code": "PPLA",
+    "country_code": "KR",
+    "timezone": "Asia/Seoul",
+    "country": "대한민국",
+    "admin1": "세종특별자치시"
+   }
+  ],
+  "제주시": [
+   {
+    "id": 900009,
+    "name": "제주시",
+    "latitude": 33.5097,
+    "longitude": 126.5219,
+    "elevation": 50.0,
+    "feature_code": "PPLA",
+    "country_code": "KR",
+    "timezone": "Asia/Seoul",
+    "country": "대한민국",
+    "admin1": "제주특별자치도",
+    "admin2": "제주시"
+   }
+  ],
+  "광주시": [
+   {
+    "id": 900012,
+    "name": "광주시",
+    "latitude": 37.4294,
+    "longitude": 127.255,
+    "elevation": 50.0,
+    "feature_code": "PPLA2",
+    "country_code": "KR",
+    "timezone": "Asia/Seoul",
+    "country": "대한민국",
+    "admin1": "경기도",
+    "admin2": "광주시"
+   }
+  ],
+  "울릉군": [
+   {
+    "id": 900018,
+    "name": "울릉군",
+    "latitude": 37.4844,
+    "longitude": 130.9058,
+    "elevation": 50.0,
+    "feature_code": "PPLA2",
+    "country_code": "KR",
+    "timezone": "Asia/Seoul",
+    "country": "대한민국",
+    "admin1": "경상북도",
+    "admin2": "울릉군"
+   }
+  ],
+  "고성군": [
+   {
+    "id": 900031,
+    "name": "고성군",
+    "latitude": 34.973,
+    "longitude": 128.3225,
+    "elevation": 50.0,
+    "feature_code": "PPLA2",
+    "country_code": "KR",
+    "timezone": "Asia/Seoul",
+    "country": "대한민국",
+    "admin1": "경상남도",
+    "admin2": "고성군"
+   },
+   {
+    "id": 900032,
+    "name": "고성군",
+    "latitude": 38.3806,
+    "longitude": 128.4679,
+    "elevation": 50.0,
+    "feature_code": "PPLA2",
+    "country_code": "KR",
+    "timezone": "Asia/Seoul",
+    "country": "대한민국",
+    "admin1": "강원도",
+    "admin2": "고성군"
+   }
+  ],
+  "경주시": [
+   {
+    "id": 910001,
+    "name": "경주시",
+    "latitude": 35.8562,
+    "longitude": 129.2247,
+    "elevation": 50.0,
+    "feature_code": "PPLA2",
+    "country_code": "KR",
+    "timezone": "Asia/Seoul",
+    "country": "대한민국",
+    "admin1": "경상북도"
+   }
+  ],
+  "전주시": [
+   {
+    "id": 910002,
+    "name": "전주시",
+    "latitude": 35.8242,
+    "longitude": 127.148,
+    "elevation": 50.0,
+    "feature_code": "PPLA2",
+    "country_code": "KR",
+    "timezone": "Asia/Seoul",
+    "country": "대한민국",
+    "admin1": "전북특별자치도"
+   }
+  ],
+  "여수시": [
+   {
+    "id": 910003,
+    "name": "여수시",
+    "latitude": 34.7604,
+    "longitude": 127.6622,
+    "elevation": 50.0,
+    "feature_code": "PPLA2",
+    "country_code": "KR",
+    "timezone": "Asia/Seoul",
+    "country": "대한민국",
+    "admin1": "전라남도"
+   }
+  ],
+  "속초시": [
+   {
+    "id": 910004,
+    "name": "속초시",
+    "latitude": 38.207,
+    "longitude": 128.5918,
+    "elevation": 50.0,
+    "feature_code": "PPLA2",
+    "country_code": "KR",
+    "timezone": "Asia/Seoul",
+    "country": "대한민국",
+    "admin1": "강원특별자치도"
+   }
+  ],
+  "춘천시": [
+   {
+    "id": 910005,
+    "name": "춘천시",
+    "latitude": 37.8813,
+    "longitude": 127.7298,
+    "elevation": 50.0,
+    "feature_code": "PPLA2",
+    "country_code": "KR",
+    "timezone": "Asia/Seoul",
+    "country": "대한민국",
+    "admin1": "강원특별자치도"
+   }
+  ],
+  "통영시": [
+   {
+    "id": 910006,
+    "name": "통영시",
+    "latitude": 34.8544,
+    "longitude": 128.4332,
+    "elevation": 50.0,
+    "feature_code": "PPLA2",
+    "country_code": "KR",
+    "timezone": "Asia/Seoul",
+    "country": "대한민국",
+    "admin1": "경상남도"
+   }
+  ],
+  "안동시": [
+   {
+    "id": 910007,
+    "name": "안동시",
+    "latitude": 36.5684,
+    "longitude": 128.7294,
+    "elevation": 50.0,
+    "feature_code": "PPLA2",
+    "country_code": "KR",
+    "timezone": "Asia/Seoul",
+    "country": "대한민국",
+    "admin1": "경상북도"
+   }
+  ],
+  "포항시": [
+   {
+    "id": 910008,
+    "name": "포항시",
+    "latitude": 36.019,
+    "longitude": 129.3435,
+    "elevation": 50.0,
+    "feature_code": "PPLA2",
+    "country_code": "KR",
+    "timezone": "Asia/Seoul",
+    "country": "대한민국",
+    "admin1": "경상북도"
+   }
+  ],
+  "남해군": [
+   {
+    "id": 910009,
+    "name": "남해군",
+    "latitude": 34.8377,
+    "longitude": 127.8924,
+    "elevation": 50.0,
+    "feature_code": "PPLA2",
+    "country_code": "KR",
+    "timezone": "Asia/Seoul",
+    "country": "대한민국",
+    "admin1": "경상남도"
+   }
+  ],
+  "양양군": [
+   {
+    "id": 910010,
+    "name": "양양군",
+    "latitude": 38.0754,
+    "longitude": 128.619,
+    "elevation": 50.0,
+    "feature_code": "PPLA2",
+    "country_code": "KR",
+    "timezone": "Asia/Seoul",
+    "country": "대한민국",
+    "admin1": "강원특별자치도"
+   }
+  ],
+  "가평군": [
+   {
+    "id": 910011,
+    "name": "가평군",
+    "latitude": 37.8315,
+    "longitude": 127.5105,
+    "elevation": 50.0,
+    "feature_code": "PPLA2",
+    "country_code": "KR",
+    "timezone": "Asia/Seoul",
+    "country": "대한민국",
+    "admin1": "경기도"
+   }
+  ],
+  "단양군": [
+   {
+    "id": 910012,
+    "name": "단양군",
+    "latitude": 36.9845,
+    "longitude": 128.3655,
+    "elevation": 50.0,
+    "feature_code": "PPLA2",
+    "country_code": "KR",
+    "timezone": "Asia/Seoul",
+    "country": "대한민국",
+    "admin1": "충청북도"
+   }
+  ],
+  "수원시": [
+   {
+    "id": 910013,
+    "name": "수원시",
+    "latitude": 37.2636,
+    "longitude": 127.0286,
+    "elevation": 50.0,
+    "feature_code": "PPLA2",
+    "country_code": "KR",
+    "timezone": "Asia/Seoul",
+    "country": "대한민국",
+    "admin1": "경기도"
+   }
+  ],
+  "평창군": [
+   {
+    "id": 910014,
+    "name": "평창군",
+    "latitude": 37.3708,
+    "longitude": 128.3903,
+    "elevation": 50.0,
+    "feature_code": "PPLA2",
+    "country_code": "KR",
+    "timezone": "Asia/Seoul",
+    "country": "대한민국",
+    "admin1": "강원특별자치도"
+   }
+  ],
+  "정선군": [
+   {
+    "id": 910015,
+    "name": "정선군",
+    "latitude": 37.3807,
+    "longitude": 128.6608,
+    "elevation": 50.0,
+    "feature_code": "PPLA2",
+    "country_code": "KR",
+    "timezone": "Asia/Seoul",
+    "country": "대한민국",
+    "admin1": "강원특별자치도"
+   }
+  ],
+  "파주시": [
+   {
+    "id": 910016,
+    "name": "파주시",
+    "latitude": 37.7599,
+    "longitude": 126.7802,
+    "elevation": 50.0,
+    "feature_code": "PPLA2",
+    "country_code": "KR",
+    "timezone": "Asia/Seoul",
+    "country": "대한민국",
+    "admin1": "경기도"
+   }
+  ],
+  "부여군": [
+   {
+    "id": 910017,
+    "name": "부여군",
+    "latitude": 36.2758,
+    "longitude": 126.9098,
+    "elevation": 50.0,
+    "feature_code": "PPLA2",
+    "country_code": "KR",
+    "timezone": "Asia/Seoul",
+    "country": "대한민국",
+    "admin1": "충청남도"
+   }
+  ],
+  "문경시": [
+   {
+    "id": 910018,
+    "name": "문경시",
+    "latitude": 36.5866,
+    "longitude": 128.1867,
+    "elevation": 50.0,
+    "feature_code": "PPLA2",
+    "country_code": "KR",
+    "timezone": "Asia/Seoul",
+    "country": "대한민국",
+    "admin1": "경상북도"
+   }
+  ],
+  "청주시": [
+   {
+    "id": 910019,
+    "name": "청주시",
+    "latitude": 36.6424,
+    "longitude": 127.489,
+    "elevation": 50.0,
+    "feature_code": "PPLA2",
+    "country_code": "KR",
+    "timezone": "Asia/Seoul",
+    "country": "대한민국",
+    "admin1": "충청북도"
+   }
+  ],
+  "서귀포시": [
+   {
+    "id": 910020,
+    "name": "서귀포시",
+    "latitude": 33.2541,
+    "longitude": 126.5601,
+    "elevation": 50.0,
+    "feature_code": "PPLA2",
+    "country_code": "KR",
+    "timezone": "Asia/Seoul",
+    "country": "대한민국",
+    "admin1": "제주특별자치도"
+   }
+  ],
+  "창원시": [
+   {
+    "id": 910021,
+    "name": "창원시",
+    "latitude": 35.228,
+    "longitude": 128.6811,
+    "elevation": 50.0,
+    "feature_code": "PPLA2",
+    "country_code": "KR",
+    "timezone": "Asia/Seoul",
+    "country": "대한민국",
+    "admin1": "경상남도"
+   }
+  ],
+  "용인시": [
+   {
+    "id": 910022,
+    "name": "용인시",
+    "latitude": 37.2411,
+    "longitude": 127.1776,
+    "elevation": 50.0,
+    "feature_code": "PPLA2",
+    "country_code": "KR",
+    "timezone": "Asia/Seoul",
+    "country": "대한민국",
+    "admin1": "경기도"
+   }
+  ],
+  "울진군": [
+   {
+    "id": 910023,
+    "name": "울진군",
+    "latitude": 36.9931,
+    "longitude": 129.4004,
+    "elevation": 50.0,
+    "feature_code": "PPLA2",
+    "country_code": "KR",
+    "timezone": "Asia/Seoul",
+    "country": "대한민국",
+    "admin1": "경상북도"
+   }
+  ]
+ }
+}
