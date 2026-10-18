@@ -1,6 +1,7 @@
 package proj.travien.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.Getter;
 import lombok.Setter;
 import org.slf4j.Logger;
@@ -19,6 +20,7 @@ import proj.travien.jwt.JwtUtil;
 import proj.travien.domain.User;
 import proj.travien.dto.AgentDTO;
 import proj.travien.dto.UserDTO;
+import proj.travien.service.InvalidRequestException;
 import proj.travien.service.UserService;
 
 import java.io.IOException;
@@ -171,10 +173,11 @@ public class UserController {
         }
     }
 
-    @Operation(summary = "프로필 수정")
+    @Operation(summary = "프로필 수정 (비밀번호를 바꿀 때는 currentPassword도 함께)")
     @PostMapping("/update-profile")
     public ResponseEntity<?> updateUserProfile(@RequestParam(value = "userId", required = false) String userId,
-                                               @RequestBody UserDTO userDTO) {
+                                               @RequestBody UserDTO userDTO,
+                                               HttpServletRequest request) {
         User me = currentUser.requireUser();
         currentUser.requireSelf(userId);
 
@@ -184,6 +187,13 @@ public class UserController {
                 return ResponseEntity.status(HttpStatus.CONFLICT).body("Nickname already in use");
             case USER_NOT_FOUND:
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
+            // 비밀번호(password)를 바꾸려면 지금 비밀번호(currentPassword)가 필요하다. 이때는 아무 칸도 바꾸지 않았다.
+            case CURRENT_PASSWORD_REQUIRED:
+                return ApiErrorAdvice.body(HttpStatus.BAD_REQUEST,
+                        "비밀번호를 바꾸려면 현재 비밀번호(currentPassword)를 함께 보내야 합니다.", request,
+                        List.of(new InvalidRequestException.Problem("currentPassword", "empty", "현재 비밀번호를 입력해 주세요.")));
+            case CURRENT_PASSWORD_MISMATCH:
+                return ApiErrorAdvice.body(HttpStatus.FORBIDDEN, "현재 비밀번호가 맞지 않습니다.", request, List.of());
             default:
                 break;
         }

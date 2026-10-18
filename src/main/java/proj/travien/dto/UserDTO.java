@@ -15,6 +15,9 @@ public class UserDTO {
     // 회원가입·로그인·프로필 수정 요청에서만 받고, 응답 JSON(my-info, 관리자 사용자 목록 등)에는 키째 싣지 않는다.
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String password; // 비밀번호는 필요할 경우 null로 설정
+    // 프로필 수정에서 비밀번호(password)를 바꿀 때만 함께 받는 지금 비밀번호. 응답 JSON에는 싣지 않는다.
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+    private String currentPassword;
     private String name;
     private String dateOfBirth;
     private String gender;

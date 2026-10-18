@@ -492,6 +492,33 @@ class AuthorizationMatrixTest {
                 .andExpect(status().isConflict());
     }
 
+    // 비밀번호 변경은 현재 비밀번호가 필요하다: 없으면 400, 틀리면 403 (둘 다 JSON, 새 토큰 없음)
+    @Test
+    void passwordChangeNeedsTheCurrentPassword() throws Exception {
+        given(userService.updateUserProfile(eq("alice"), any())).willReturn(UserService.ProfileUpdateResult.CURRENT_PASSWORD_REQUIRED);
+        mockMvc.perform(post("/api/users/update-profile").header(HttpHeaders.AUTHORIZATION, bearer(aliceToken))
+                        .contentType(MediaType.APPLICATION_JSON).content("{\"password\":\"new-pass\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.error").value("BAD_REQUEST"))
+                .andExpect(jsonPath("$.errors[0].field").value("currentPassword"))
+                .andExpect(jsonPath("$.token").doesNotExist());
+
+        given(userService.updateUserProfile(eq("alice"), any())).willReturn(UserService.ProfileUpdateResult.CURRENT_PASSWORD_MISMATCH);
+        mockMvc.perform(post("/api/users/update-profile").header(HttpHeaders.AUTHORIZATION, bearer(aliceToken))
+                        .contentType(MediaType.APPLICATION_JSON).content("{\"password\":\"new-pass\",\"currentPassword\":\"wrong\"}"))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.error").value("FORBIDDEN"))
+                .andExpect(jsonPath("$.message").value("현재 비밀번호가 맞지 않습니다."))
+                .andExpect(jsonPath("$.token").doesNotExist());
+
+        // 서비스로 넘어가는 값: password와 currentPassword를 둘 다 받는다
+        org.mockito.ArgumentCaptor<UserDTO> sent = org.mockito.ArgumentCaptor.forClass(UserDTO.class);
+        verify(userService, org.mockito.Mockito.times(2)).updateUserProfile(eq("alice"), sent.capture());
+        assertThat(sent.getAllValues().get(1).getPassword()).isEqualTo("new-pass");
+        assertThat(sent.getAllValues().get(1).getCurrentPassword()).isEqualTo("wrong");
+    }
+
     @Test
     void legacyTokenWithoutSubjectStillIdentifiesTheUser() throws Exception {
         String legacy = TestTokens.legacyTokenWithoutSubject(1L, "alice", "alice", Role.ROLE_USER);

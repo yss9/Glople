@@ -28,7 +28,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-// 대행자 신청·승인, 프로필(닉네임) 변경, 포인트 이체의 서비스 규칙 (DB 없음)
+// 대행자 신청·승인, 프로필(닉네임·비밀번호) 변경, 포인트 이체의 서비스 규칙 (DB 없음)
 class UserServiceAuthorizationTest {
 
     private final UserRepository userRepository = mock(UserRepository.class);
@@ -139,6 +139,95 @@ class UserServiceAuthorizationTest {
         assertThat(userService.updateUserProfile("alice", profile(null))).isEqualTo(UserService.ProfileUpdateResult.UPDATED);
         assertThat(alice.getNickname()).isEqualTo("alice");
         verify(postRepository, never()).findByNickname(any());
+    }
+
+    // ---------- 비밀번호 변경 (U11) ----------
+
+    // 토큰만으로 비밀번호를 바꾸지 못한다. 현재 비밀번호가 없거나 틀리면 아무 칸도 바꾸지 않는다(닉네임 포함).
+    @Test
+    void passwordChangeWithoutOrWithWrongCurrentPasswordChangesNothing() {
+        User alice = TestTokens.user(1L, "alice", "alice", Role.ROLE_USER);
+        String oldHash = org.springframework.security.crypto.bcrypt.BCrypt.hashpw("old-pass", org.springframework.security.crypto.bcrypt.BCrypt.gensalt(4));
+        alice.setPassword(oldHash);
+        alice.setMbti("ENFP");
+        when(userRepository.findByUserId("alice")).thenReturn(Optional.of(alice));
+
+        UserDTO missing = profile("alice-new");
+        missing.setPassword("new-pass");
+        assertThat(userService.updateUserProfile("alice", missing))
+                .isEqualTo(UserService.ProfileUpdateResult.CURRENT_PASSWORD_REQUIRED);
+
+        UserDTO wrong = profile("alice-new");
+        wrong.setPassword("new-pass");
+        wrong.setCurrentPassword("not-my-pass");
+        assertThat(userService.updateUserProfile("alice", wrong))
+                .isEqualTo(UserService.ProfileUpdateResult.CURRENT_PASSWORD_MISMATCH);
+
+        assertThat(alice.getPassword()).isEqualTo(oldHash);
+        assertThat(alice.getNickname()).isEqualTo("alice");
+        assertThat(alice.getMbti()).isEqualTo("ENFP");
+        verify(userRepository, never()).save(any());
+    }
+
+    @Test
+    void passwordChangesWhenTheCurrentPasswordMatches() {
+        User alice = TestTokens.user(1L, "alice", "alice", Role.ROLE_USER);
+        alice.setPassword(org.springframework.security.crypto.bcrypt.BCrypt.hashpw("old-pass", org.springframework.security.crypto.bcrypt.BCrypt.gensalt(4)));
+        when(userRepository.findByUserId("alice")).thenReturn(Optional.of(alice));
+
+        UserDTO request = profile(null);
+        request.setPassword("new-pass");
+        request.setCurrentPassword("old-pass");
+
+        assertThat(userService.updateUserProfile("alice", request)).isEqualTo(UserService.ProfileUpdateResult.UPDATED);
+        assertThat(org.springframework.security.crypto.bcrypt.BCrypt.checkpw("new-pass", alice.getPassword())).isTrue();
+        assertThat(alice.getMbti()).isEqualTo("INTJ");
+        verify(userRepository).save(alice);
+    }
+
+    // 비밀번호를 보내지 않거나 빈 문자열이면(화면이 새 비밀번호 칸을 비워 둠) 현재 비밀번호 없이 다른 칸만 바꾼다
+    @Test
+    void profileWithoutPasswordNeedsNoCurrentPasswordAndKeepsTheHash() {
+        User alice = TestTokens.user(1L, "alice", "alice", Role.ROLE_USER);
+        alice.setPassword("$2a$04$existinghashexistinghashexistinghashexistinghashexist");
+        when(userRepository.findByUserId("alice")).thenReturn(Optional.of(alice));
+
+        UserDTO request = profile(null);
+        request.setStatusMessage("안녕하세요");
+        assertThat(userService.updateUserProfile("alice", request)).isEqualTo(UserService.ProfileUpdateResult.UPDATED);
+        request.setPassword("");
+        assertThat(userService.updateUserProfile("alice", request)).isEqualTo(UserService.ProfileUpdateResult.UPDATED);
+
+        assertThat(alice.getPassword()).isEqualTo("$2a$04$existinghashexistinghashexistinghashexistinghashexist");
+        assertThat(alice.getStatusMessage()).isEqualTo("안녕하세요");
+        assertThat(alice.getMbti()).isEqualTo("INTJ");
+    }
+
+    // 저장된 값이 BCrypt 해시가 아니면(손상·옛 형식) 예외 대신 '맞지 않음'
+    @Test
+    void brokenStoredHashCountsAsMismatch() {
+        User alice = TestTokens.user(1L, "alice", "alice", Role.ROLE_USER);
+        alice.setPassword("plain-text");
+        when(userRepository.findByUserId("alice")).thenReturn(Optional.of(alice));
+
+        UserDTO request = profile(null);
+        request.setPassword("new-pass");
+        request.setCurrentPassword("plain-text");
+        assertThat(userService.updateUserProfile("alice", request))
+                .isEqualTo(UserService.ProfileUpdateResult.CURRENT_PASSWORD_MISMATCH);
+        assertThat(alice.getPassword()).isEqualTo("plain-text");
+    }
+
+    // 응답 JSON(my-info 등)에 현재 비밀번호가 실리지 않는다
+    @Test
+    void currentPasswordIsWriteOnlyInJson() throws Exception {
+        UserDTO dto = profile("alice");
+        dto.setPassword("p");
+        dto.setCurrentPassword("c");
+        com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+        String json = mapper.writeValueAsString(dto);
+        assertThat(json).doesNotContain("currentPassword").doesNotContain("\"password\"");
+        assertThat(mapper.readValue("{\"currentPassword\":\"c\"}", UserDTO.class).getCurrentPassword()).isEqualTo("c");
     }
 
     // ---------- 포인트 이체 (U22) ----------

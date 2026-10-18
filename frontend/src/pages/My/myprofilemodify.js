@@ -92,6 +92,9 @@ const Myprofilemodify = () => {
     const [introduction, setIntroduction] = useState("");
     const [dateOfBirth, setDateOfBirth] = useState("");
     const [gender, setGender] = useState("");
+    // 비밀번호는 바꿀 때만 보낸다. 서버는 새 비밀번호(password)가 있으면 현재 비밀번호(currentPassword)를 확인한다.
+    const [newPassword, setNewPassword] = useState("");
+    const [currentPassword, setCurrentPassword] = useState("");
     const token = getAuthToken();
 
     useEffect(() => {
@@ -143,6 +146,8 @@ const Myprofilemodify = () => {
     const handleIntroductionChange = (e) => setIntroduction(e.target.value);
     const handleDateOfBirthChange = (e) => setDateOfBirth(e.target.value);
     const handleGenderChange = (e) => setGender(e.target.value);
+    const handleNewPasswordChange = (e) => setNewPassword(e.target.value);
+    const handleCurrentPasswordChange = (e) => setCurrentPassword(e.target.value);
 
     const handleSubmit = async () => {
         if (!token) {
@@ -160,6 +165,14 @@ const Myprofilemodify = () => {
             dateOfBirth,
             gender,
         };
+        if (newPassword !== "") {
+            if (currentPassword === "") {
+                alert("비밀번호를 바꾸려면 현재 비밀번호를 입력해 주세요.");
+                return;
+            }
+            userDataJson.password = newPassword;
+            userDataJson.currentPassword = currentPassword;
+        }
 
         try {
             if (profileImage && profileImage instanceof File) {
@@ -201,6 +214,8 @@ const Myprofilemodify = () => {
                 if (response.data && typeof response.data === "object" && response.data.token) {
                     setAuthToken(response.data.token);
                 }
+                setNewPassword("");
+                setCurrentPassword("");
                 console.log("프로필이 성공적으로 업데이트되었습니다.");
                 alert("프로필이 성공적으로 업데이트되었습니다.");
             } else {
@@ -208,7 +223,15 @@ const Myprofilemodify = () => {
             }
         } catch (error) {
             console.error("프로필 업데이트 중 오류가 발생했습니다:", error);
-            alert("프로필 업데이트 중 오류가 발생했습니다.");
+            const status = error.response && error.response.status;
+            const fromProfileUpdate = Boolean(error.config && String(error.config.url).includes("/update-profile"));
+            if (fromProfileUpdate && status === 403 && userDataJson.currentPassword) {
+                alert("현재 비밀번호가 맞지 않습니다.");
+            } else if (fromProfileUpdate && status === 400 && userDataJson.password) {
+                alert("비밀번호를 바꾸려면 현재 비밀번호를 입력해 주세요.");
+            } else {
+                alert("프로필 업데이트 중 오류가 발생했습니다.");
+            }
         }
     };
 
@@ -233,6 +256,10 @@ const Myprofilemodify = () => {
                                 <Introduce type="text" value={introduction} onChange={handleIntroductionChange} placeholder="소개 메시지" />
                                 <InputField type="text" value={dateOfBirth} onChange={handleDateOfBirthChange} placeholder="생년월일" />
                                 <InputField type="text" value={gender} onChange={handleGenderChange} placeholder="성별" />
+                            </IntroduceWrapper>
+                            <IntroduceWrapper>
+                                <InputField type="password" value={newPassword} onChange={handleNewPasswordChange} placeholder="새 비밀번호" autoComplete="new-password" />
+                                <InputField type="password" value={currentPassword} onChange={handleCurrentPasswordChange} placeholder="현재 비밀번호" autoComplete="current-password" />
                             </IntroduceWrapper>
                             <button onClick={handleSubmit}>저장</button>
                         </MyProfileContainer>

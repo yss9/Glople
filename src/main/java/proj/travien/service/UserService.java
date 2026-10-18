@@ -61,9 +61,10 @@ public class UserService {
         this.bookingRepository = bookingRepository;
     }
 
-    // 프로필 수정 결과
+    // 프로필 수정 결과. 비밀번호를 바꾸는 요청은 현재 비밀번호가 없으면 CURRENT_PASSWORD_REQUIRED, 틀리면 CURRENT_PASSWORD_MISMATCH이고
+    // 이때는 다른 칸(닉네임 등)도 바꾸지 않는다.
     public enum ProfileUpdateResult {
-        UPDATED, USER_NOT_FOUND, NICKNAME_IN_USE
+        UPDATED, USER_NOT_FOUND, NICKNAME_IN_USE, CURRENT_PASSWORD_REQUIRED, CURRENT_PASSWORD_MISMATCH
     }
 
     // 관리자가 승인한 예약대행자인지. 신청만 한 사용자(isAgent=true, 승인일 없음)는 아직 대행자가 아니다.
@@ -270,6 +271,18 @@ public class UserService {
         return BCrypt.hashpw(password, BCrypt.gensalt());
     }
 
+    // 저장된 해시가 BCrypt 형식이 아니면(비어 있거나 손상된 값) 맞지 않는 것으로 본다
+    private static boolean passwordMatches(String rawPassword, String storedHash) {
+        if (storedHash == null || storedHash.isEmpty()) {
+            return false;
+        }
+        try {
+            return BCrypt.checkpw(rawPassword, storedHash);
+        } catch (IllegalArgumentException e) {
+            return false;
+        }
+    }
+
     // 로그인
     public User login(String userId, String password) {
         User user = userRepository.findByUserId(userId).orElse(null);
@@ -301,6 +314,20 @@ public class UserService {
             return ProfileUpdateResult.USER_NOT_FOUND;
         }
 
+        // 비밀번호 변경은 토큰만으로 하지 않는다. 새 비밀번호(password)가 있으면 지금 비밀번호(currentPassword)가 맞아야 한다.
+        // 토큰이 새어 나가도(XSS 등) 비밀번호까지 바꿔 계정을 빼앗지 못하게 하려는 것이다. 빈 문자열은 '바꾸지 않음'으로 본다.
+        String newPassword = userDTO.getPassword();
+        boolean passwordChanged = newPassword != null && !newPassword.isEmpty();
+        if (passwordChanged) {
+            String currentPassword = userDTO.getCurrentPassword();
+            if (currentPassword == null || currentPassword.isEmpty()) {
+                return ProfileUpdateResult.CURRENT_PASSWORD_REQUIRED;
+            }
+            if (!passwordMatches(currentPassword, user.getPassword())) {
+                return ProfileUpdateResult.CURRENT_PASSWORD_MISMATCH;
+            }
+        }
+
         String oldNickname = user.getNickname();
         String newNickname = userDTO.getNickname();
         boolean nicknameChanged = newNickname != null && !newNickname.isBlank() && !newNickname.equals(oldNickname);
@@ -313,7 +340,9 @@ public class UserService {
         }
 
         // ID를 제외한 모든 필드를 수정
-        user.setPassword(userDTO.getPassword() != null ? hashPassword(userDTO.getPassword()) : user.getPassword());
+        if (passwordChanged) {
+            user.setPassword(hashPassword(newPassword));
+        }
         user.setName(userDTO.getName());
         user.setDateOfBirth(userDTO.getDateOfBirth());
         user.setGender(userDTO.getGender());
