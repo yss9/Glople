@@ -2,12 +2,14 @@
 
 Glople(여행 커뮤니티)에 붙일 여행 도우미 에이전트입니다. 직접 학습한 tool calling LoRA(Qwen3-4B v2)를 라우터로 쓰고, 그 주위를 명시적인 LangGraph `StateGraph`로 짭니다. 이 프로젝트의 1순위 목적은 **LangGraph·tool calling·에이전트 구조를 손으로 익히는 것**입니다. 그래서 노드 하나에 개념 하나를 두고(아래 표), 실행해 보기 전의 가정은 동작 고정 테스트로 먼저 확인합니다. 설계는 [`docs/design.md`](docs/design.md), 설치된 버전에서 설계와 다르게 동작한 점은 [`docs/api-notes.md`](docs/api-notes.md)에 있습니다.
 
-지금 단계는 **M1(검증·정책·실제 어댑터)**입니다. GPU·Spring·모델 서버 없이 돕니다.
+지금 단계는 **M2(실제 모델 답변 경로)**의 코드 부분입니다. 테스트는 모두 GPU·Spring·모델 서버 없이 돌고, 실제 mlx 서버 측정은 오너가 합니다(아래 'M2' 절).
 
 - M0: 가짜 모델과 가짜 백엔드로 그래프 전 구간(조회·병렬·되묻기·직답·quirk 재시도·일정 확인 interrupt)
 - M1: validate에 **근거 검사**(지어낸 나이·성별·지역·장소 → 되묻기, 근거 없는 선택 인자 → 빼기), 키워드 94개·지역 해석기·Type3 판정,
   **Spring 어댑터 4개 + SpringClient**(경로 허용 목록, 공개 경로엔 토큰 없음), 후속 발화 메모리(되묻기 답 이어 붙이기, '거기'),
   실제 **ChatOpenAI** 클라이언트와 가짜 OpenAI 서버로 HTTP 동작 고정, 템플릿 스냅샷, `cli tool`, 궤적 로그
+- M2: **answer_llm(a3)** — 답변 전용 프롬프트 + 이번 턴 결과만으로 스트리밍 생성 → **답변 가드**(10가지 이유 코드) → 걸리면 같은 턴의
+  템플릿 답으로 교체, `real_deps`·`chat --llm real`, **카세트**(녹화·재생)
 
 ## 설치·실행
 
@@ -20,6 +22,8 @@ cd ~/Desktop/project/github/Glople/agent
 .venv/bin/python -m glople_agent.contract                    # 학습 계약 요약 한 줄
 .venv/bin/python -m glople_agent.cli graph                   # 그래프 mermaid 텍스트
 .venv/bin/python -m glople_agent.cli chat --fake rules       # 대화(REPL). --fake oracle, --anon(비로그인), --trajectory(궤적 로그)
+.venv/bin/python -m glople_agent.cli chat --fake rules --answer llm   # M2: 가짜 답변 모델로 answer_llm·가드 경로(미리보기 줄)
+.venv/bin/python -m glople_agent.cli chat --llm real         # M2: 실제 모델 서버(오너가 먼저 띄움, 아래 'M2' 절). --answer template, --record PATH
 .venv/bin/python -m glople_agent.cli replay --data v2-test,human   # 정답 재생 표(v2-train·v2-valid도 가능)
 .venv/bin/python -m glople_agent.cli replay --predictions v1-human,v2-human,v1-v2test,v2-v2test   # 모델 예측 재생(M1)
 .venv/bin/python -m glople_agent.cli grounding               # 근거 검사 측정 표(--details면 걸린 발화 목록)
@@ -30,7 +34,7 @@ cd ~/Desktop/project/github/Glople/agent
 ```
 
 - CLI는 시작할 때 `LANGSMITH_TRACING=false`, `LANGGRAPH_STRICT_MSGPACK=true`를 맞춥니다(langgraph import 전). 어떤 `.env`도 읽지 않습니다.
-- `chat`의 user_id(`cli-user`)와 토큰은 고정 테스트 값입니다. 실제 JWT를 받지 않고, 모델 서버(8090)·Spring(8080)에 접속하지 않습니다.
+- `chat`의 user_id(`cli-user`)와 토큰은 고정 테스트 값입니다. 실제 JWT를 받지 않고, 기본(`--llm fake`)은 모델 서버(8090)·Spring(8080)에 접속하지 않습니다. `--llm real`만 모델 서버(`--model-url`, 기본 `GLOPLE_MODEL_BASE_URL` = `http://127.0.0.1:8090/v1`)에 붙고, 이때도 Spring은 가짜(fixture)입니다. `replay`는 늘 가짜 라우터입니다.
 - `tool`은 기본이 `--fixture`(가짜 Spring = httpx.MockTransport, 네트워크 없음)입니다. `--live`는 `GLOPLE_SPRING_BASE_URL`의 공개 API를 부르므로 오너가 IDOR 점검 뒤 직접 실행합니다(이번에는 실행하지 않음).
 - `chat --trajectory [DIR]`은 턴마다 궤적 한 줄을 `agent/var/trajectories/YYYYMMDD.jsonl`(gitignore)에 남기고 화면에도 요약을 찍습니다. 토큰·사용자 id·발화·인자 값·결과 글은 넣지 않습니다(라우터 종류, 호출 이름·판정·근거 검사 코드, 결과 상태, 답 종류만).
 - `chat` 명령: `/state` 현재 state, `/new` 새 thread, `/help`, `/quit`. 확인 카드가 뜨면 `y` 저장, `n` 취소, `e` 고치기(칸마다 물음, 빈 줄은 그대로. 장소 칸의 기본값은 선택된 장소만이고, 해제된 제안은 직접 적어야 들어감). `e {"region": "제주", "days": 2, "places": ["우도"]}`처럼 JSON을 바로 줘도 됩니다. 카드가 떠 있는데 다른 말을 하면 카드를 먼저 취소하고 새 턴으로 갑니다.
@@ -182,7 +186,7 @@ graph TD;
 	classDef last fill:#bfb6fc
 ```
 
-노드는 14개입니다(설계 0절은 13개로 적었지만 5.3 표의 노드는 14개). `answer_llm`은 M2 자리이고, M0 기본값인 template 모드에서는 `after_collect`가 그쪽으로 보내지 않습니다.
+노드는 14개입니다(설계 0절은 13개로 적었지만 5.3 표의 노드는 14개). `answer_llm`은 M2에서 채웠고, 기본값인 template 모드에서는 `after_collect`가 그쪽으로 보내지 않습니다. llm 모드에서는 LLM이 답할 결과(ok, 날씨 제외)가 하나라도 있을 때만 `collect → answer_llm`이고, 가드를 통과하면 `answer_llm → finish`, 걸리면 `answer_llm → answer_template → finish`입니다(그림은 M0와 같음).
 
 ## 노드별 LangGraph 개념 (설계 부록 B → 실제 코드)
 
@@ -211,7 +215,10 @@ graph TD;
 | (M1) 근거 검사가 붙은 validate(같은 id 교체·RemoveMessage 그대로) | `graph/grounding.py` `check_call`, `graph/nodes.py` `judge_call`(측정 `eval/grounding_eval.py`도 같은 함수) | `test_grounding.py::test_grounding_clarify_in_graph_removes_router_message` |
 | (M1) 도구에서 실행 문맥 읽기: `get_runtime()`(ToolRuntime 주입 대신) | `tools/registry.py` `current_tool_context` → `ToolContext`(now·seed만, 토큰 없음) | `test_pins_langgraph.py::test_tool_runtime_injection_breaks_extra_forbid_args_schema`, `test_spring_adapters.py::test_toolnode_passes_now_but_never_the_token` |
 | (M1) 실제 ChatOpenAI(OpenAI 호환 로컬 서버), `bind_tools(dict)`, `max_retries=0` | `llm/models.py`, `scripts/fake_openai_server.py` | `test_pins_openai_http.py::test_graph_runs_end_to_end_with_real_chat_openai` |
-| (M2~M3) messages 스트림, 서브그래프, CLI `/history`·`/fork`, Sqlite | 아직 없음 | 아래 체크리스트 |
+| (M2) 스트리밍 LLM 노드: custom 스트림 토큰 + messages 스트림 | `nodes.make_answer_llm`(`answer_llm.stream` → `{"event": "token"}`), `build.py` `_stream`·`TurnResult.preview` | `test_answer_llm.py::test_llm_answer_passes_guard_and_streams_preview`, `test_messages_stream_mode_yields_answer_chunks` |
+| (M2) 조건부 엣지로 대체 경로(가드 실패 → 템플릿) | `edges.make_after_collect`(`llm_answerable`), `after_answer` | `test_answer_llm.py::test_guard_failure_falls_back_to_same_turn_template` |
+| (M2) 녹화 재생(카세트) | `llm/cassette.py` `RecordingChatModel`·`Cassette`, `llm/fake.py` `CassetteScript` | `test_cassette.py` |
+| (M3) 서브그래프, CLI `/history`·`/fork`, Sqlite | 아직 없음 | 아래 체크리스트 |
 
 ## 코드 읽는 순서 (공부용)
 
@@ -227,6 +234,123 @@ graph TD;
 10. (M1) `tools/spring.py` → `tools/adapters/*.py` → `tools/fixture_spring.py`: 도구 인자가 Spring 요청이 되고, 응답이 허용 필드만 남은 LLM용 JSON과 원문 카드로 나뉘는 길. `cli tool`로 직접 보기.
 11. (M1) `graph/followup.py`와 `tests/test_followup.py`: 한 마디만 받는 라우터에 다턴 맥락을 코드로 넣는 법.
 12. (M1) `llm/models.py`, `scripts/fake_openai_server.py`, `tests/test_pins_openai_http.py`: 실제 ChatOpenAI가 보내는 JSON과 서버 quirk가 AIMessage에 드러나는 모양.
+13. (M2) `llm/prompts.py` → `graph/answer_input.py` → `graph/guard.py` → `nodes.make_answer_llm` → `tests/test_guard.py`·`tests/test_answer_llm.py`: 도구 결과 뒤 LLM에게 무엇을 보이고(짝째로 빼기), 답을 어떻게 의심하고(가드), 걸리면 어떻게 갈아끼우는지.
+14. (M2) `llm/cassette.py`, `llm/fake.py` `CassetteScript`, `tests/test_cassette.py`: 실제 서버 응답을 녹화해 GPU 없이 같은 대화를 재생하는 법.
+
+## M2 실제 모델 연결 (2026-10-18)
+
+### 만든 것
+
+| 파일 | 내용 |
+|---|---|
+| `llm/prompts.py` | `ANSWER_SYSTEM_PROMPT`(설계 6.4 글자 그대로, 테스트가 design.md 코드 블록과 대조) |
+| `graph/answer_input.py` | 답변 요청 `[System, Human(router_input), AI(LLM이 볼 호출만, content ""), Tool(LLM용 봉투)…]`. 템플릿이 답할 결과(날씨·미지원·준비 중·빈 결과·오류)는 **호출·결과를 짝째로 빼고** 그 템플릿 문장을 앞에 붙임. 결과 전체 1,000자 상한(긴 결과부터 뒤 항목을 빼고 note) |
+| `graph/guard.py` | 답변 가드: `empty`·`tool_calls`·`tool_call_text`·`json_fragment`·`incomplete`·`canned`·`no_item_name`·`unknown_number`·`card_overlap`·`too_long`. 판정(`GuardVerdict`)만 하고 고치지 않음 |
+| `graph/nodes.py` `make_answer_llm` | `answer_llm.stream(요청)`(도구를 묶지 않음) → custom 스트림 `{"event": "token"}` 미리보기 → 가드 → 통과면 `reply_kind="llm"`, 실패·모델 오류면 trace에 이유를 남기고 `answer_template`. 보내기 전에 도구 결과에 카드 원문이 섞였는지도 봄(`input_overlap`) |
+| `graph/edges.py` | `after_collect`: llm 모드 + LLM이 답할 결과(ok, 날씨 제외)가 있을 때만 `answer_llm` |
+| `graph/build.py` | `real_deps(settings 또는 base_url, answer_mode=, record=)`: 라우터·답변 ChatOpenAI(`llm/models.py`) + 가짜 Spring(FakeBackend) + 메모리 저장소. `fake_deps(..., answer_llm=)`(기본 동작은 그대로). `TurnResult.tokens`·`preview`·`answer_trace`·`replaced` |
+| `llm/cassette.py`, `llm/fake.py` | `RecordingChatModel`(실제 모델을 감싸 녹화), `Cassette`(JSON 파일, 키 = 정규화 요청 sha256, 서버 uuid는 순서 이름으로), `CassetteScript`(재생, 없으면 `CassetteMiss`), `ResultEchoScript`(가짜 답변 모델) |
+| `cli.py` | `chat --llm real [--model-url URL] [--answer llm\|template] [--record PATH]`, `chat --fake rules --answer llm`. 미리보기 줄과 `[llm]` / `[template · 가드 이유 · 교체]` 표시 |
+| `scripts/fake_openai_server.py` | `Reply.cut(글, n)`: 스트리밍 도중 끊김(finish_reason·`[DONE]` 없음) |
+| `scripts/render_prompt.py` | `--record` 생략 가능(답변 요청처럼 대조할 학습 레코드가 없는 요청) |
+
+trace(`state.trace["answer_llm"]`, 체크포인트에만. CLI는 이유 코드만 보여 주고 서비스 UI로는 보내지 않음):
+`{"guard": "pass"|"fail", "reason", "reasons", "reply_kind": "llm"|"template", "replaced", "visible", "removed", "input_chars", "answer_chars", "finish_reason", "mentioned", "unknown_numbers"?, "card_overlap"?, "rejected_text"?, "streamed_chars"}`. 궤적 한 줄에는 `answer: {guard, reasons, replaced}`만(답 글 없음).
+
+### 실제 모델로 돌려 보기 (오너)
+
+```bash
+cd ~/Desktop/project/github/Glople
+bash training/scripts/serve.sh adapters/qwen3-4b-tool-calling-v3 8090      # 다른 터미널(학습 중에는 띄우지 않음)
+cd agent
+.venv/bin/python -m glople_agent.cli chat --llm real                          # 라우터 + 답변(a3) 모두 8090
+.venv/bin/python -m glople_agent.cli chat --llm real --answer template        # 라우터만 실제, 답은 템플릿(비교용)
+.venv/bin/python -m glople_agent.cli chat --llm real --trajectory --record cassettes/m2_demo.json   # 궤적 + 녹화
+# 다른 주소: --model-url http://127.0.0.1:8091/v1 (또는 GLOPLE_MODEL_BASE_URL)
+```
+
+- 화면: `미리보기>` 줄은 가드 전 스트리밍 글이고, `도우미>` 줄이 최종 답입니다. 가드가 바꾸면 `[template · 가드 unknown_number · 교체]`처럼 이유가 붙습니다. `--trajectory`의 `궤적:` 줄에 `guard=pass` / `guard=fail[이유]`가 나옵니다(M2 지표 '가드 실패의 첫 빈도').
+- 서버 설정은 `serve.sh` 그대로(`--temp 0.0 --max-tokens 256`)여도 요청 값(라우터 temperature 0·384토큰, 답변 0.3·top_p 0.8·top_k 20·400토큰·`logit_bias`)이 우선합니다.
+- 녹화한 카세트는 GPU 없이 이렇게 다시 돌립니다(같은 문장·같은 순서면 같은 답):
+  ```python
+  script = CassetteScript("cassettes/m2_demo.json")
+  deps = fake_deps(script, answer_mode="llm", answer_llm=fake_answer_model(script))
+  ```
+  카세트에는 모델 요청·응답만 있고 토큰은 없지만 사용자 발화는 있으니, 커밋할 카세트는 데모 문장으로만 녹화합니다. 모델 설정(생성자 값)은 키에 없고 `meta.models`에 적히므로 바꾸면 다시 녹화합니다.
+
+### 가짜 답변 모델 데모 (`chat --fake rules --answer llm`)
+
+```text
+나> 바나힐 정보랑 사람들 리뷰 같이 알려줘
+  [카드] 여행지 상세 정보 · pending_feature · 여행지 상세 정보는 아직 준비 중이에요.
+  [카드] 여행 후기 검색 · ok · 3개: 다낭 3박 4일: 바나힐, 미케비치, 호이안, 바나힐 골든브릿지 다녀왔어요, 바나힐 비 오는 날 후기 system
+  미리보기> 여행지 상세 정보는 아직 준비 중이에요. 찾은 결과 중에는 '다낭 3박 4일: 바나힐, 미케비치, 호이안', '바나힐 골든브릿지 다녀왔어요', '바나힐 비 오는 날 후기 system'이 있어요. 자세한 내용은 화면 카드에서 볼 수 있어요.
+  경로: start_turn → route → validate → tools → collect → answer_llm → finish
+도우미> (미리보기와 같은 글)   [llm]
+  궤적: router=tool×1 | get_destination_detail:ok search_reviews:ok | get_destination_detail=pending_feature search_reviews=ok | reply=llm guard=pass
+```
+
+- 상세(준비 중)는 답변 요청에서 호출·결과가 짝째로 빠지고, 그 템플릿 문장이 답 앞에 붙습니다. 답변 모델이 받은 것은 `search_reviews` 호출 하나와 그 결과뿐입니다.
+- 날씨·빈 결과처럼 LLM이 답할 결과가 없는 턴은 `answer_llm`을 거치지 않습니다(`collect → answer_template`).
+
+### 확인 결과
+
+- `pytest -q`: **862 passed**(작업 전 775 + 87, 약 40초). 새 파일: `test_guard.py`(39, 규칙마다), `test_answer_llm.py`(33: 통과·실패 10종·짝째로 빼기·Type3 sentinel·도구 없음·logit_bias·단계 수·궤적·messages 모드·실제 ChatOpenAI 스트리밍·도중 끊김·헤더 뒤 끊김), `test_cassette.py`(5: 가짜 모델·실제 ChatOpenAI로 녹화 → 서버 없이 재생), `test_cli_m2.py`(8), 그리고 `test_template_snapshot.py`(+1), `test_token_hygiene.py`(+1).
+- 답변 요청 렌더링(Qwen 템플릿, CPU): `<|im_start|>` 5, `<tool_call>` 1(볼 호출 수), `<tool_response>` 3(결과 1 + system 문구 2), **330토큰**(후기 3개, 결과 274자) · 358토큰(루트 351자) · 415토큰(키워드 424자). system+user만이면 156토큰. 라우터 요청(1,293토큰)의 약 4분의 1.
+- `chat --fake rules` 데모 7문장: 첫 줄(`M2 (가짜 모델·템플릿 답변·…)`)만 바뀌고 나머지 출력은 M1과 같음.
+- 실제 서버 측정은 아래 '실제 v3 모델로 잰 결과' 절에 있습니다.
+
+### 실제 v3 모델로 잰 결과 (2026-10-18 오전)
+
+서버: `serve.sh adapters/qwen3-4b-tool-calling-v3 8090`(v3 LoRA), 비교용으로 어댑터 없는 기본 모델 8091.
+
+**1. 서버 점수 = 로컬 평가 점수 = 에이전트 라우터 경로 점수.** `training/scripts/check_server.py --data data/tool_calling_v2/test.jsonl --limit 60`의 exact가 0.946입니다. 같은 60문제의 로컬 평가(`finetuned_v3_v2test`)도 53/56 = 0.946입니다. 서버 응답은 예시당 0.8초입니다(로컬 평가 2.6초는 매번 모델을 새로 돌림). 에이전트가 쓰는 길(ChatOpenAI + `bind_tools` + `normalize_router`)로 같은 60문제를 보낸 `scripts/check_router.py`도 판단 0.983·exact 0.946으로 같습니다. LangChain 경로가 요청·파싱에서 아무것도 바꾸지 않습니다.
+
+**2. 도구 결과를 받은 뒤 모델이 무엇을 하나** ([`docs/m2-after-tools.md`](docs/m2-after-tools.md), `scripts/measure_after_tools.py`).
+정답 호출 하나의 가짜 백엔드 결과를 넣어 두 방식으로 보냈습니다. 결과가 있는 85문제와 빈 결과·준비 중 20문제입니다.
+
+| 행동 (결과가 있는 85문제) | v3 그대로(A) | v3 답변 전용(B, a3) | 기본 그대로(A) | 기본 답변 전용(B) |
+|---|--:|--:|--:|--:|
+| 결과를 근거로 답함 | 65 | **80** | 71 | 78 |
+| 결과 이름을 하나도 안 씀 | 15 | 5 | 2 | 5 |
+| 결과에 없는 숫자 | 1 | **0** | 11 | 2 |
+| 도구를 또 부름 / 학습한 정형 문장 | 4 | 0 | 1 | 0 |
+| 평균 응답 시간 | 2.62초 | **0.85초** | 3.41초 | 1.05초 |
+
+- **A(학습 때 system + 도구 8개, 일반 에이전트 루프)에서 두 모델이 다르게 실패합니다.** v3는 결과를 무시하고 되묻거나("어떤 여행지를 좋아하시는지…"), 도구를 또 부르거나, 학습한 되묻기 문장을 그대로 냅니다. 학습 데이터에 도구 결과 뒤 턴이 없기 때문입니다. 기본 모델은 길게 쓰면서 숫자를 지어내고, 빈 결과·준비 중 20개 중 6개에서 제한을 알리지 않았습니다.
+- **B(답변 전용 system + 도구 없음 + `<tool_call>` 막기)가 두 모델 모두에서 가장 좋습니다.** 빈 결과·준비 중 20개도 모두 제한을 그대로 알렸습니다. v3 B가 근거, 지어낸 숫자, 속도에서 가장 좋습니다. 이 일에서는 LoRA가 일반 작문을 잃었다는 신호도 보이지 않습니다(v3 B ≈ 기본 B).
+- 그래서 설계대로 '도구 결과 뒤에는 그래프가 답변 노드로 보내고, 답변은 같은 v3 서버에 a3로'를 기본으로 둡니다. 기본 모델 서버(8091)를 따로 띄울 필요는 없습니다.
+
+**3. 가드.** 위 v3 B 답 85개에 `check_answer`를 돌리면 81개 통과, 4개 실패(모두 후기 `no_item_name`)입니다.
+- 실패 3개는 진짜 오류입니다.
+  - 좋아요 수를 후기 개수로 읽음('후기를 5개가 있습니다')
+  - 결과가 있는데 없다고 함
+  - 결과에 없는 일반화
+- 1개('삿포로 시계탑은 생각보다 작았지만 좋아요')는 후기 제목을 거의 그대로 옮긴 경계 사례입니다.
+- 통과한 답 12개 표본에는 결과에 없는 이름이나 숫자가 없었습니다.
+
+**4. 데모 12문장** (`chat --llm real --answer llm --record cassettes/m2_demo.json`, 대화 전체는 카세트에 있음).
+- 결과:
+  - LLM 답 6턴
+  - 가드가 템플릿으로 교체 2턴(후기 개수 오독, 병렬 답에서 '바나힐은 … 숙소'·'12개 이상의 좋아요' 지어냄)
+  - 처음부터 템플릿 1턴(날씨 미지원)
+  - 직답 3턴(되묻기·인사·거절)
+  - 일정 확인 → 저장 1턴
+- 되묻기에 답한 '28살이요'는 앞 발화에 이어 붙어 라우터로 갔습니다.
+- `tests/test_m2_cassette_replay.py`가 이 카세트로 같은 12턴을 GPU 없이 다시 돌려 reply_kind와 교체 여부를 확인합니다.
+
+**남은 과제 (M4 답변 A/B로)**
+- **답이 너무 짧음:** '국립중앙박물관, 서울특별시 용산구'처럼 이름만 나열합니다. 답변 system의 '이름과 지역만 말하세요'를 지나치게 따른 것으로 보입니다. 2~4문장 지시와 충돌하니 문구를 바꿔 비교합니다.
+- **LoRA 말버릇:** 루트 답에 학습한 되묻기 문장 앞부분('비슷한 여행자를 찾으려면')이 섞입니다. 가드는 이런 말투 문제는 잡지 않습니다.
+
+### 설계와 다르게 한 것 (M2, 자세한 근거는 api-notes 'M2' 절)
+
+- 가드에 `incomplete`(finish_reason이 stop이 아님)를 더함: 스트리밍이 도중에 끊기면 예외 없이 앞부분만 온 채 끝나서(가짜 서버 `Reply.cut`으로 확인) 그대로 두면 잘린 답이 가드를 통과할 수 있었음.
+- 토큰 미리보기는 messages 스트림을 거르는 대신 노드가 custom 이벤트(`{"event": "token"}`)로 냄(템플릿 prefix도 첫 토큰 때 함께). messages 모드에도 `answer_llm`의 `AIMessageChunk`는 그대로 나옴.
+- `after_collect`는 'ok 결과가 있으면'이 아니라 'LLM이 답할 결과(ok, 날씨 제외)가 있으면' answer_llm(설계 6.1 '날씨 수치는 코드 템플릿').
+- 보내기 전 검사(`input_overlap`)를 더함: 도구 결과에 카드 원문이 20자 이상 섞이면 답변 모델을 부르지 않고 템플릿(어댑터 실수 대비, fail closed).
+- 카세트 키에는 모델 생성자 설정을 넣지 않음(재생 쪽 가짜 모델에는 그 값이 없음). 녹화 때 값은 `meta.models`에.
+- CLI 이름은 설계 13절의 `chat --live` 대신 `chat --llm real`(오너 지시).
 
 ## M1 확인 결과 (2026-10-18)
 
@@ -318,7 +442,7 @@ clarify·fallback이 0건인 것은 M0 검사가 스키마 수준이라서입니
 ### 설계 가정 중 실제와 달랐던 것 (부록 A·5절, 자세한 근거는 api-notes)
 
 - A4 `is_invalid_resume`: 1.2.12에 없음 → `glople_agent.graph.is_invalid_resume`(ValidationError title `PlanDecision` 또는 호출부 `InvalidResume`)로 대신함.
-- A11 `nostream`: 토큰 조각만 막고, 노드가 state에 돌려준 메시지는 messages 스트림에 통째로 나옴 → M2의 토큰 출력은 `answer_llm` 노드의 `AIMessageChunk`만 씀.
+- A11 `nostream`: 토큰 조각만 막고, 노드가 state에 돌려준 메시지는 messages 스트림에 통째로 나옴 → M2의 토큰 출력은 `answer_llm` 노드의 `AIMessageChunk`만 씀(M2 구현에서는 노드가 custom 이벤트로 직접 냄, 'M2' 절).
 - 5.4 `remaining_steps ≤ 3`이면 fallback: 3으로는 재시도 경로가 END까지 못 감 → 재시도 7 이상, 도구 경로 6 이상(llm 모드는 각각 +1).
 - 5.4 route 연결 오류: RetryPolicy와 fallback을 함께 쓰려고 `runtime.execution_info.node_attempt`로 마지막 시도만 잡음.
 - `destinations`는 그림용이고 실행을 막지 않음, 없는 노드로 goto하면 조용히 무시됨 → goto 대상은 경로 테스트로 지킴.
@@ -351,7 +475,9 @@ clarify·fallback이 0건인 것은 M0 검사가 스키마 수준이라서입니
 - [ ] (IDOR 점검 뒤, 오너) `scripts/smoke_spring.py`로 공개 API 4개 실제 응답 모양 확인 — 아직 없음. `cli tool … --live`가 같은 일을 할 수 있음(실행 안 함)
 
 **M2 실제 모델** (v2 학습·평가가 끝난 뒤 GPU)
-- [ ] `check_router` 점수 == `check_server`, `answer_llm`(a3) + 가드 + 템플릿 대체, messages 스트리밍, 카세트
+- [x] `answer_llm`(a3) + 가드 + 템플릿 대체, 스트리밍(custom 토큰 + messages 모드), 카세트 녹화·재생, `real_deps`·`chat --llm real` (오프라인 테스트까지, 862 passed)
+- [x] 실제 v3 서버(8090)로 `chat --llm real` 데모 12문장, 도구 결과 뒤 행동 측정(v3·기본 × 그대로·답변 전용), 가드 첫 빈도(v3 a3 85개 중 실패 4), 카세트 녹화(`cassettes/m2_demo.json`)와 그 카세트의 회귀 테스트(`test_m2_cassette_replay.py`) — 위 '실제 v3 모델로 잰 결과'
+- [x] `check_router` 점수 == `check_server`: v2 test 60문제에서 둘 다 판단 0.983·exact 0.946(`scripts/check_router.py`)
 
 **M3 HITL 심화 + 영속**
 - [ ] plan 서브그래프 리팩터(같은 `test_hitl` 통과), SqliteSaver, `--resume`, `/history`·`/fork`, sqlite sentinel 0

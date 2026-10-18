@@ -162,3 +162,21 @@ def test_type3_text_stays_in_cards_not_messages(make_graph, anon_context):
     assert TYPE3_SENTINEL in json.dumps(v["cards"], ensure_ascii=False)          # 카드에는 그대로
     assert TYPE3_SENTINEL in json.dumps(r.cards, ensure_ascii=False)             # card 이벤트에도
     assert TYPE3_SENTINEL not in repr(kit.model.calls) + repr(kit.sink)          # 모델 요청·궤적에는 없음
+
+
+def test_sentinel_never_reaches_answer_model(make_graph, agent_context, sentinel_raw):
+    # M2 llm 모드: 답변 모델 요청(이번 턴 한 마디 + LLM용 봉투)·체크포인트·궤적에 토큰·사용자 id·Type3 원문 0건
+    from glople_agent.llm.fake import ResultEchoScript, fake_answer_model
+
+    answer = fake_answer_model(ResultEchoScript())
+    kit = make_graph(RuleScript(), answer_mode="llm", answer_llm=answer)
+    for text in ("사찰 야경 바다 섬 추천해줘", "바나힐 정보랑 사람들 리뷰 같이 알려줘", "28살 남자 ENTP 나랑 비슷한 여행자 루트"):
+        assert kit.turn(text, agent_context).reply_kind == "llm"
+    assert len(answer.calls) == 3
+    blobs = {"답변 모델 요청": repr(answer.calls), "저장소": saver_bytes(kit.saver).decode("utf-8", "replace"),
+             "궤적": repr(kit.sink)}
+    for name, blob in blobs.items():
+        for needle in (sentinel_raw, agent_context.request_id, agent_context.user_id):
+            assert needle not in blob, f"{name}에 {needle!r}"
+    assert TYPE3_SENTINEL not in blobs["답변 모델 요청"] and TYPE3_SENTINEL not in blobs["궤적"]
+    assert all(kwargs == {} for _, kwargs in answer.calls)   # 도구 목록도 없음

@@ -21,20 +21,10 @@ from glople_agent.tools.fake_backend import FakeBackend
 from glople_agent.tools.fixture_spring import SeenRequest
 from glople_agent.tools.registry import run_tool
 from glople_agent.tools.spring import SpringClient
+# 겹침 기준은 답변 가드(graph/guard.py, 6.5)와 같은 함수를 쓴다
+from glople_agent.tools.text_policy import CARD_TEXT_FIELDS, OVERLAP_CHARS, card_raw_texts, overlaps
 
-CARD_TEXT_FIELDS = ("text", "excerpt", "introduction")   # 카드에만 있어야 하는 글
-OVERLAP_CHARS = 20                                       # 답변 가드(6.5)와 같은 겹침 기준
 CALL_ID = "cli-tool"
-
-
-def _squash(s: str) -> str:
-    return " ".join(s.split())
-
-
-def overlaps(content: str, text: str, n: int = OVERLAP_CHARS) -> bool:
-    """text의 n자 조각이 content에 그대로 들어 있는지(공백 정규화 뒤)."""
-    c, t = _squash(content), _squash(text)
-    return any(t[i:i + n] in c for i in range(0, max(len(t) - n + 1, 0)))
 
 
 class _RecordingTransport(httpx.BaseTransport):
@@ -119,15 +109,8 @@ class ToolReport:
 
 
 def _leaks(content: str, card: Mapping[str, Any] | None) -> list[str]:
-    out = []
-    for i, item in enumerate(((card or {}).get("data") or {}).get("items") or []):
-        for f in CARD_TEXT_FIELDS:
-            if f == "text" and item.get("textPolicy") == "FREE_FACTS":
-                continue   # Glople가 수집 필드로 만든 틀 문장은 60자까지 LLM에 가도 됨(11절 표)
-            text = item.get(f)
-            if isinstance(text, str) and len(_squash(text)) >= OVERLAP_CHARS and overlaps(content, text):
-                out.append(f"items[{i}].{f}")
-    return out
+    # FREE_FACTS 틀 문장은 60자까지 LLM에 가도 되므로 card_raw_texts가 뺀다(11절 표)
+    return [where for where, text in card_raw_texts(card or {}) if overlaps(content, text)]
 
 
 def inspect_tool(name: str, given: Any, *, utterance: str | None = None, now: datetime,

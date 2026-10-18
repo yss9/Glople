@@ -13,7 +13,8 @@
 - 스트리밍: text/event-stream, ": keepalive n/m" 주석 줄, "data: {chunk}" (delta에 role·content, tool_calls에 index),
   마지막 청크에 finish_reason, 그리고 "data: [DONE]". HTTP/1.0이라 Content-Length 없이 연결을 닫음
 - GET /v1/models, GET /health
-- quirk: 응답 없이 끊기(비스트리밍 생성 중 KeyError), 헤더 뒤 끊기(스트리밍 생성 중 KeyError), 느린 응답, HTTP 오류
+- quirk: 응답 없이 끊기(비스트리밍 생성 중 KeyError), 헤더 뒤 끊기(스트리밍 생성 중 KeyError), 느린 응답, HTTP 오류,
+  (M2) 스트리밍 도중 끊기(글 일부만 보내고 finish_reason·[DONE] 없이 닫음, Reply.cut)
 
 쓰는 법:
     python scripts/fake_openai_server.py --port 0          # 빈 포트로 띄우고 주소를 찍음(8080·8090·8091 거부)
@@ -43,10 +44,11 @@ class Reply:
     content: str | None = None
     tool_calls: list[tuple[str, Any]] = field(default_factory=list)   # (이름, 인자 dict 또는 그대로 보낼 문자열)
     finish_reason: str | None = None
-    kind: str = "ok"            # ok | drop | disconnect | http_error
+    kind: str = "ok"            # ok | drop | disconnect | cut | http_error
     status: int = 200
     delay: float = 0.0          # 답하기 전에 쉬는 초(타임아웃 시험)
     keepalive: int = 0          # 스트리밍 앞에 보낼 ': keepalive' 주석 줄 수
+    cut_after: int = 0          # kind="cut": 보낼 글자 수
 
     @classmethod
     def text(cls, content: str, finish_reason: str = "stop", **kw: Any) -> "Reply":
@@ -76,6 +78,11 @@ class Reply:
     def disconnect(cls) -> "Reply":
         """200 헤더까지 보내고 끊음. mlx 스트리밍 경로(헤더를 먼저 보냄)에서 생성 중 예외가 난 경우."""
         return cls(kind="disconnect")
+
+    @classmethod
+    def cut(cls, content: str, after: int) -> "Reply":
+        """스트리밍에서 content 앞 after글자만 보내고 끊음(finish_reason·[DONE] 없음). 생성 도중 서버가 죽은 경우."""
+        return cls(content=content, kind="cut", cut_after=after)
 
     @classmethod
     def http_error(cls, status: int = 500, message: str = "boom") -> "Reply":
@@ -219,6 +226,14 @@ class _Handler(BaseHTTPRequestHandler):
             self.wfile.flush()
 
         text = reply.content or ""
+        if reply.kind == "cut":   # 앞 몇 글자만 보내고 끊음(HTTP/1.0이라 클라이언트에는 본문 끝으로 보임)
+            for ch in text[:reply.cut_after]:
+                chunk({"content": ch}, None)
+            try:
+                self.connection.shutdown(socket.SHUT_RDWR)
+            except OSError:
+                pass
+            return
         for ch in text if not reply.tool_calls else []:   # 글은 한 글자씩(토큰 흉내)
             chunk({"content": ch}, None)
         calls = [_tool_call(n, a, index=i) for i, (n, a) in enumerate(reply.tool_calls)]

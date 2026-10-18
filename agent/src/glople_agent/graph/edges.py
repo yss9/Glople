@@ -6,6 +6,7 @@ GraphRecursionError가 난다. 그래서 route 뒤로 가장 긴 경로가 들�
 """
 from glople_agent.config import AnswerMode
 from glople_agent.contract import PLAN_TOOL_NAME
+from glople_agent.graph.answer_input import llm_answerable
 from glople_agent.state import AgentState
 
 ROUTE_RETRY_ATTEMPTS = 2   # RetryPolicy(max_attempts): 연결 오류일 때 첫 실행을 포함한 총 횟수
@@ -64,7 +65,9 @@ def after_validate(state: AgentState) -> str:
 def make_after_collect(answer_mode: AnswerMode = "template"):
     def after_collect(state: AgentState) -> str:
         # M6: 동명 장소(needs_clarification)면 clarify. M0 결과에는 없음
-        if answer_mode == "llm" and any(r.get("status") == "ok" for r in state.get("results") or []):
+        # llm 모드여도 LLM이 답할 결과(ok, 날씨 제외)가 하나도 없으면 템플릿으로(빈 결과·미지원·오류는 이유를 그대로)
+        if answer_mode == "llm" and any(llm_answerable(r.get("tool"), r.get("status"))
+                                        for r in state.get("results") or []):
             return "answer_llm"
         return "answer_template"   # 템플릿 모드(M0 기본)는 answer_llm에 닿지 않음
 
@@ -72,7 +75,7 @@ def make_after_collect(answer_mode: AnswerMode = "template"):
 
 
 def after_answer(state: AgentState) -> str:
-    # 가드를 통과한 LLM 답만 그대로 끝냄. M0 answer_llm은 답을 만들지 않으므로 늘 템플릿으로
+    # 가드를 통과한 LLM 답(reply_kind="llm")만 그대로 끝냄. 가드 실패·모델 오류·모델 없음은 같은 턴의 템플릿 답으로
     return "finish" if state.get("reply_kind") == "llm" and state.get("final_text") else "answer_template"
 
 

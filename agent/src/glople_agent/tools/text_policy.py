@@ -65,6 +65,46 @@ def text_policy(source: str | None, info_kind: str | None, copyright_type: str |
     return "UNKNOWN"
 
 
+# --- 원문 겹침 검사(cli tool의 Type3 격리 검사, 답변 가드 6.5) -----------------------------------
+
+OVERLAP_CHARS = 20                                       # 공백 정규화 뒤 이만큼 그대로 겹치면 '원문을 옮김'으로 봄
+CARD_TEXT_FIELDS = ("text", "excerpt", "introduction")   # 카드에만 있어야 하는 글(LLM 입력에 없음)
+CARD_TEXT_LIST_FIELDS = ("specIntroduction",)            # 글 목록(글로플러 스펙 소개)
+
+
+def squash(s: str) -> str:
+    """공백 정규화: 줄바꿈·연속 공백을 공백 하나로."""
+    return " ".join(s.split())
+
+
+def overlaps(content: str, text: str, n: int = OVERLAP_CHARS) -> bool:
+    """text의 n자 조각이 content에 그대로 들어 있는지(공백 정규화 뒤)."""
+    c, t = squash(content), squash(text)
+    return any(t[i:i + n] in c for i in range(0, max(len(t) - n + 1, 0)))
+
+
+def card_raw_texts(card: Mapping[str, Any], *, min_chars: int = OVERLAP_CHARS) -> list[tuple[str, str]]:
+    """카드에만 있는 글(설명문·후기 발췌·글로플러 소개) 목록: (위치 'items[i].필드', 글).
+
+    FREE_FACTS 설명문은 Glople가 수집 필드로 만든 틀 문장이라 60자까지 LLM에 가도 되므로 뺀다(11절 표).
+    공백 정규화 뒤 min_chars보다 짧은 글은 겹칠 수 없어 뺀다."""
+    out: list[tuple[str, str]] = []
+    for i, item in enumerate(((card or {}).get("data") or {}).get("items") or []):
+        if not isinstance(item, Mapping):
+            continue
+        for f in CARD_TEXT_FIELDS:
+            if f == "text" and item.get("textPolicy") == "FREE_FACTS":
+                continue
+            text = item.get(f)
+            if isinstance(text, str) and len(squash(text)) >= min_chars:
+                out.append((f"items[{i}].{f}", text))
+        for f in CARD_TEXT_LIST_FIELDS:
+            for j, text in enumerate(item.get(f) or []):
+                if isinstance(text, str) and len(squash(text)) >= min_chars:
+                    out.append((f"items[{i}].{f}[{j}]", text))
+    return out
+
+
 def llm_may_see_text(policy: str) -> bool:
     return LLM_TEXT.get(policy, "none") == "summary"
 
@@ -110,6 +150,7 @@ def place_items(row: Mapping[str, Any]) -> tuple[dict, dict]:
 
 
 __all__ = [
-    "CASES_CSV", "DETAIL_PATH", "LLM_TEXT", "SUMMARY_CHARS", "TEXT_POLICIES", "TextPolicy", "VERBATIM_NOTE",
-    "llm_may_see_text", "place_items", "text_policy", "wiki_title",
+    "CARD_TEXT_FIELDS", "CARD_TEXT_LIST_FIELDS", "CASES_CSV", "DETAIL_PATH", "LLM_TEXT", "OVERLAP_CHARS",
+    "SUMMARY_CHARS", "TEXT_POLICIES", "TextPolicy", "VERBATIM_NOTE", "card_raw_texts", "llm_may_see_text",
+    "overlaps", "place_items", "squash", "text_policy", "wiki_title",
 ]

@@ -7,6 +7,7 @@ training/.venv로 실행한다(jinja2·tokenizers만 import. transformers·mlx·
 
 - --request: 에이전트 쪽에서 가짜 OpenAI 서버가 받은 요청 본문(JSON). tests/test_template_snapshot.py가 만든다.
 - --record: 같은 발화의 학습 레코드가 든 jsonl(system·user·assistant + tools). 발화로 찾는다.
+  (M2) 생략할 수 있다: 답변(a3) 요청처럼 대조할 학습 레코드가 없는 요청은 토큰 수·특수 토큰 수만 본다.
 - 렌더링 환경은 transformers의 apply_chat_template과 같게 맞췄다(utils/chat_template_utils.py를 읽고 옮김):
   ImmutableSandboxedEnvironment(trim_blocks, lstrip_blocks, loopcontrols), tojson = json.dumps(ensure_ascii=False).
 - mlx_lm.server처럼 content None → "", 텍스트 조각 목록 → 이어 붙임, add_generation_prompt=True.
@@ -63,19 +64,20 @@ def render(template, messages, tools, *, add_generation_prompt: bool) -> str:
 def main(argv=None) -> int:
     p = argparse.ArgumentParser()
     p.add_argument("--request", required=True, type=Path)
-    p.add_argument("--record", required=True, type=Path)
+    p.add_argument("--record", default=None, type=Path)
     p.add_argument("--model-dir", type=Path, default=DEFAULT_MODEL_DIR)
     args = p.parse_args(argv)
 
     request = json.loads(args.request.read_text(encoding="utf-8"))
     user = next(m["content"] for m in request["messages"] if m["role"] == "user")
     record = None
-    with args.record.open(encoding="utf-8") as f:
-        for line in f:
-            r = json.loads(line)
-            if r["messages"][1]["content"] == user:
-                record = r
-                break
+    if args.record is not None:
+        with args.record.open(encoding="utf-8") as f:
+            for line in f:
+                r = json.loads(line)
+                if r["messages"][1]["content"] == user:
+                    record = r
+                    break
     template = environment().from_string((args.model_dir / "chat_template.jinja").read_text(encoding="utf-8"))
     tokenizer = Tokenizer.from_file(str(args.model_dir / "tokenizer.json"))
     text = render(template, request["messages"], request.get("tools"), add_generation_prompt=True)

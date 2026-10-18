@@ -117,11 +117,12 @@ class GraphKit:
 @pytest.fixture
 def make_graph():
     def factory(script, *, store: InMemoryPlanStore | None = None, backend: FakeBackend | None = None,
-                answer_mode: str = "template", saver: InMemorySaver | None = None) -> GraphKit:
+                answer_mode: str = "template", saver: InMemorySaver | None = None, answer_llm=None) -> GraphKit:
         store = store if store is not None else InMemoryPlanStore()
         backend = backend if backend is not None else FakeBackend(today=FIXED_NOW.date())
         sink: list = []
-        deps = fake_deps(script, backend=backend, store=store, answer_mode=answer_mode, sink=sink.append)
+        deps = fake_deps(script, backend=backend, store=store, answer_mode=answer_mode, sink=sink.append,
+                         answer_llm=answer_llm)   # M2: llm 모드의 가짜 답변 모델(ScriptedChatModel)
         saver = saver if saver is not None else InMemorySaver()
         return GraphKit(build_graph(deps, saver), deps, store, backend, saver, sink=sink)
 

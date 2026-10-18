@@ -21,6 +21,7 @@ from collections.abc import Callable
 from dataclasses import dataclass, field
 from typing import Any
 
+import httpx2
 import openai
 import pydantic
 from langchain_core.messages import AIMessage
@@ -235,6 +236,18 @@ def is_model_error(exc: BaseException) -> bool:
     """route 노드가 잡아서 RouterOutcome으로 바꿀 예외인지(우리 코드의 버그는 잡지 않는다)."""
     return (is_model_connection_error(exc) or is_model_timeout_error(exc)
             or isinstance(exc, openai.APIError) or _is_bad_tool_call_shape(exc) or _is_unreadable_response(exc))
+
+
+def _is_empty_stream(exc: BaseException) -> bool:
+    # 스트리밍에서 헤더 뒤 끊기면 [DONE] 없이 청크 0개 → langchain-core가 ValueError를 낸다
+    # (test_pins_openai_http.py::test_stream_cut_after_headers_raises_no_chunks)
+    return isinstance(exc, ValueError) and "No generation chunks" in str(exc)
+
+
+def is_answer_model_error(exc: BaseException) -> bool:
+    """answer_llm 노드가 잡아서 템플릿으로 보낼 예외: 라우터와 같은 모델 오류 + 스트리밍 중 끊김.
+    스트림을 읽는 도중의 전송 오류는 openai가 감싸지 않고 httpx2 예외 그대로 올라온다."""
+    return is_model_error(exc) or _is_empty_stream(exc) or isinstance(exc, httpx2.TransportError)
 
 
 def normalize_router_error(exc: BaseException) -> RouterOutcome:

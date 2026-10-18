@@ -1,8 +1,9 @@
 """궤적 로그(design.md 5.3 finish, 16절): 턴마다 JSON 한 줄. 옵트인·로컬(agent/var/trajectories/, gitignore).
 
 finish 노드가 nodes.trajectory_record(state)를 sink로 넘기고, 여기서 시각을 붙여 날짜별 파일에 덧붙인다.
-기록에 넣지 않는 것: 토큰, 사용자 id, 발화·인자 값·결과 글(개인정보·Type3 원문). 넣는 것: 라우터 종류·시도 수,
-호출 이름·판정·근거 검사 코드, 결과 도구·상태, 답 종류, 후속 발화 처리 여부. 막힌 호출로 근거 검사 오탐을 본다(7절).
+기록에 넣지 않는 것: 토큰, 사용자 id, 발화·인자 값·결과 글·LLM 답 글(개인정보·Type3 원문). 넣는 것: 라우터 종류·시도 수,
+호출 이름·판정·근거 검사 코드, 결과 도구·상태, 답 종류, 후속 발화 처리 여부, (M2) 답변 가드 판정·이유 코드·교체 여부.
+막힌 호출로 근거 검사 오탐을, 가드 이유로 LLM 답의 실패 빈도를 본다(7절, 15.2).
 저장 전에 금지 키가 없는지 한 번 더 확인하고, 있으면 그 줄을 쓰지 않고 ValueError를 낸다.
 """
 import json
@@ -59,8 +60,13 @@ def format_line(record: Mapping[str, Any]) -> str:
     results = " ".join(f"{r['tool']}={r['status']}" for r in record.get("results") or [])
     follow = record.get("followup") or {}
     extra = (" 이어붙임" if follow.get("joined") else "") + (" 지시어" if follow.get("demonstratives") else "")
+    answer = record.get("answer") or {}
+    guard = ""
+    if answer:   # M2: answer_llm 가드 판정(통과 / 실패 이유 코드, 미리보기 교체)
+        guard = f" guard={answer.get('guard')}" + (f"[{','.join(answer['reasons'])}]" if answer.get("reasons") else "") \
+            + (" 교체" if answer.get("replaced") else "")
     return (f"router={record.get('router_kind')}×{record.get('router_attempts')}{extra} | {verdicts or '-'} | "
-            f"{results or '-'} | reply={record.get('reply_kind')}")
+            f"{results or '-'} | reply={record.get('reply_kind')}{guard}")
 
 
 __all__ = ["DEFAULT_DIR", "FORBIDDEN_KEYS", "JsonlTrajectorySink", "format_line"]

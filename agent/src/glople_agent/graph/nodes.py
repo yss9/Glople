@@ -5,8 +5,10 @@
 - 최종 AIMessage는 finish만 만든다. 다른 노드는 final_text·reply_kind만 정한다.
 """
 import json
+import operator
 import uuid
 from collections.abc import Callable, Iterable, Mapping, Sequence
+from functools import reduce
 from typing import Any, Literal
 
 from langchain_core.language_models import BaseChatModel
@@ -20,11 +22,13 @@ from langgraph.types import Command, Overwrite, interrupt
 from glople_agent import contract
 from glople_agent.answer import templates as tpl
 from glople_agent.context import AgentContext
+from glople_agent.graph.answer_input import build_answer_input
 from glople_agent.graph.edges import ROUTE_RETRY_ATTEMPTS, fallback_reason
 from glople_agent.graph.followup import compose_router_input
 from glople_agent.graph.grounding import Grounding, check_call, grounded
-from glople_agent.llm.normalize import (RouterOutcome, is_model_connection_error, is_model_error,
-                                        normalize_router, normalize_router_error, retry_overrides)
+from glople_agent.graph.guard import MAX_ANSWER_CHARS, answer_facts, check_answer, input_leaks
+from glople_agent.llm.normalize import (RouterOutcome, is_answer_model_error, is_model_connection_error,
+                                        is_model_error, normalize_router, normalize_router_error, retry_overrides)
 from glople_agent.plan import (AuthExpired, PlanDecision, PlanRejected, PlanStore, PlanStoreError, apply_edit,
                                check_draft, check_edit, make_draft, save_body, selected_items)
 from glople_agent.sanitize import clean_text
@@ -415,13 +419,77 @@ def answer_template(state: AgentState) -> dict:
     return {"final_text": text, "reply_kind": "template"}
 
 
-def make_answer_llm(answer_llm: BaseChatModel | None):
-    """M2 자리: 답변 전용 프롬프트(6.4)로 생성 → 가드(6.5). M0는 template 모드라 엣지가 여기로 오지 않는다.
-    모드를 llm으로 바꿔 닿더라도 답을 만들지 않고 trace만 남겨 answer_template으로 넘긴다."""
+REJECTED_TEXT_MAX = 600   # 가드에 걸린 답을 trace에 남기는 길이(카드 원문과 겹친 답은 남기지 않음)
+
+
+def _answer_trace(base: Mapping[str, Any], *, ok: bool, reasons: Sequence[str], replaced: bool,
+                  **extra: Any) -> dict:
+    return {"guard": "pass" if ok else "fail", "reason": None if ok else (list(reasons) or ["unknown"])[0],
+            "reasons": list(reasons), "reply_kind": "llm" if ok else "template", "replaced": replaced,
+            **base, **extra}
+
+
+def make_answer_llm(answer_llm: BaseChatModel | None, *, max_answer_chars: int = MAX_ANSWER_CHARS):
+    """M2 a3: 답변 전용 프롬프트(6.4)로 스트리밍 생성 → 가드(6.5). 통과하면 reply_kind="llm"으로 finish,
+    걸리면 trace에 이유만 남기고 answer_template이 같은 턴의 템플릿 답으로 바꾼다(after_answer).
+
+    - 입력은 graph/answer_input.py: 이번 턴 한 마디 + LLM이 볼 호출·결과만(도구 목록 없음, 카드 원문 없음).
+    - 토큰은 custom 스트림 {"event": "token", "text"}로 미리보기를 낸다(첫 토큰이 오면 템플릿 prefix를 먼저).
+      messages 스트림 모드에도 이 노드의 AIMessageChunk가 그대로 나온다(api-notes M0 A11).
+    - 스트림이 끊기거나 모델 오류면(is_answer_model_error) 가드 실패와 같게 템플릿으로. 우리 코드 버그는 다시 던진다.
+    - replaced: 미리보기를 이미 보낸 뒤 템플릿으로 바뀌었는지(SSE message{replaced}, design.md 6.5).
+    """
 
     def answer_llm_node(state: AgentState) -> dict:
-        reason = "no_model" if answer_llm is None else "not_implemented"
-        return {"trace": _with_trace(state, "answer_llm", {"guard": "fail", "reason": reason})}
+        if answer_llm is None:   # llm 모드인데 모델을 주지 않음(설정 실수) → 템플릿
+            return {"trace": _with_trace(state, "answer_llm", {"guard": "fail", "reason": "no_model"})}
+        cards = turn_cards(state)
+        ai = router_message(state)
+        tool_msgs = {m.tool_call_id: m for m in turn_messages(state.get("messages") or [])
+                     if isinstance(m, ToolMessage)}
+        router_input = state.get("router_input", "")
+        inp = build_answer_input(router_input, ai.tool_calls if ai is not None else [], tool_msgs,
+                                 {c["call_id"]: c for c in cards})
+        base = {"visible": [v["tool"] for v in inp.visible], "removed": [r["tool"] for r in inp.removed],
+                "input_chars": inp.tool_chars}
+
+        def fail(reasons: Sequence[str], replaced: bool, **extra: Any) -> dict:
+            trace = _answer_trace(base, ok=False, reasons=reasons, replaced=replaced, **extra)
+            return {"trace": _with_trace(state, "answer_llm", trace)}
+
+        if not inp.visible:   # after_collect가 llm_answerable 결과가 있을 때만 보냄(방어)
+            return fail(["no_llm_result"], False)
+        facts = answer_facts(inp.contents, cards, router_input)
+        if leaks := input_leaks(inp.contents, facts):   # 어댑터 실수로 원문이 섞였으면 보내지 않음
+            return fail(["input_overlap"], False, input_overlap=leaks)
+
+        chunks: list[Any] = []
+        streamed = 0
+        try:
+            for chunk in answer_llm.stream(inp.messages):   # 도구를 묶지 않는다(bind_tools 없음)
+                chunks.append(chunk)
+                piece = _text(chunk.content)
+                if piece:
+                    if not streamed and inp.prefix:
+                        _emit({"event": "token", "text": inp.prefix + " "})
+                    _emit({"event": "token", "text": piece})
+                    streamed += len(piece)
+        except Exception as e:  # noqa: BLE001 - 모델 오류만 템플릿으로, 나머지(우리 버그)는 다시 던짐
+            if not is_answer_model_error(e):
+                raise
+            return fail(["model_error"], streamed > 0, error=type(e).__name__, streamed_chars=streamed)
+        merged = reduce(operator.add, chunks) if chunks else AIMessage(content="")
+        finish = (merged.response_metadata or {}).get("finish_reason")
+        verdict = check_answer(merged, facts, finish_reason=finish, max_chars=max_answer_chars)
+        text = _text(merged.content).strip()
+        if not verdict.ok:
+            extra: dict[str, Any] = {**verdict.details, "streamed_chars": streamed}
+            if "card_overlap" not in verdict.reasons:
+                extra["rejected_text"] = text[:REJECTED_TEXT_MAX]
+            return fail(verdict.reasons, streamed > 0, **extra)
+        final = " ".join(p for p in (inp.prefix, text, tpl.join_answers(_clarify_questions(state))) if p)
+        trace = _answer_trace(base, ok=True, reasons=(), replaced=False, **verdict.details, streamed_chars=streamed)
+        return {"final_text": final, "reply_kind": "llm", "trace": _with_trace(state, "answer_llm", trace)}
 
     return answer_llm_node
 
@@ -602,13 +670,20 @@ def trajectory_record(state: AgentState) -> dict:
         if issues := (v.get("grounding") or {}).get("issues"):
             row["issues"] = list(issues)
         verdicts.append(row)
-    return {"turn_id": state.get("turn_id"), "router_kind": state.get("router_kind"),
-            "router_attempts": state.get("router_attempts", 0), "reply_kind": state.get("reply_kind"),
-            "followup": {"joined": "joined" in followup and "skipped" not in followup["joined"],
-                         "demonstratives": followup.get("demonstratives", 0)},
-            "verdicts": verdicts,
-            "results": [{"tool": r.get("tool"), "status": r.get("status")} for r in state.get("results") or []],
-            "remaining_steps": state.get("remaining_steps")}
+    record = {"turn_id": state.get("turn_id"), "router_kind": state.get("router_kind"),
+              "router_attempts": state.get("router_attempts", 0), "reply_kind": state.get("reply_kind"),
+              "followup": {"joined": "joined" in followup and "skipped" not in followup["joined"],
+                           "demonstratives": followup.get("demonstratives", 0)},
+              "verdicts": verdicts,
+              "results": [{"tool": r.get("tool"), "status": r.get("status")} for r in state.get("results") or []],
+              "remaining_steps": state.get("remaining_steps")}
+    if answer := trace.get("answer_llm"):   # M2: 가드 판정(이유 코드·교체 여부만, 답 글은 넣지 않음)
+        reasons = answer.get("reasons")
+        if reasons is None:
+            reasons = [answer["reason"]] if answer.get("reason") else []
+        record["answer"] = {"guard": answer.get("guard"), "reasons": list(reasons),
+                            "replaced": bool(answer.get("replaced"))}
+    return record
 
 
 def make_finish(sink: TrajectorySink | None = None):
@@ -627,7 +702,7 @@ def make_finish(sink: TrajectorySink | None = None):
 
 
 __all__ = [
-    "CLARIFY_KINDS", "MAX_CALLS_PER_TURN", "MAX_PLAN_EDITS", "MAX_RECENT_PLACES", "SAVE_ATTEMPTS",
+    "CLARIFY_KINDS", "MAX_CALLS_PER_TURN", "MAX_PLAN_EDITS", "MAX_RECENT_PLACES", "REJECTED_TEXT_MAX", "SAVE_ATTEMPTS",
     "TrajectorySink", "UNFINISHED_CALL", "answer_template", "clarify", "collect",
     "confirm_payload", "direct_reply", "fallback", "grounding_clarify_text", "judge_call", "make_answer_llm",
     "make_finish", "make_route", "make_save_plan", "make_validate", "pending_clarify", "plan_card_id",

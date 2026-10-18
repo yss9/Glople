@@ -8,6 +8,8 @@
   - QuirkScript: 서버 quirk(병렬 "\\n", 빈 호출, length, invalid_tool_calls, 지어낸 인자, 연결 오류 …)를 순서대로 냄
 - 응답은 mlx_lm.server 응답(choices[0].message) 모양을 만든 뒤 langchain-openai와 같은 규칙으로 AIMessage로 바꾼다
   (from_server). 그래서 content None → "", 병렬 content "\\n", 서버 uuid id, finish_reason이 실제와 같다.
+- M2: CassetteScript(실제 서버 응답 녹화 재생, 키 = 정규화 요청 sha256, 없으면 CassetteMiss — llm/cassette.py),
+  ResultEchoScript(가짜 답변 모델: 요청의 도구 결과에서 이름만 골라 짧게 답함, 가드를 통과하는 '착한 LLM')
 
 정형 문장(인사·거절·되묻기)은 build_tool_dataset.py를 실행하지 않고 ast로 읽는다(contract.py와 같은 방식).
 """
@@ -24,13 +26,15 @@ from typing import Any, NamedTuple
 import httpx2
 import openai
 from langchain_core.language_models import BaseChatModel
-from langchain_core.messages import AIMessage, AIMessageChunk, BaseMessage, HumanMessage, SystemMessage
+from langchain_core.messages import AIMessage, AIMessageChunk, BaseMessage, HumanMessage, SystemMessage, ToolMessage
 from langchain_core.messages.tool import tool_call_chunk
 from langchain_core.output_parsers.openai_tools import make_invalid_tool_call, parse_tool_call
 from langchain_core.outputs import ChatGeneration, ChatGenerationChunk, ChatResult
 from pydantic import Field
 
 from glople_agent import contract
+from glople_agent.answer.templates import josa
+from glople_agent.llm.cassette import Cassette
 from glople_agent.llm.normalize import new_call_id
 from glople_agent.sanitize import clean_text
 
@@ -685,3 +689,85 @@ class QuirkScript:
         if isinstance(item, BaseException):
             raise item
         return item(messages, kwargs)
+
+
+# --- CassetteScript (M2) ------------------------------------------------------
+
+def _error_from_record(record: dict) -> BaseException:
+    kind = record.get("error")
+    if kind == "connection":
+        return connection_error()
+    if kind == "timeout":
+        return timeout_error()
+    if kind == "server":
+        return server_error(int(record.get("status") or 500))
+    if kind == "bad_response":
+        return json.JSONDecodeError("Expecting value", "", 0)
+    if kind == "empty_stream":
+        return ValueError("No generation chunks were returned")
+    raise ValueError(f"카세트의 모르는 오류 기록: {kind!r}")
+
+
+def message_from_record(record: dict, *, new_id: IdFactory = new_call_id) -> AIMessage:
+    """카세트 응답 기록 → 서버가 냈던 AIMessage(from_server로 다시 만듦: invalid_tool_calls·병렬 "\\n"도 그대로)."""
+    raw = [server_tool_call(c["name"], c["arguments"], id=new_id())
+           for c in [*(record.get("tool_calls") or []), *(record.get("invalid_tool_calls") or [])]]
+    return from_server(record.get("content") or None, raw or None, record.get("finish_reason"))
+
+
+class CassetteScript:
+    """녹화한 실제 서버 응답을 요청 키로 찾아 돌려준다(design.md 6.6). 라우터·답변 가짜 모두에 끼울 수 있다.
+
+        script = CassetteScript("cassettes/demo.json")
+        deps = fake_deps(script, answer_mode="llm", answer_llm=fake_answer_model(script))
+
+    녹화에 없는 요청이면 CassetteMiss(KeyError 하위 클래스라 route 노드도 잡지 않고 그대로 올라옴). 오류 기록이면
+    녹화 때와 같은 종류의 예외를 낸다. hits에 찾은 키 수를 센다."""
+
+    def __init__(self, cassette: Cassette | str | Path, *, new_id: IdFactory = new_call_id):
+        self.cassette = cassette if isinstance(cassette, Cassette) else Cassette.load(cassette)
+        self.new_id = new_id
+        self.hits = 0
+
+    def __call__(self, messages: list[BaseMessage], kwargs: dict) -> AIMessage:
+        record = self.cassette.lookup(messages, kwargs)   # 없으면 CassetteMiss
+        self.hits += 1
+        if "error" in record:
+            raise _error_from_record(record)
+        return message_from_record(record, new_id=self.new_id)
+
+
+# --- ResultEchoScript (M2 가짜 답변 모델) ----------------------------------------
+
+def _result_names(item: dict) -> list[str]:
+    for key in ("name", "nickname"):
+        if isinstance(item.get(key), str) and item[key]:
+            return [item[key]]
+    if isinstance(item.get("title"), str) and item["title"]:
+        return [f"'{item['title']}'"]
+    return [d for d in item.get("destinations") or [] if isinstance(d, str)][:1]
+
+
+class ResultEchoScript:
+    """가짜 답변 모델(CLI --answer llm 데모·그래프 테스트): 요청의 ToolMessage(LLM용 봉투)에서 항목 이름 3개와
+    notes만 옮겨 2~3문장으로 답한다. 숫자를 지어내지 않고 이름을 말하므로 가드를 통과한다."""
+
+    def __call__(self, messages: list[BaseMessage], kwargs: dict) -> AIMessage:
+        names: list[str] = []
+        notes: list[str] = []
+        for m in messages:
+            if not isinstance(m, ToolMessage) or not isinstance(m.content, str):
+                continue
+            try:
+                body = json.loads(m.content)
+            except ValueError:
+                continue
+            for item in body.get("items") or []:
+                if isinstance(item, dict):
+                    names += [n for n in _result_names(item) if n not in names]
+            notes += [n for n in body.get("notes") or [] if isinstance(n, str)]
+        if not names:
+            return text_message("결과를 찾았어요. 자세한 내용은 화면 카드에서 볼 수 있어요.")
+        shown = ", ".join(names[:3])
+        parts = [f"찾은 결과 중에는 {josa(shown, '이/가')} 있어요.", *notes, "자세한 내용은 화면 카드에서 볼 수 있어요."]
+        return text_message(" ".join(p if p.endswith((".", "?", "!")) else p + "." for p in parts))

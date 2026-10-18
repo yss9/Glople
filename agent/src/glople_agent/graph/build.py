@@ -8,7 +8,8 @@
 import uuid
 from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass, field
-from typing import Any
+from pathlib import Path
+from typing import TYPE_CHECKING, Any
 
 from langchain_core.language_models import BaseChatModel
 from langchain_core.messages import HumanMessage
@@ -22,7 +23,7 @@ from langgraph.types import Command, Interrupt, RetryPolicy
 from pydantic import ValidationError
 
 from glople_agent.answer.templates import fallback_text
-from glople_agent.config import AnswerMode
+from glople_agent.config import AnswerMode, Settings, load_settings
 from glople_agent.context import AgentContext
 from glople_agent.graph import nodes
 from glople_agent.graph.edges import (ROUTE_RETRY_ATTEMPTS, after_answer, after_validate, make_after_collect,
@@ -34,6 +35,9 @@ from glople_agent.state import AgentState
 from glople_agent.tools.envelope import tool_error_to_json
 from glople_agent.tools.fake_backend import FakeBackend
 from glople_agent.tools.registry import build_read_tools
+
+if TYPE_CHECKING:
+    from glople_agent.llm.cassette import Cassette
 
 RECURSION_LIMIT = 25   # 기본값 10007(사실상 무제한)이라 항상 최상위에 넣는다
 
@@ -48,7 +52,7 @@ class Deps:
     router_llm: BaseChatModel
     read_tools: Sequence[BaseTool]
     plan_store: PlanStore
-    answer_llm: BaseChatModel | None = None          # M2
+    answer_llm: BaseChatModel | None = None          # M2 a3(answer_mode="llm"일 때만 씀). 도구를 묶지 않는다
     sink: nodes.TrajectorySink | None = None         # 궤적 한 줄(M1부터 파일)
     answer_mode: AnswerMode = "template"
     retry_initial_interval: float = 0.5              # RetryPolicy 대기(테스트는 0)
@@ -105,11 +109,45 @@ def mermaid(graph: CompiledStateGraph) -> str:
 
 def fake_deps(script: Callable, *, backend: Any = None, store: PlanStore | None = None,
               answer_mode: AnswerMode = "template", sink: nodes.TrajectorySink | None = None,
-              retry_initial_interval: float = 0.0) -> Deps:
-    """가짜 라우터(script) + 가짜 백엔드 + 메모리 저장소."""
+              retry_initial_interval: float = 0.0, answer_llm: BaseChatModel | None = None) -> Deps:
+    """가짜 라우터(script) + 가짜 백엔드 + 메모리 저장소. answer_llm(M2)은 llm 모드에서만 쓴다
+    (예: fake_answer_model(ResultEchoScript()) 또는 CassetteScript)."""
     return Deps(router_llm=fake_router_model(script), read_tools=build_read_tools(backend or FakeBackend()),
                 plan_store=store if store is not None else InMemoryPlanStore(), sink=sink,
-                answer_mode=answer_mode, retry_initial_interval=retry_initial_interval)
+                answer_mode=answer_mode, retry_initial_interval=retry_initial_interval, answer_llm=answer_llm)
+
+
+def real_deps(target: Settings | str | None = None, *, answer_mode: AnswerMode | None = None, backend: Any = None,
+              store: PlanStore | None = None, sink: nodes.TrajectorySink | None = None,
+              retry_initial_interval: float = 0.5, timeout: float | None = None,
+              record: "Cassette | str | Path | None" = None) -> Deps:
+    """실제 모델 서버(mlx_lm.server, OpenAI 호환)에 붙는 의존성(M2): 라우터·답변 ChatOpenAI(llm/models.py, 같은 서버)
+    + 가짜 Spring(FakeBackend: fixture + MockTransport, 네트워크 없음) + 메모리 일정 저장소.
+
+    target: Settings(model_base_url·answer_mode를 씀) 또는 base_url 문자열(예: "http://127.0.0.1:8090/v1").
+    None이면 환경 변수 설정(GLOPLE_MODEL_BASE_URL, 기본 8090). answer_mode를 주지 않으면 Settings의 값,
+    문자열·None이면 "llm". template 모드면 답변 모델을 만들지 않는다(라우터만 실제).
+    record: 카세트(또는 경로)를 주면 두 모델을 RecordingChatModel로 감싸 요청·응답을 녹화한다(llm/cassette.py).
+    이 함수는 모델을 만들기만 하고 서버에 접속하지 않는다(첫 요청은 그래프가 돌 때). 서버는 오너가 serve.sh로 띄운다.
+    """
+    from glople_agent.llm.models import DEFAULT_TIMEOUT, answer_model, router_model   # langchain-openai는 쓸 때만
+
+    if isinstance(target, Settings):
+        base_url, mode = target.model_base_url, answer_mode or target.answer_mode
+    else:
+        base_url, mode = target or load_settings().model_base_url, answer_mode or "llm"
+    seconds = DEFAULT_TIMEOUT if timeout is None else timeout
+    router: BaseChatModel = router_model(base_url, timeout=seconds)
+    answer: BaseChatModel | None = answer_model(base_url, timeout=seconds) if mode == "llm" else None
+    if record is not None:
+        from glople_agent.llm.cassette import Cassette, recording_model
+
+        cassette = record if isinstance(record, Cassette) else Cassette.open(Path(record))
+        router = recording_model(router, cassette, profile="router")
+        answer = recording_model(answer, cassette, profile="answer") if answer is not None else None
+    return Deps(router_llm=router, read_tools=build_read_tools(backend or FakeBackend()),
+                plan_store=store if store is not None else InMemoryPlanStore(), answer_llm=answer, sink=sink,
+                answer_mode=mode, retry_initial_interval=retry_initial_interval)
 
 
 # --- 호출부 도우미 ----------------------------------------------------------------------
@@ -151,6 +189,7 @@ class TurnResult:
     interrupts: tuple[Interrupt, ...] = ()               # 대기 중인 확인 카드(get_state 기준)
     values: dict = field(default_factory=dict)           # 끝난 뒤 state 값
     error: str | None = None                             # "recursion" 등 호출부가 잡은 오류
+    tokens: list[str] = field(default_factory=list)      # M2: custom 스트림의 답변 미리보기 조각(answer_llm)
 
     @property
     def pending(self) -> Interrupt | None:
@@ -172,8 +211,23 @@ class TurnResult:
             return "fallback"
         return self.values.get("reply_kind") if self.done else None
 
+    @property
+    def preview(self) -> str:
+        """스트리밍한 미리보기 글(가드 전). 가드가 바꾸면 final_text와 다르다."""
+        return "".join(self.tokens)
 
-EventCallback = Callable[[str, Any], None]   # ("node", 이름) / ("card", 카드)
+    @property
+    def answer_trace(self) -> dict:
+        """answer_llm 가드 판정(trace["answer_llm"]): guard·reasons·reply_kind·replaced …. llm 모드가 아니면 {}."""
+        return dict((self.values.get("trace") or {}).get("answer_llm") or {})
+
+    @property
+    def replaced(self) -> bool:
+        """미리보기를 보낸 뒤 가드가 템플릿 답으로 갈아끼웠는지(SSE message{replaced}, design.md 6.5)."""
+        return bool(self.answer_trace.get("replaced")) and self.done
+
+
+EventCallback = Callable[[str, Any], None]   # ("node", 이름) / ("card", 카드) / ("token", 미리보기 조각, M2)
 
 
 def _stream(graph: CompiledStateGraph, inp: Any, config: dict, context: AgentContext | None,
@@ -187,11 +241,16 @@ def _stream(graph: CompiledStateGraph, inp: Any, config: dict, context: AgentCon
                         result.path.append(name)
                         if on_event:
                             on_event("node", name)
-            elif part["type"] == "custom" and isinstance(part["data"], Mapping) \
-                    and part["data"].get("event") == "card":
-                result.cards.append(part["data"]["card"])
-                if on_event:
-                    on_event("card", part["data"]["card"])
+            elif part["type"] == "custom" and isinstance(part["data"], Mapping):
+                event = part["data"].get("event")
+                if event == "card":
+                    result.cards.append(part["data"]["card"])
+                    if on_event:
+                        on_event("card", part["data"]["card"])
+                elif event == "token":   # answer_llm 미리보기(가드 전)
+                    result.tokens.append(part["data"]["text"])
+                    if on_event:
+                        on_event("token", part["data"]["text"])
     except GraphRecursionError:
         result.error = "recursion"   # 정해진 사과 문장으로(design.md 5.4)
     snapshot = graph.get_state(config)
@@ -248,5 +307,5 @@ def cancel_pending(graph: CompiledStateGraph, thread_id: str, context: AgentCont
 __all__ = [
     "Deps", "EventCallback", "InterruptNotPending", "InvalidResume", "NODE_NAMES", "RECURSION_LIMIT",
     "TurnResult", "build_graph", "cancel_pending", "fake_deps", "is_invalid_resume", "mermaid", "new_thread_id",
-    "pending_interrupt", "resume", "route_retry_policy", "run_config", "run_turn",
+    "pending_interrupt", "real_deps", "resume", "route_retry_policy", "run_config", "run_turn",
 ]

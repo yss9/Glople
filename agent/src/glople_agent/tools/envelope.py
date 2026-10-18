@@ -98,6 +98,19 @@ def _fit(tool: str, status: str, items: list, notes: list[str], max_chars: int) 
     return text
 
 
+def refit_content(content: str, max_chars: int) -> str:
+    """이미 만든 봉투(content JSON)를 더 작은 상한에 다시 맞춘다(M2 답변 입력의 도구 결과 전체 상한, design.md 6.4).
+    _fit과 같은 규칙: 뒤 항목부터 빼고 '길이 제한으로 N개는 화면 카드에만' note를 단다. 이미 맞으면 그대로."""
+    if len(content) <= max_chars:
+        return content
+    obj = json.loads(content)
+    if not isinstance(obj, dict):
+        raise ValueError("결과 봉투가 JSON 객체가 아닙니다")
+    notes = [n for n in obj.get("notes") or [] if isinstance(n, str)]
+    return _fit(str(obj.get("tool") or ""), str(obj.get("status") or "error"), list(obj.get("items") or []),
+                notes, max_chars)
+
+
 def make_result(tool: str, status: ResultStatus, items: Sequence[Mapping[str, Any]] = (),
                 notes: Sequence[str] = (), *, card_items: Sequence[Mapping[str, Any]] | None = None,
                 card_data: Mapping[str, Any] | None = None, call_id: str = "",

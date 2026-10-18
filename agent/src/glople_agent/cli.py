@@ -3,12 +3,16 @@
     python -m glople_agent.cli graph                       # draw_mermaid() 텍스트
     python -m glople_agent.cli chat --fake rules           # REPL: 노드 진행 줄·카드 요약·답·확인 카드 y/n/e
     python -m glople_agent.cli chat --fake oracle --anon   # 정답 재생 라우터, 비로그인
+    python -m glople_agent.cli chat --fake rules --answer llm   # 가짜 답변 모델(ResultEchoScript)로 answer_llm 경로
+    python -m glople_agent.cli chat --llm real [--model-url http://127.0.0.1:8090/v1] [--answer llm|template] [--record PATH]
     python -m glople_agent.cli chat --trajectory           # 턴마다 궤적 한 줄(var/trajectories/, 토큰·사용자 id·원문 없음)
-    python -m glople_agent.cli replay --data v2-test,human # 정답 재생 표(v2-train도 가능)
+    python -m glople_agent.cli replay --data v2-test,human # 정답 재생 표(v2-train도 가능, 늘 가짜 라우터)
     python -m glople_agent.cli tool recommend_by_keywords '{"keywords": ["바다"]}' --fixture   # LLM용 JSON과 카드 JSON
     python -m glople_agent.cli grounding                   # 근거 검사 측정(정답 막힘·예측 오답 잡음)
 
-user_id·토큰은 고정 테스트 값이다(실제 JWT를 받지 않음). 모델 서버·Spring에 접속하지 않는다
+user_id·토큰은 고정 테스트 값이다(실제 JWT를 받지 않음). 기본(--llm fake)은 모델 서버·Spring에 접속하지 않는다.
+--llm real만 모델 서버(--model-url, 기본 GLOPLE_MODEL_BASE_URL = 127.0.0.1:8090)에 붙는다. 서버는 오너가
+`bash training/scripts/serve.sh <어댑터> 8090`으로 띄우고, 이 CLI는 띄우지 않는다. Spring은 --llm real에서도 가짜(fixture)다
 (tool --live만 GLOPLE_SPRING_BASE_URL로 공개 API를 부른다. 오너가 IDOR 점검 뒤 직접 실행).
 """
 import os
@@ -34,8 +38,9 @@ from glople_agent.config import load_settings  # noqa: E402
 from glople_agent.context import AgentContext, BearerToken  # noqa: E402
 from glople_agent.eval.trajectory import JsonlTrajectorySink, format_line  # noqa: E402
 from glople_agent.graph import (InterruptNotPending, InvalidResume, TurnResult, build_graph,  # noqa: E402
-                                cancel_pending, fake_deps, mermaid, new_thread_id, resume, run_config, run_turn)
-from glople_agent.llm.fake import OracleScript, RuleScript  # noqa: E402
+                                cancel_pending, fake_deps, mermaid, new_thread_id, real_deps, resume, run_config,
+                                run_turn)
+from glople_agent.llm.fake import OracleScript, ResultEchoScript, RuleScript, fake_answer_model  # noqa: E402
 from glople_agent.plan import InMemoryPlanStore  # noqa: E402
 from glople_agent.tools.fake_backend import FakeBackend  # noqa: E402
 
@@ -71,22 +76,51 @@ def card_summary(card: dict) -> str:
     return f"{head} · {notes[0]}" if notes else head
 
 
+def answer_label(result: TurnResult) -> str:
+    """답 뒤에 붙는 [종류]. llm 모드에서 가드가 바꿨으면 이유를 함께(예: [template · 가드 unknown_number · 교체])."""
+    kind = result.reply_kind or "?"
+    trace = result.answer_trace
+    if trace.get("guard") == "fail" and kind == "template":
+        reason = trace.get("reason") or "?"
+        return f"[template · 가드 {reason}" + (" · 교체]" if result.replaced else "]")
+    return f"[{kind}]"
+
+
 class ChatSession:
-    """표준입력 한 줄 = 한 마디. 확인 카드가 떠 있으면 y/n/e로 답한다(다른 말을 하면 카드를 닫고 새 턴)."""
+    """표준입력 한 줄 = 한 마디. 확인 카드가 떠 있으면 y/n/e로 답한다(다른 말을 하면 카드를 닫고 새 턴).
+
+    llm="fake"(기본): 가짜 라우터(fake 스크립트). answer="llm"이면 가짜 답변 모델(ResultEchoScript)로 answer_llm 경로.
+    llm="real": real_deps(model_url) — 라우터·답변 모두 실제 모델 서버(ChatOpenAI), Spring은 가짜(fixture).
+    record: 카세트 경로(llm="real"만). 모델 요청·응답을 녹화한다(llm/cassette.py)."""
 
     def __init__(self, fake: str = "rules", *, user: str | None = CLI_USER, inp: TextIO | None = None,
-                 out: TextIO | None = None, trajectory: JsonlTrajectorySink | None = None):
+                 out: TextIO | None = None, trajectory: JsonlTrajectorySink | None = None, llm: str = "fake",
+                 model_url: str | None = None, answer: str | None = None, record: str | Path | None = None):
         self.inp = inp or sys.stdin
         self.out = out or sys.stdout
         self.store = InMemoryPlanStore()
         self.trajectory = trajectory   # 옵트인(--trajectory). 없으면 궤적을 파일에 쓰지 않음
-        self.deps = fake_deps(build_script(fake), backend=FakeBackend(), store=self.store,
-                              retry_initial_interval=0.5, sink=trajectory)
+        self.llm = llm
+        if llm == "real":
+            self.model_url = model_url or load_settings().model_base_url
+            self.deps = real_deps(self.model_url, answer_mode=answer or "llm", backend=FakeBackend(),
+                                  store=self.store, sink=trajectory, retry_initial_interval=0.5, record=record)
+        elif llm == "fake":
+            if record is not None:
+                raise ValueError("--record는 --llm real에서만 씁니다(가짜 모델은 녹화할 응답이 없음)")
+            self.model_url = None
+            mode = answer or "template"
+            self.deps = fake_deps(build_script(fake), backend=FakeBackend(), store=self.store,
+                                  retry_initial_interval=0.5, sink=trajectory, answer_mode=mode,
+                                  answer_llm=fake_answer_model(ResultEchoScript()) if mode == "llm" else None)
+        else:
+            raise ValueError(f"모르는 --llm: {llm!r}")
         self.graph = build_graph(self.deps, InMemorySaver())
         self.user = user
         self.thread = new_thread_id()
         self.shown_card: str | None = None   # 화면에 띄운 확인 카드의 interrupt id(재개 때 그대로 보냄, 9.2)
         self.interactive = self.inp.isatty()
+        self._previewing = False             # 답변 미리보기 줄을 쓰는 중(토큰이 오는 동안)
 
     # --- 입출력 ---
     def say(self, text: str = "") -> None:
@@ -114,9 +148,18 @@ class ChatSession:
     def on_event(self, kind: str, value) -> None:
         if kind == "card":
             self.say("  " + card_summary(value))
+        elif kind == "token":   # M2 answer_llm 미리보기(가드 전). 끝나면 show()가 줄을 닫고 최종 답을 따로 찍음
+            if not self._previewing:
+                self.out.write("  미리보기> ")
+                self._previewing = True
+            self.out.write(value)
+            self.out.flush()
 
     # --- 한 턴 ---
     def show(self, result: TurnResult) -> None:
+        if self._previewing:
+            self.say()
+            self._previewing = False
         self.shown_card = result.pending.id if result.pending is not None else None
         path = " → ".join(result.path)
         if result.pending is not None:
@@ -132,7 +175,7 @@ class ChatSession:
         if result.pending is not None:
             self.show_confirm(result.pending.value)
         elif result.final_text:
-            self.say(f"도우미> {result.final_text}   [{result.reply_kind}]")
+            self.say(f"도우미> {result.final_text}   {answer_label(result)}")
             if self.trajectory is not None and self.trajectory.last is not None:
                 self.say(f"  궤적: {format_line(self.trajectory.last)}")
 
@@ -224,7 +267,9 @@ class ChatSession:
 
     def run(self) -> int:
         who = f"user={self.user}" if self.user else "비로그인"
-        self.say(f"Glople 도우미 M1 (가짜 모델·가짜 Spring, {who}). {HELP}")
+        answer = "LLM 답변" if self.deps.answer_mode == "llm" else "템플릿 답변"
+        model = f"실제 모델 {self.model_url}" if self.llm == "real" else "가짜 모델"
+        self.say(f"Glople 도우미 M2 ({model}·{answer}·가짜 Spring, {who}). {HELP}")
         while True:
             line = self.read("나> ")
             if line is None:
@@ -255,10 +300,14 @@ def cmd_graph(args, out: TextIO) -> int:
 
 
 def cmd_chat(args, out: TextIO) -> int:
+    if args.record and args.llm != "real":
+        print("--record는 --llm real에서만 씁니다.", file=out)
+        return 2
     sink = None
     if args.trajectory is not None:
         sink = JsonlTrajectorySink(Path(args.trajectory) if args.trajectory else None)
-    return ChatSession(args.fake, user=None if args.anon else args.user, out=out, trajectory=sink).run()
+    return ChatSession(args.fake, user=None if args.anon else args.user, out=out, trajectory=sink, llm=args.llm,
+                       model_url=args.model_url, answer=args.answer, record=args.record).run()
 
 
 def cmd_replay(args, out: TextIO) -> int:
@@ -309,11 +358,19 @@ def cmd_grounding(args, out: TextIO) -> int:
 
 
 def parser() -> argparse.ArgumentParser:
-    p = argparse.ArgumentParser(prog="python -m glople_agent.cli", description="Glople 에이전트 CLI(M1)")
+    p = argparse.ArgumentParser(prog="python -m glople_agent.cli", description="Glople 에이전트 CLI(M2)")
     sub = p.add_subparsers(dest="command", required=True)
     sub.add_parser("graph", help="그래프 mermaid 텍스트")
     chat = sub.add_parser("chat", help="대화(REPL)")
-    chat.add_argument("--fake", choices=("rules", "oracle"), default="rules", help="가짜 라우터 스크립트")
+    chat.add_argument("--llm", choices=("fake", "real"), default="fake",
+                      help="fake=가짜 라우터(기본, 네트워크 없음), real=실제 모델 서버(mlx_lm.server, 오너가 띄움)")
+    chat.add_argument("--fake", choices=("rules", "oracle"), default="rules", help="가짜 라우터 스크립트(--llm fake)")
+    chat.add_argument("--model-url", default=None,
+                      help="--llm real의 OpenAI 호환 주소(기본 GLOPLE_MODEL_BASE_URL, http://127.0.0.1:8090/v1)")
+    chat.add_argument("--answer", choices=("llm", "template"), default=None,
+                      help="답변 경로(기본: real은 llm, fake는 template). fake+llm은 가짜 답변 모델")
+    chat.add_argument("--record", default=None, metavar="PATH",
+                      help="--llm real에서 모델 요청·응답을 카세트(JSON)로 녹화(재생은 llm.fake.CassetteScript)")
     chat.add_argument("--user", default=CLI_USER, help="고정 테스트 user_id")
     chat.add_argument("--anon", action="store_true", help="비로그인(일정 저장 불가)")
     chat.add_argument("--trajectory", nargs="?", const="", default=None, metavar="DIR",
