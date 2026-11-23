@@ -2,8 +2,10 @@ package proj.travien.controller;
 
 import org.springframework.http.HttpStatus;
 import proj.travien.domain.Comment;
+import proj.travien.domain.User;
 import proj.travien.dto.CommentRequest;
 import proj.travien.dto.CommentResponse;
+import proj.travien.jwt.CurrentUser;
 import proj.travien.service.CommentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -18,16 +20,20 @@ public class CommentController {
     @Autowired
     private CommentService commentService;
 
+    @Autowired
+    private CurrentUser currentUser;
+
     /**
-     * 댓글 작성
+     * 댓글 작성 (작성자 = 토큰 사용자. body.userId는 호환을 위해 받되 본인이 아니면 403)
      */
     @PostMapping("/")
     public ResponseEntity<Comment> createComment(@RequestBody CommentRequest commentRequest) {
+        User me = currentUser.requireUser();
+        CurrentUser.requireSameId(me, commentRequest.getUserId());
         Long boardID = commentRequest.getBoardID(); // 필요한 경우 boardID에서 postId를 가져오기
-        Long userId = commentRequest.getUserId();
         String content = commentRequest.getContent();
 
-        Comment createdComment = commentService.addComment(boardID, userId, content);
+        Comment createdComment = commentService.addComment(boardID, me.getId(), content);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdComment);
     }
 
@@ -50,11 +56,11 @@ public class CommentController {
     }
 
     /**
-     * 댓글 삭제
+     * 댓글 삭제 (작성자 본인 또는 관리자)
      */
     @DeleteMapping("/{commentId}")
     public ResponseEntity<Void> deleteComment(@PathVariable Long commentId) {
-        commentService.deleteComment(commentId);
+        commentService.deleteCommentAs(commentId, currentUser.requireUser(), currentUser.isAdmin());
         return ResponseEntity.noContent().build();
     }
 

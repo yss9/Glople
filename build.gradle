@@ -45,3 +45,10 @@ dependencies {
 tasks.named('test') {
     useJUnitPlatform()
 }
+
+// 검증 서류(대행자 신분·자격 증빙)는 클래스패스 정적 리소스로 복사하지 않는다.
+// 복사되면 스프링 부트 기본 정적 핸들러(/** → classpath:/static/)가 경로 표기만 바꾼 요청(대소문자, Windows의 8.3 이름·끝 점 등)으로
+// 내보낼 수 있다. 서류는 본인·관리자만 GET /api/users/verification-file/{userId}로 받는다. (SecurityConfig도 정적 경로를 차단)
+tasks.named('processResources') {
+    exclude 'static/verification-files/**'
+}

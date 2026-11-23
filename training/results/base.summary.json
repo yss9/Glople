@@ -1,0 +1,25 @@
+{
+  "name": "base",
+  "model": "models/qwen3-4b-instruct-2507-4bit",
+  "adapter": null,
+  "examples": 300,
+  "decision_accuracy": 0.8833333333333333,
+  "tool_name_accuracy": 0.8096885813148789,
+  "exact_match": 0.5397923875432526,
+  "json_error_rate": 0.0035335689045936395,
+  "generation_errors": 0,
+  "seconds_per_example": 2.5959171827634178,
+  "by_task_accuracy": {
+    "clarify": 0.8,
+    "detail": 0.941,
+    "direct": 1.0,
+    "gloplers": 0.625,
+    "keywords": 0.58,
+    "parallel": 0.179,
+    "plan": 0.412,
+    "reviews": 0.944,
+    "routes": 1.0,
+    "search": 0.103,
+    "weather": 0.679
+  }
+}

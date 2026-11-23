@@ -1,0 +1,25 @@
+{
+  "name": "finetuned_v2_human",
+  "model": "models/qwen3-4b-instruct-2507-4bit",
+  "adapter": "adapters/qwen3-4b-tool-calling-v2",
+  "examples": 90,
+  "decision_accuracy": 0.9666666666666667,
+  "tool_name_accuracy": 0.9342105263157895,
+  "exact_match": 0.75,
+  "json_error_rate": 0.0,
+  "generation_errors": 0,
+  "seconds_per_example": 2.5891418986850314,
+  "by_task_accuracy": {
+    "clarify": 1.0,
+    "detail": 0.857,
+    "direct": 0.833,
+    "gloplers": 0.714,
+    "keywords": 0.4,
+    "parallel": 0.889,
+    "plan": 0.875,
+    "reviews": 1.0,
+    "routes": 0.875,
+    "search": 0.583,
+    "weather": 0.75
+  }
+}

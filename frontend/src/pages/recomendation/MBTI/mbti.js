@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Reset } from 'styled-reset';
 import Cookies from "js-cookie";
 import {jwtDecode} from "jwt-decode";
+import { authFetch } from "../../../api/auth";
 import React from 'react';
 import {
     Explain, Horizonalline, Mbti,
@@ -96,7 +97,7 @@ export default function RecMbtiPage() {
         try {
             const decodedToken = jwtDecode(token);
             const userId = decodedToken.userId;
-            const response = await fetch(`http://localhost:8080/api/users/my-info?userId=${userId}`);
+            const response = await authFetch(`http://localhost:8080/api/users/my-info?userId=${userId}`);
             const data = await response.json();
 
             const mbti = data.mbti;

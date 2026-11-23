@@ -1,0 +1,411 @@
+{
+ "_note": "학습 전용 가짜 데이터(v4). rows는 대행자 검색 응답(AgentDTO 배열)과 같은 모양이다. 대행 국가는 미국·이탈리아·일본뿐이고 해시태그는 v3 train 해시태그·해외 train 도시만 쓴다.",
+ "endpoint": "GET /api/users/search-agents-by-hashtag?hashtag=, GET /api/users/agents?country=",
+ "rows": [
+  {
+   "agentCountry": "일본",
+   "introduction": "GLOPLER-INTRO-v4 오사카 활동 글로플러 소개 자리 표시자입니다. 카드에만 나오는 글입니다.",
+   "hashtags": [
+    "#오사카",
+    "#맛집투어",
+    "#뚜벅이여행"
+   ],
+   "specIntroduction": [
+    "GLOPLER-SPEC-v4 오사카먹보 경력 자리 표시자"
+   ],
+   "averageReviewRating": 4.7,
+   "nickname": "오사카먹보",
+   "profilePicture": null
+  },
+  {
+   "agentCountry": "일본",
+   "introduction": "GLOPLER-INTRO-v4 교토 활동 글로플러 소개 자리 표시자입니다. 카드에만 나오는 글입니다.",
+   "hashtags": [
+    "#교토",
+    "#사진여행",
+    "#가족여행"
+   ],
+   "specIntroduction": [
+    "GLOPLER-SPEC-v4 교토골목길 경력 자리 표시자"
+   ],
+   "averageReviewRating": 4.6,
+   "nickname": "교토골목길",
+   "profilePicture": null
+  },
+  {
+   "agentCountry": "일본",
+   "introduction": "GLOPLER-INTRO-v4 후쿠오카 활동 글로플러 소개 자리 표시자입니다. 카드에만 나오는 글입니다.",
+   "hashtags": [
+    "#후쿠오카",
+    "#맛집투어",
+    "#가성비여행"
+   ],
+   "specIntroduction": [
+    "GLOPLER-SPEC-v4 후쿠오카라멘 경력 자리 표시자"
+   ],
+   "averageReviewRating": 4.4,
+   "nickname": "후쿠오카라멘",
+   "profilePicture": null
+  },
+  {
+   "agentCountry": "일본",
+   "introduction": "GLOPLER-INTRO-v4 도쿄 활동 글로플러 소개 자리 표시자입니다. 카드에만 나오는 글입니다.",
+   "hashtags": [
+    "#도쿄",
+    "#쇼핑",
+    "#사진여행"
+   ],
+   "specIntroduction": [
+    "GLOPLER-SPEC-v4 하라주쿠러 경력 자리 표시자"
+   ],
+   "averageReviewRating": 4.5,
+   "nickname": "하라주쿠러",
+   "profilePicture": null
+  },
+  {
+   "agentCountry": "일본",
+   "introduction": "GLOPLER-INTRO-v4 도쿄 활동 글로플러 소개 자리 표시자입니다. 카드에만 나오는 글입니다.",
+   "hashtags": [
+    "#도쿄",
+    "#한달살기",
+    "#뚜벅이여행"
+   ],
+   "specIntroduction": [
+    "GLOPLER-SPEC-v4 도쿄한달 경력 자리 표시자"
+   ],
+   "averageReviewRating": 4.3,
+   "nickname": "도쿄한달",
+   "profilePicture": null
+  },
+  {
+   "agentCountry": "일본",
+   "introduction": "GLOPLER-INTRO-v4 오사카 활동 글로플러 소개 자리 표시자입니다. 카드에만 나오는 글입니다.",
+   "hashtags": [
+    "#오사카",
+    "#교토",
+    "#배낭여행"
+   ],
+   "specIntroduction": [
+    "GLOPLER-SPEC-v4 간사이패스 경력 자리 표시자"
+   ],
+   "averageReviewRating": 4.1,
+   "nickname": "간사이패스",
+   "profilePicture": null
+  },
+  {
+   "agentCountry": "일본",
+   "introduction": "GLOPLER-INTRO-v4 후쿠오카 활동 글로플러 소개 자리 표시자입니다. 카드에만 나오는 글입니다.",
+   "hashtags": [
+    "#후쿠오카",
+    "#호캉스",
+    "#신혼여행"
+   ],
+   "specIntroduction": [
+    "GLOPLER-SPEC-v4 온천마니아 경력 자리 표시자"
+   ],
+   "averageReviewRating": 4.8,
+   "nickname": "온천마니아",
+   "profilePicture": null
+  },
+  {
+   "agentCountry": "일본",
+   "introduction": "GLOPLER-INTRO-v4 후쿠오카 활동 글로플러 소개 자리 표시자입니다. 카드에만 나오는 글입니다.",
+   "hashtags": [
+    "#후쿠오카",
+    "#드라이브",
+    "#사진여행"
+   ],
+   "specIntroduction": [
+    "GLOPLER-SPEC-v4 하카타야경 경력 자리 표시자"
+   ],
+   "averageReviewRating": 3.9,
+   "nickname": "하카타야경",
+   "profilePicture": null
+  },
+  {
+   "agentCountry": "일본",
+   "introduction": "GLOPLER-INTRO-v4 교토 활동 글로플러 소개 자리 표시자입니다. 카드에만 나오는 글입니다.",
+   "hashtags": [
+    "#교토",
+    "#신혼여행",
+    "#럭셔리여행"
+   ],
+   "specIntroduction": [
+    "GLOPLER-SPEC-v4 벚꽃엽서 경력 자리 표시자"
+   ],
+   "averageReviewRating": 4.9,
+   "nickname": "벚꽃엽서",
+   "profilePicture": null
+  },
+  {
+   "agentCountry": "일본",
+   "introduction": "GLOPLER-INTRO-v4 도쿄 활동 글로플러 소개 자리 표시자입니다. 카드에만 나오는 글입니다.",
+   "hashtags": [
+    "#도쿄",
+    "#가족여행",
+    "#아이동반"
+   ],
+   "specIntroduction": [
+    "GLOPLER-SPEC-v4 시부야워커 경력 자리 표시자"
+   ],
+   "averageReviewRating": 4.2,
+   "nickname": "시부야워커",
+   "profilePicture": null
+  },
+  {
+   "agentCountry": "이탈리아",
+   "introduction": "GLOPLER-INTRO-v4 로마 활동 글로플러 소개 자리 표시자입니다. 카드에만 나오는 글입니다.",
+   "hashtags": [
+    "#로마",
+    "#사진여행",
+    "#뚜벅이여행"
+   ],
+   "specIntroduction": [
+    "GLOPLER-SPEC-v4 로마산책자 경력 자리 표시자"
+   ],
+   "averageReviewRating": 4.8,
+   "nickname": "로마산책자",
+   "profilePicture": null
+  },
+  {
+   "agentCountry": "이탈리아",
+   "introduction": "GLOPLER-INTRO-v4 베네치아 활동 글로플러 소개 자리 표시자입니다. 카드에만 나오는 글입니다.",
+   "hashtags": [
+    "#베네치아",
+    "#신혼여행",
+    "#럭셔리여행"
+   ],
+   "specIntroduction": [
+    "GLOPLER-SPEC-v4 베네치아물길 경력 자리 표시자"
+   ],
+   "averageReviewRating": 4.6,
+   "nickname": "베네치아물길",
+   "profilePicture": null
+  },
+  {
+   "agentCountry": "이탈리아",
+   "introduction": "GLOPLER-INTRO-v4 이탈리아 활동 글로플러 소개 자리 표시자입니다. 카드에만 나오는 글입니다.",
+   "hashtags": [
+    "#드라이브",
+    "#신혼여행",
+    "#맛집투어"
+   ],
+   "specIntroduction": [
+    "GLOPLER-SPEC-v4 토스카나바람 경력 자리 표시자"
+   ],
+   "averageReviewRating": 4.4,
+   "nickname": "토스카나바람",
+   "profilePicture": null
+  },
+  {
+   "agentCountry": "이탈리아",
+   "introduction": "GLOPLER-INTRO-v4 로마 활동 글로플러 소개 자리 표시자입니다. 카드에만 나오는 글입니다.",
+   "hashtags": [
+    "#로마",
+    "#가족여행",
+    "#아이동반"
+   ],
+   "specIntroduction": [
+    "GLOPLER-SPEC-v4 콜로세움지기 경력 자리 표시자"
+   ],
+   "averageReviewRating": 4.0,
+   "nickname": "콜로세움지기",
+   "profilePicture": null
+  },
+  {
+   "agentCountry": "이탈리아",
+   "introduction": "GLOPLER-INTRO-v4 로마 활동 글로플러 소개 자리 표시자입니다. 카드에만 나오는 글입니다.",
+   "hashtags": [
+    "#로마",
+    "#맛집투어",
+    "#가성비여행"
+   ],
+   "specIntroduction": [
+    "GLOPLER-SPEC-v4 젤라토한스푼 경력 자리 표시자"
+   ],
+   "averageReviewRating": 4.5,
+   "nickname": "젤라토한스푼",
+   "profilePicture": null
+  },
+  {
+   "agentCountry": "이탈리아",
+   "introduction": "GLOPLER-INTRO-v4 베네치아 활동 글로플러 소개 자리 표시자입니다. 카드에만 나오는 글입니다.",
+   "hashtags": [
+    "#베네치아",
+    "#사진여행",
+    "#한달살기"
+   ],
+   "specIntroduction": [
+    "GLOPLER-SPEC-v4 물길노래 경력 자리 표시자"
+   ],
+   "averageReviewRating": 4.3,
+   "nickname": "물길노래",
+   "profilePicture": null
+  },
+  {
+   "agentCountry": "이탈리아",
+   "introduction": "GLOPLER-INTRO-v4 이탈리아 활동 글로플러 소개 자리 표시자입니다. 카드에만 나오는 글입니다.",
+   "hashtags": [
+    "#쇼핑",
+    "#럭셔리여행",
+    "#호캉스"
+   ],
+   "specIntroduction": [
+    "GLOPLER-SPEC-v4 밀라노쇼퍼 경력 자리 표시자"
+   ],
+   "averageReviewRating": 4.7,
+   "nickname": "밀라노쇼퍼",
+   "profilePicture": null
+  },
+  {
+   "agentCountry": "이탈리아",
+   "introduction": "GLOPLER-INTRO-v4 이탈리아 활동 글로플러 소개 자리 표시자입니다. 카드에만 나오는 글입니다.",
+   "hashtags": [
+    "#배낭여행",
+    "#뚜벅이여행",
+    "#가성비여행"
+   ],
+   "specIntroduction": [
+    "GLOPLER-SPEC-v4 이탈리아배낭 경력 자리 표시자"
+   ],
+   "averageReviewRating": 3.8,
+   "nickname": "이탈리아배낭",
+   "profilePicture": null
+  },
+  {
+   "agentCountry": "미국",
+   "introduction": "GLOPLER-INTRO-v4 뉴욕 활동 글로플러 소개 자리 표시자입니다. 카드에만 나오는 글입니다.",
+   "hashtags": [
+    "#뉴욕",
+    "#한달살기",
+    "#뚜벅이여행"
+   ],
+   "specIntroduction": [
+    "GLOPLER-SPEC-v4 뉴욕한달 경력 자리 표시자"
+   ],
+   "averageReviewRating": 4.6,
+   "nickname": "뉴욕한달",
+   "profilePicture": null
+  },
+  {
+   "agentCountry": "미국",
+   "introduction": "GLOPLER-INTRO-v4 뉴욕 활동 글로플러 소개 자리 표시자입니다. 카드에만 나오는 글입니다.",
+   "hashtags": [
+    "#뉴욕",
+    "#사진여행",
+    "#맛집투어"
+   ],
+   "specIntroduction": [
+    "GLOPLER-SPEC-v4 브루클린워커 경력 자리 표시자"
+   ],
+   "averageReviewRating": 4.4,
+   "nickname": "브루클린워커",
+   "profilePicture": null
+  },
+  {
+   "agentCountry": "미국",
+   "introduction": "GLOPLER-INTRO-v4 샌프란시스코 활동 글로플러 소개 자리 표시자입니다. 카드에만 나오는 글입니다.",
+   "hashtags": [
+    "#샌프란시스코",
+    "#드라이브",
+    "#가족여행"
+   ],
+   "specIntroduction": [
+    "GLOPLER-SPEC-v4 골든게이트 경력 자리 표시자"
+   ],
+   "averageReviewRating": 4.5,
+   "nickname": "골든게이트",
+   "profilePicture": null
+  },
+  {
+   "agentCountry": "미국",
+   "introduction": "GLOPLER-INTRO-v4 하와이 활동 글로플러 소개 자리 표시자입니다. 카드에만 나오는 글입니다.",
+   "hashtags": [
+    "#하와이",
+    "#신혼여행",
+    "#호캉스"
+   ],
+   "specIntroduction": [
+    "GLOPLER-SPEC-v4 와이키키서퍼 경력 자리 표시자"
+   ],
+   "averageReviewRating": 4.9,
+   "nickname": "와이키키서퍼",
+   "profilePicture": null
+  },
+  {
+   "agentCountry": "미국",
+   "introduction": "GLOPLER-INTRO-v4 하와이 활동 글로플러 소개 자리 표시자입니다. 카드에만 나오는 글입니다.",
+   "hashtags": [
+    "#하와이",
+    "#가족여행",
+    "#아이동반"
+   ],
+   "specIntroduction": [
+    "GLOPLER-SPEC-v4 알로하가이드 경력 자리 표시자"
+   ],
+   "averageReviewRating": 4.7,
+   "nickname": "알로하가이드",
+   "profilePicture": null
+  },
+  {
+   "agentCountry": "미국",
+   "introduction": "GLOPLER-INTRO-v4 미국 활동 글로플러 소개 자리 표시자입니다. 카드에만 나오는 글입니다.",
+   "hashtags": [
+    "#드라이브",
+    "#골프여행",
+    "#가족여행"
+   ],
+   "specIntroduction": [
+    "GLOPLER-SPEC-v4 서부로드 경력 자리 표시자"
+   ],
+   "averageReviewRating": 4.2,
+   "nickname": "서부로드",
+   "profilePicture": null
+  },
+  {
+   "agentCountry": "미국",
+   "introduction": "GLOPLER-INTRO-v4 뉴욕 활동 글로플러 소개 자리 표시자입니다. 카드에만 나오는 글입니다.",
+   "hashtags": [
+    "#뉴욕",
+    "#럭셔리여행",
+    "#쇼핑"
+   ],
+   "specIntroduction": [
+    "GLOPLER-SPEC-v4 맨해튼야경 경력 자리 표시자"
+   ],
+   "averageReviewRating": 4.1,
+   "nickname": "맨해튼야경",
+   "profilePicture": null
+  },
+  {
+   "agentCountry": "미국",
+   "introduction": "GLOPLER-INTRO-v4 샌프란시스코 활동 글로플러 소개 자리 표시자입니다. 카드에만 나오는 글입니다.",
+   "hashtags": [
+    "#샌프란시스코",
+    "#골프여행",
+    "#사진여행"
+   ],
+   "specIntroduction": [
+    "GLOPLER-SPEC-v4 베이에어리어 경력 자리 표시자"
+   ],
+   "averageReviewRating": 4.0,
+   "nickname": "베이에어리어",
+   "profilePicture": null
+  },
+  {
+   "agentCountry": "미국",
+   "introduction": "GLOPLER-INTRO-v4 미국 활동 글로플러 소개 자리 표시자입니다. 카드에만 나오는 글입니다.",
+   "hashtags": [
+    "#가성비여행",
+    "#배낭여행",
+    "#한달살기"
+   ],
+   "specIntroduction": [
+    "GLOPLER-SPEC-v4 미국캠퍼스 경력 자리 표시자"
+   ],
+   "averageReviewRating": 3.9,
+   "nickname": "미국캠퍼스",
+   "profilePicture": null
+  }
+ ]
+}

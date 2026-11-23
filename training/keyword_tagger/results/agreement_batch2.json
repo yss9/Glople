@@ -1,0 +1,271 @@
+{
+  "reference": "primary (data/labels_v2/part_*.jsonl)",
+  "compared": "cross_check (data/labels_v2/cross_check.jsonl)",
+  "cross_check_items": 78,
+  "overlap_items": 78,
+  "micro_vs_primary": {
+    "precision": 0.9509,
+    "recall": 0.8549,
+    "f1": 0.9003,
+    "tp": 271,
+    "fp": 14,
+    "fn": 46
+  },
+  "macro_f1_vs_primary": 0.8624,
+  "mean_item_jaccard": 0.8125,
+  "exact_set_match_rate": 0.4487,
+  "avg_keywords": {
+    "primary": 4.064,
+    "cross_check": 3.654
+  },
+  "most_disagreed_keywords": [
+    {
+      "keyword": "야외 활동",
+      "disagreements": 8,
+      "only_primary": 7,
+      "only_cross": 1,
+      "both": 4
+    },
+    {
+      "keyword": "경치",
+      "disagreements": 7,
+      "only_primary": 4,
+      "only_cross": 3,
+      "both": 24
+    },
+    {
+      "keyword": "산",
+      "disagreements": 6,
+      "only_primary": 6,
+      "only_cross": 0,
+      "both": 7
+    },
+    {
+      "keyword": "건축",
+      "disagreements": 3,
+      "only_primary": 1,
+      "only_cross": 2,
+      "both": 7
+    },
+    {
+      "keyword": "사찰",
+      "disagreements": 3,
+      "only_primary": 3,
+      "only_cross": 0,
+      "both": 2
+    },
+    {
+      "keyword": "역사적인 장소",
+      "disagreements": 3,
+      "only_primary": 0,
+      "only_cross": 3,
+      "both": 18
+    },
+    {
+      "keyword": "전통",
+      "disagreements": 2,
+      "only_primary": 2,
+      "only_cross": 0,
+      "both": 14
+    },
+    {
+      "keyword": "유적",
+      "disagreements": 2,
+      "only_primary": 1,
+      "only_cross": 1,
+      "both": 11
+    },
+    {
+      "keyword": "정원",
+      "disagreements": 2,
+      "only_primary": 2,
+      "only_cross": 0,
+      "both": 1
+    },
+    {
+      "keyword": "바위",
+      "disagreements": 2,
+      "only_primary": 2,
+      "only_cross": 0,
+      "both": 2
+    },
+    {
+      "keyword": "강",
+      "disagreements": 2,
+      "only_primary": 2,
+      "only_cross": 0,
+      "both": 6
+    },
+    {
+      "keyword": "고대 유적",
+      "disagreements": 2,
+      "only_primary": 2,
+      "only_cross": 0,
+      "both": 6
+    },
+    {
+      "keyword": "역사적 건축",
+      "disagreements": 2,
+      "only_primary": 1,
+      "only_cross": 1,
+      "both": 7
+    },
+    {
+      "keyword": "조각",
+      "disagreements": 1,
+      "only_primary": 1,
+      "only_cross": 0,
+      "both": 3
+    },
+    {
+      "keyword": "문화",
+      "disagreements": 1,
+      "only_primary": 1,
+      "only_cross": 0,
+      "both": 6
+    }
+  ],
+  "lowest_jaccard_items": [
+    {
+      "id": "4089183",
+      "jaccard": 0.0,
+      "only_primary": [
+        "휴양지"
+      ],
+      "only_cross": []
+    },
+    {
+      "id": "3406885",
+      "jaccard": 0.333,
+      "only_primary": [
+        "야외 활동"
+      ],
+      "only_cross": [
+        "레크리에이션"
+      ]
+    },
+    {
+      "id": "126399",
+      "jaccard": 0.5,
+      "only_primary": [
+        "기념물"
+      ],
+      "only_cross": [
+        "건축",
+        "역사적 건축"
+      ]
+    },
+    {
+      "id": "128365",
+      "jaccard": 0.5,
+      "only_primary": [
+        "산",
+        "강"
+      ],
+      "only_cross": []
+    },
+    {
+      "id": "129045",
+      "jaccard": 0.5,
+      "only_primary": [
+        "불교",
+        "사찰"
+      ],
+      "only_cross": [
+        "경치"
+      ]
+    },
+    {
+      "id": "129693",
+      "jaccard": 0.5,
+      "only_primary": [
+        "전통"
+      ],
+      "only_cross": []
+    },
+    {
+      "id": "1607032",
+      "jaccard": 0.5,
+      "only_primary": [
+        "산",
+        "바위"
+      ],
+      "only_cross": [
+        "유적",
+        "역사적인 장소"
+      ]
+    },
+    {
+      "id": "2798360",
+      "jaccard": 0.5,
+      "only_primary": [
+        "야외 활동"
+      ],
+      "only_cross": []
+    },
+    {
+      "id": "2863978",
+      "jaccard": 0.5,
+      "only_primary": [
+        "야외 활동"
+      ],
+      "only_cross": []
+    },
+    {
+      "id": "3019714",
+      "jaccard": 0.5,
+      "only_primary": [
+        "야외 활동"
+      ],
+      "only_cross": [
+        "트레킹",
+        "해양"
+      ]
+    }
+  ],
+  "gold_summary": {
+    "items": 851,
+    "label_files": [
+      "part_00.jsonl",
+      "part_01.jsonl",
+      "part_02.jsonl",
+      "part_03.jsonl",
+      "part_04.jsonl",
+      "part_05.jsonl"
+    ],
+    "empty_label_items": 3,
+    "keywords_per_item": {
+      "0": 3,
+      "1": 23,
+      "2": 72,
+      "3": 145,
+      "4": 189,
+      "5": 253,
+      "6": 160,
+      "7": 6
+    },
+    "avg_keywords_per_item": 4.26,
+    "keywords_never_used": [
+      "사막",
+      "사파리",
+      "열기구",
+      "운하",
+      "와인",
+      "다문화",
+      "지열",
+      "모스크",
+      "빙하",
+      "설산",
+      "호랑이",
+      "낙타",
+      "열대우림",
+      "산호",
+      "빙벽"
+    ],
+    "manifest_check": {
+      "path": "data/chunks_v2/all_new.jsonl",
+      "items": 851,
+      "text_mismatch": 0
+    }
+  }
+}

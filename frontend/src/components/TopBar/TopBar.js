@@ -148,6 +148,9 @@ export default function TopBarComponent({ fontColor }) {
     const handleGoSimilarity = () => {
         navigate('/recomendation/similarity');
     };
+    const handleGoSemanticSearch = () => {
+        navigate('/search/semantic');
+    };
 
     const handleGoMyPage = () => {
         navigate('/my');
@@ -155,6 +158,10 @@ export default function TopBarComponent({ fontColor }) {
 
     const handleGoChatBot = () =>{
         navigate('/chatbot');
+    };
+
+    const handleGoAssistant = () => {
+        navigate('/assistant');
     };
 
     const handleGoChat = () =>{
@@ -181,11 +188,13 @@ export default function TopBarComponent({ fontColor }) {
                             <RecomendationItem style={{color:"black"}} onClick={(e) => { e.stopPropagation(); handleGoMbti(); }}>MBTI 기반 추천</RecomendationItem>
                             <RecomendationItem style={{color:"black"}} onClick={(e) => { e.stopPropagation(); handleGoPersonal(); }}>키워드 추천</RecomendationItem>
                             <RecomendationItem style={{color:"black"}} onClick={(e) => { e.stopPropagation(); handleGoSimilarity(); }}>사용자 기반 추천</RecomendationItem>
+                            <RecomendationItem style={{color:"black"}} onClick={(e) => { e.stopPropagation(); handleGoSemanticSearch(); }}>문장으로 찾기</RecomendationItem>
                         </RecomendationDropdown>
                     </Recomendation>
                     <Community style={{color:fontColor}} onClick={handleGoRoute}>루트 탐색</Community>
                     <Community style={{color:fontColor}} onClick={handleGoReview}>커뮤니티</Community>
                     <Community style={{color:fontColor}} onClick={handleGoChatBot}>챗봇</Community>
+                    <Community style={{color:fontColor}} onClick={handleGoAssistant}>AI 도우미</Community>
                     <MyPage style={{color:fontColor}} onClick={handleGoMyPage}>마이페이지</MyPage>
                 </MenuContainer>
             </TopBar>

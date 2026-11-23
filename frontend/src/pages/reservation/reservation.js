@@ -16,6 +16,7 @@ import Profile from '../../images/img_1.png';
 import { useNavigate } from "react-router-dom";
 import Cookies from "js-cookie";
 import {jwtDecode} from "jwt-decode";
+import { authFetch } from "../../api/auth";
 
 const processProfilePicture = (profilePicture) => {
     if (profilePicture) {
@@ -140,7 +141,7 @@ export default function ReservationPage() {
         const fetchProfilePicture = async () => {
             if (latestProgressData?.agentNickname) {
                 try {
-                    const response = await fetch(
+                    const response = await authFetch(
                         `http://localhost:8080/api/users/profile-picture?nickname=${latestProgressData.agentNickname}`
                     );
                     const picturePath = await response.text(); // Assuming the response is the picture path as a string

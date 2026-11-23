@@ -1,0 +1,39 @@
+# mlx_lm.lora 설정: Qwen3-4B-Instruct-2507 (4bit) QLoRA, Glople 도구 호출 SFT, v4(M7) 다턴 데이터
+# v3 설정에서 data, adapter_path, steps_per_eval만 바꿨다(iters·학습률·LoRA 크기·max_seq_length는 v3와 같음).
+# 실행: .venv/bin/mlx_lm.lora --config configs/qwen3-4b-lora-v4.yaml  (training/ 폴더에서, 보통 run_v4.sh가 부름)
+model: models/qwen3-4b-instruct-2507-4bit
+train: true
+fine_tune_type: lora
+data: data/tool_calling_v4
+seed: 0
+
+# 기록마다 마지막 assistant 턴(첫 판단 / 도구 결과 뒤 답 / 두 번째 호출)만 학습한다. 앞의 system·도구·사용자·호출·결과는 손실에서 뺀다.
+mask_prompt: true
+
+num_layers: 16
+lora_parameters:
+  rank: 16
+  dropout: 0.05
+  scale: 20.0
+
+batch_size: 4
+# train 3,871건(첫 판단 2,096 + 이어서 부르기 첫 호출 143 + 도구 결과 뒤 1,632)의 약 0.52 epoch. v2는 400단계, v3는 200단계에서 검증 손실이 이미 거의 평평했다.
+# 도구 결과 뒤 답은 템플릿 문장이라 비슷하게 빨리 수렴할 것으로 보고 v3와 같은 500으로 둔다(기록 평균 1,420토큰 → 학습 약 2.7시간, 검증 포함 약 2.9시간,
+# scripts/check_multiturn_dataset.py가 v3 실측 속도로 어림해 출력). 100단계마다 저장하니 더 이른 체크포인트도 고를 수 있다.
+iters: 500
+learning_rate: 2.0e-5
+lr_schedule:
+  name: cosine_decay
+  warmup: 50
+  warmup_init: 1.0e-7
+  arguments: [2.0e-5, 500, 1.0e-6]
+
+# 가장 긴 기록 1,862토큰(두 라운드 뒤 답). 생성기가 2,048을 넘을 수 있는 기록은 버리므로 v3와 같은 2048로 충분하다.
+max_seq_length: 2048
+grad_checkpoint: true
+
+steps_per_report: 10
+steps_per_eval: 100    # 도구 결과 뒤 기록이 처음 들어가 손실 곡선을 촘촘히 본다(v3는 200). 검증 한 번 약 1.5분
+val_batches: 10
+save_every: 100
+adapter_path: adapters/qwen3-4b-tool-calling-v4

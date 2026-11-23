@@ -1,0 +1,10 @@
+# 이 폴더 전용 가상환경
+.venv/
+# 설명문 원문이 들어간 학습·평가 데이터 (prepare_data.py 로 다시 만들 수 있음)
+data/
+# 학습한 모델, 로그, 색인
+outputs/
+index/
+*.npy
+__pycache__/
+*.pyc

@@ -6,10 +6,14 @@ import jakarta.persistence.Persistence;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 import proj.travien.domain.Addresses;
 import proj.travien.domain.Post;
+import proj.travien.domain.User;
 import proj.travien.dto.AddressResponseDto;
 import proj.travien.repository.AddressesRepository;
 import proj.travien.repository.PostRepository;
@@ -128,6 +132,21 @@ public class PostService {
         return addresses;
     }
 
+
+    /**
+     * 게시물 작성자(Post.nickname = 본인 DB 닉네임) 또는 관리자인지 확인한다. 수정·삭제·썸네일 저장 전에 부른다.
+     * 게시물이 없으면 404, 작성자가 아니면 403.
+     * (getPostById는 imageUrl을 바꿔 돌려주므로 여기서는 저장소를 직접 읽는다)
+     */
+    public Post requireEditablePost(Long boardID, User me, boolean admin) {
+        Post post = postRepository.findById(boardID)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "게시물을 찾을 수 없습니다."));
+        boolean owner = post.getNickname() != null && post.getNickname().equals(me.getNickname());
+        if (!owner && !admin) {
+            throw new AccessDeniedException("게시물 작성자만 할 수 있습니다.");
+        }
+        return post;
+    }
 
     /**
      * 게시물 수정

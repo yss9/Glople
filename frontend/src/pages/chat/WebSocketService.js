@@ -1,7 +1,7 @@
 import { Stomp } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
-import Cookies from 'js-cookie';
 import axios from 'axios';
+import { authHeaders } from '../../api/auth';
 
 const WebSocketService = (() => {
     let stompClient = null;
@@ -19,9 +19,8 @@ const WebSocketService = (() => {
         const socket = new SockJS('http://localhost:8080/ws', null, { withCredentials: true });
         stompClient = Stomp.over(socket);
 
-        const token = Cookies.get('jwt'); // 쿠키에서 JWT 토큰 가져오기
-
-        stompClient.connect({ Authorization: `Bearer ${token}` }, async () => {
+        // STOMP CONNECT 헤더에 쿠키의 JWT를 싣는다(토큰이 없으면 헤더 없이 연결 → 서버가 비공개 방 구독을 거부)
+        stompClient.connect(authHeaders(), async () => {
             currentRoomId = roomId;
 
             // 새로운 채팅방에 대한 구독 설정
@@ -30,12 +29,8 @@ const WebSocketService = (() => {
             // 채팅 기록 가져오기
             try {
                 console.log(`Fetching chat history for room: ${roomId}`);
-                const response = await axios.get(`http://localhost:8080/chat/history/${roomId}`, {
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    },
-                    withCredentials: true // 쿠키 사용 설정
-                });
+                // Authorization 헤더는 공통 axios 인터셉터(src/api/auth.js)가 붙인다. 쿠키는 쓰지 않으므로 withCredentials도 필요 없음
+                const response = await axios.get(`http://localhost:8080/chat/history/${roomId}`);
 
                 if (response.status !== 200) {
                     throw new Error('Network response was not ok');

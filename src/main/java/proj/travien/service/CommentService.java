@@ -9,10 +9,12 @@ import proj.travien.repository.CommentRepository;
 import proj.travien.repository.PostRepository;
 import proj.travien.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -74,11 +76,15 @@ public class CommentService {
 
 
     /**
-     * 댓글 삭제 메서드
+     * 댓글 삭제 메서드: 작성자 본인 또는 관리자만 (아니면 403)
      */
-    public void deleteComment(Long commentId) {
+    public void deleteCommentAs(Long commentId, User me, boolean admin) {
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new RuntimeException("Comment not found"));
+        boolean owner = comment.getUser() != null && Objects.equals(comment.getUser().getId(), me.getId());
+        if (!owner && !admin) {
+            throw new AccessDeniedException("댓글 작성자만 삭제할 수 있습니다.");
+        }
         commentRepository.delete(comment);
     }
 

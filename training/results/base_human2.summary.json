@@ -1,0 +1,25 @@
+{
+  "name": "base_human2",
+  "model": "models/qwen3-4b-instruct-2507-4bit",
+  "adapter": null,
+  "examples": 90,
+  "decision_accuracy": 0.8222222222222222,
+  "tool_name_accuracy": 0.8157894736842105,
+  "exact_match": 0.5657894736842105,
+  "json_error_rate": 0.0,
+  "generation_errors": 0,
+  "seconds_per_example": 2.7165252844492596,
+  "by_task_accuracy": {
+    "clarify": 0.375,
+    "detail": 0.857,
+    "direct": 1.0,
+    "gloplers": 0.714,
+    "keywords": 0.4,
+    "parallel": 0.333,
+    "plan": 0.5,
+    "reviews": 1.0,
+    "routes": 0.75,
+    "search": 0.25,
+    "weather": 0.625
+  }
+}

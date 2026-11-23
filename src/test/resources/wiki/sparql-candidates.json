@@ -1,0 +1,103 @@
+{
+ "head": {
+  "vars": [
+   "item",
+   "sitelinks",
+   "countryCode"
+  ]
+ },
+ "results": {
+  "bindings": [
+   {
+    "item": {
+     "type": "uri",
+     "value": "http://www.wikidata.org/entity/Q63465"
+    },
+    "sitelinks": {
+     "datatype": "http://www.w3.org/2001/XMLSchema#integer",
+     "type": "literal",
+     "value": "14"
+    },
+    "countryCode": {
+     "type": "literal",
+     "value": "JP"
+    }
+   },
+   {
+    "item": {
+     "type": "uri",
+     "value": "http://www.wikidata.org/entity/Q187702"
+    },
+    "sitelinks": {
+     "datatype": "http://www.w3.org/2001/XMLSchema#integer",
+     "type": "literal",
+     "value": "76"
+    },
+    "countryCode": {
+     "type": "literal",
+     "value": "PS"
+    }
+   },
+   {
+    "item": {
+     "type": "uri",
+     "value": "http://www.wikidata.org/entity/Q187702"
+    },
+    "sitelinks": {
+     "datatype": "http://www.w3.org/2001/XMLSchema#integer",
+     "type": "literal",
+     "value": "76"
+    },
+    "countryCode": {
+     "type": "literal",
+     "value": "IL"
+    }
+   },
+   {
+    "item": {
+     "type": "uri",
+     "value": "http://www.wikidata.org/entity/Q224124"
+    },
+    "sitelinks": {
+     "datatype": "http://www.w3.org/2001/XMLSchema#integer",
+     "type": "literal",
+     "value": "60"
+    },
+    "countryCode": {
+     "type": "literal",
+     "value": "NL"
+    }
+   },
+   {
+    "item": {
+     "type": "uri",
+     "value": "http://www.wikidata.org/entity/Q501638"
+    },
+    "sitelinks": {
+     "datatype": "http://www.w3.org/2001/XMLSchema#integer",
+     "type": "literal",
+     "value": "53"
+    },
+    "countryCode": {
+     "type": "literal",
+     "value": "JP"
+    }
+   },
+   {
+    "item": {
+     "type": "uri",
+     "value": "http://www.wikidata.org/entity/Q1333799"
+    },
+    "sitelinks": {
+     "datatype": "http://www.w3.org/2001/XMLSchema#integer",
+     "type": "literal",
+     "value": "25"
+    },
+    "countryCode": {
+     "type": "literal",
+     "value": "JP"
+    }
+   }
+  ]
+ }
+}

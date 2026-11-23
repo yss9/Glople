@@ -3,6 +3,7 @@ package proj.travien.controller;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 import proj.travien.domain.Place;
@@ -17,6 +18,8 @@ public class PlaceController {
     @Autowired
     private PlaceService placeService;
 
+    // 전역 장소 데이터 일괄 저장 (관리자). SecurityConfig의 URL 규칙과 이중으로 막는다.
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/api/places")
     public ResponseEntity<List<Place>> savePlaces(@RequestBody PlaceRequest placeRequest) {
         List<Place> savedPlaces = placeService.savePlaces(placeRequest.getPlaces());

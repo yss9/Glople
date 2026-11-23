@@ -1,0 +1,465 @@
+{
+  "note": "합성 질의 + AI silver 라벨 기준. 설명문 원문 없음.",
+  "run_name": "e5-base-ft",
+  "created": "2026-10-18 15:06:51",
+  "device": "mps",
+  "model_dir": "outputs/e5-base-ft/best",
+  "train_meta": {
+    "base_model": "intfloat/multilingual-e5-base",
+    "base_revision": "d128750597153bb5987e10b1c3493a34e5a4502a",
+    "query_prefix": "query: ",
+    "passage_prefix": "passage: ",
+    "max_query_len": 64,
+    "max_passage_len": 256,
+    "description_policy": "all",
+    "epoch": 2,
+    "step": 330,
+    "valid": {
+      "queries": 285,
+      "ndcg@10": 0.8796,
+      "recall@20": 0.9163,
+      "mrr": 0.8626,
+      "avg_relevant": 16.11
+    },
+    "train_pairs": 5248,
+    "data_sha256": "5fec77b885adc757e04093037c03cd93c6c50dca1ad2f166d725f25e6944a1cc",
+    "versions": {
+      "python": "3.12.14",
+      "torch": "2.14.1",
+      "transformers": "5.18.0",
+      "sentence_transformers": "6.1.0",
+      "numpy": "2.5.3"
+    },
+    "saved": "2026-10-18 14:54:27"
+  },
+  "description_policy": "all",
+  "max_query_len": 64,
+  "max_passage_len": 256,
+  "versions": {
+    "python": "3.12.14",
+    "torch": "2.14.1",
+    "transformers": "5.18.0",
+    "sentence_transformers": "6.1.0",
+    "numpy": "2.5.3"
+  },
+  "data_sha256": {
+    "destinations.jsonl": "ba7564735c9f445b2c335ed1fa6625094ae4876c4f7b5bf7a3171e99018a9aea",
+    "queries_valid.jsonl": "6a5372609daecd9ae394b5845ca51b4e81c5d6c813e389e359288c233bc61059",
+    "queries_test.jsonl": "bd125e0449271fe481da4b60bd71c9737c08fd53de1c7aca717546d9a15ccadf",
+    "queries_test_iid.jsonl": "5277b0659c50f242a0d81bb4b13efaeec839fcb4b743aaf8fda37444c8c3b313"
+  },
+  "sets": {
+    "test": {
+      "overall": {
+        "queries": 279,
+        "ndcg@10": 0.8022,
+        "recall@20": 0.8429,
+        "mrr": 0.7834,
+        "avg_relevant": 12.48
+      },
+      "by_origin": {
+        "test": {
+          "queries": 153,
+          "ndcg@10": 0.79,
+          "recall@20": 0.8399,
+          "mrr": 0.7703,
+          "avg_relevant": 13.25
+        },
+        "test_new": {
+          "queries": 126,
+          "ndcg@10": 0.817,
+          "recall@20": 0.8466,
+          "mrr": 0.7995,
+          "avg_relevant": 11.55
+        }
+      },
+      "by_type": {
+        "kw": {
+          "queries": 168,
+          "ndcg@10": 0.79,
+          "recall@20": 0.7724,
+          "mrr": 0.7691,
+          "avg_relevant": 17.88
+        },
+        "kw+category": {
+          "queries": 10,
+          "ndcg@10": 0.7141,
+          "recall@20": 0.879,
+          "mrr": 0.7288,
+          "avg_relevant": 5.0
+        },
+        "kw+region": {
+          "queries": 91,
+          "ndcg@10": 0.8208,
+          "recall@20": 0.9518,
+          "mrr": 0.7976,
+          "avg_relevant": 4.49
+        },
+        "kw+region+category": {
+          "queries": 10,
+          "ndcg@10": 0.9265,
+          "recall@20": 1.0,
+          "mrr": 0.95,
+          "avg_relevant": 2.1
+        }
+      }
+    },
+    "test_iid": {
+      "overall": {
+        "queries": 279,
+        "ndcg@10": 0.8748,
+        "recall@20": 0.9073,
+        "mrr": 0.8592,
+        "avg_relevant": 11.5
+      },
+      "by_origin": {
+        "test": {
+          "queries": 153,
+          "ndcg@10": 0.8703,
+          "recall@20": 0.9,
+          "mrr": 0.8555,
+          "avg_relevant": 11.66
+        },
+        "test_new": {
+          "queries": 126,
+          "ndcg@10": 0.8801,
+          "recall@20": 0.9161,
+          "mrr": 0.8638,
+          "avg_relevant": 11.31
+        }
+      },
+      "by_type": {
+        "kw": {
+          "queries": 169,
+          "ndcg@10": 0.8687,
+          "recall@20": 0.8675,
+          "mrr": 0.8401,
+          "avg_relevant": 15.69
+        },
+        "kw+category": {
+          "queries": 15,
+          "ndcg@10": 0.7847,
+          "recall@20": 0.9578,
+          "mrr": 0.7836,
+          "avg_relevant": 5.07
+        },
+        "kw+region": {
+          "queries": 85,
+          "ndcg@10": 0.891,
+          "recall@20": 0.9667,
+          "mrr": 0.9033,
+          "avg_relevant": 5.54
+        },
+        "kw+region+category": {
+          "queries": 10,
+          "ndcg@10": 0.9732,
+          "recall@20": 1.0,
+          "mrr": 0.92,
+          "avg_relevant": 1.1
+        }
+      }
+    },
+    "valid": {
+      "overall": {
+        "queries": 285,
+        "ndcg@10": 0.8796,
+        "recall@20": 0.9163,
+        "mrr": 0.8626,
+        "avg_relevant": 16.11
+      },
+      "by_origin": {
+        "valid": {
+          "queries": 285,
+          "ndcg@10": 0.8796,
+          "recall@20": 0.9163,
+          "mrr": 0.8626,
+          "avg_relevant": 16.11
+        }
+      },
+      "by_type": {
+        "kw": {
+          "queries": 164,
+          "ndcg@10": 0.8768,
+          "recall@20": 0.8694,
+          "mrr": 0.8709,
+          "avg_relevant": 24.48
+        },
+        "kw+category": {
+          "queries": 18,
+          "ndcg@10": 0.7729,
+          "recall@20": 0.9813,
+          "mrr": 0.7333,
+          "avg_relevant": 4.78
+        },
+        "kw+region": {
+          "queries": 93,
+          "ndcg@10": 0.9038,
+          "recall@20": 0.9773,
+          "mrr": 0.8762,
+          "avg_relevant": 4.97
+        },
+        "kw+region+category": {
+          "queries": 10,
+          "ndcg@10": 0.8918,
+          "recall@20": 1.0,
+          "mrr": 0.8333,
+          "avg_relevant": 2.8
+        }
+      }
+    }
+  },
+  "examples": {
+    "improved": [
+      {
+        "query": "영동군에서 가 볼 혼자 가도 좋은 곳을 찾는 중인데 자연이 꼭 있었으면 해요",
+        "keywords": [
+          "자연"
+        ],
+        "type": "kw+region",
+        "region": "영동군",
+        "ndcg@10_base": 0.0,
+        "ndcg@10_finetuned": 1.0,
+        "top3_base": [
+          "국립무의도자연휴양림",
+          "굴업도",
+          "거제 계도어촌체험마을"
+        ],
+        "top3_finetuned": [
+          "강선대",
+          "청계8경 버들습지",
+          "늘솔길공원"
+        ]
+      },
+      {
+        "query": "송파구에서 절집으로 이름난 여행지 어디 없을까요?",
+        "keywords": [
+          "사원"
+        ],
+        "type": "kw+region",
+        "region": "송파구",
+        "ndcg@10_base": 0.0,
+        "ndcg@10_finetuned": 1.0,
+        "top3_base": [
+          "남대문바위",
+          "국립무의도자연휴양림",
+          "법종사"
+        ],
+        "top3_finetuned": [
+          "불광사",
+          "법종사",
+          "감로암(서울)"
+        ]
+      },
+      {
+        "query": "관악구에서 기념물과 역사적인 장소 실컷 보고 올 수 있는 스폿 알려 주세요",
+        "keywords": [
+          "기념물",
+          "역사적인 장소"
+        ],
+        "type": "kw+region",
+        "region": "관악구",
+        "ndcg@10_base": 0.0,
+        "ndcg@10_finetuned": 1.0,
+        "top3_base": [
+          "종로 청계 관광특구",
+          "만남의광장",
+          "백악정"
+        ],
+        "top3_finetuned": [
+          "효민공 이경직 묘역",
+          "순국선열추념탑",
+          "성재 이시영선생 동상"
+        ]
+      },
+      {
+        "query": "성동구에서 지난 역사의 흔적 느낌 나는 곳에 가고 싶어요",
+        "keywords": [
+          "역사"
+        ],
+        "type": "kw+region",
+        "region": "성동구",
+        "ndcg@10_base": 0.0,
+        "ndcg@10_finetuned": 1.0,
+        "top3_base": [
+          "아모레 성수",
+          "종로 청계 관광특구",
+          "강동리조트 프라이빗콘도"
+        ],
+        "top3_finetuned": [
+          "서울 살곶이 다리",
+          "서울교통공사 차량기지(신정, 수서, 천왕기지)",
+          "효민공 이경직 묘역"
+        ]
+      },
+      {
+        "query": "유적 느낌 나는 혼자 가도 좋은 스폿에 가고 싶어요",
+        "keywords": [
+          "유적"
+        ],
+        "type": "kw",
+        "region": null,
+        "ndcg@10_base": 0.0,
+        "ndcg@10_finetuned": 1.0,
+        "top3_base": [
+          "고스락",
+          "마이랜드",
+          "고흥 유자공원"
+        ],
+        "top3_finetuned": [
+          "경주 동부 사적지대",
+          "경주 금척리 고분군",
+          "태릉강릉"
+        ]
+      },
+      {
+        "query": "서울에서 가 볼 성당을 찾는 중인데 건축이 꼭 있었으면 해요",
+        "keywords": [
+          "건축"
+        ],
+        "type": "kw+region+category",
+        "region": "서울",
+        "ndcg@10_base": 0.0,
+        "ndcg@10_finetuned": 1.0,
+        "top3_base": [
+          "아모레 성수",
+          "서울 연세대학교 아펜젤러관",
+          "서울 동관왕묘"
+        ],
+        "top3_finetuned": [
+          "가회동성당",
+          "서울 연세대학교 아펜젤러관",
+          "당고개순교성지"
+        ]
+      }
+    ],
+    "worsened": [
+      {
+        "query": "서울에서 기찻길로 이름난 곳 어디 없을까요?",
+        "keywords": [
+          "기차"
+        ],
+        "type": "kw+region",
+        "region": "서울",
+        "ndcg@10_base": 0.631,
+        "ndcg@10_finetuned": 0.0,
+        "top3_base": [
+          "로렌스길",
+          "서울교통공사 차량기지(신정, 수서, 천왕기지)",
+          "서울 살곶이 다리"
+        ],
+        "top3_finetuned": [
+          "남산순환나들길",
+          "로렌스길",
+          "하늘공원 메타세쿼이아 숲길"
+        ]
+      },
+      {
+        "query": "탑 실컷 보고 올 수 있는 곳 알려 주세요",
+        "keywords": [
+          "탑"
+        ],
+        "type": "kw",
+        "region": null,
+        "ndcg@10_base": 0.613,
+        "ndcg@10_finetuned": 0.218,
+        "top3_base": [
+          "우면산 소망탑",
+          "서울교통공사 차량기지(신정, 수서, 천왕기지)",
+          "롯데월드타워 서울스카이"
+        ],
+        "top3_finetuned": [
+          "김상용 순절비",
+          "경주역사유적지구 [유네스코 세계유산]",
+          "순국선열추념탑"
+        ]
+      },
+      {
+        "query": "오래된 탑 실컷 보고 올 수 있는 여행지 알려 주세요",
+        "keywords": [
+          "탑"
+        ],
+        "type": "kw",
+        "region": null,
+        "ndcg@10_base": 0.613,
+        "ndcg@10_finetuned": 0.218,
+        "top3_base": [
+          "우면산 소망탑",
+          "서울교통공사 차량기지(신정, 수서, 천왕기지)",
+          "태릉강릉"
+        ],
+        "top3_finetuned": [
+          "김상용 순절비",
+          "경주역사유적지구 [유네스코 세계유산]",
+          "간월암(서산)"
+        ]
+      },
+      {
+        "query": "도보 여행 좋아하는 친구랑 광주·전남에서 가 볼 스폿 추천해 주세요",
+        "keywords": [
+          "트레킹"
+        ],
+        "type": "kw+region",
+        "region": "광주·전남",
+        "ndcg@10_base": 0.387,
+        "ndcg@10_finetuned": 0.0,
+        "top3_base": [
+          "곤지암반디숲",
+          "한복남 경복궁점",
+          "제봉산 마법의 숲 체험원"
+        ],
+        "top3_finetuned": [
+          "가사도",
+          "지산유원지",
+          "고흥 유자공원"
+        ]
+      },
+      {
+        "query": "지역 문화와 옛 터 느낌 나는 붐비지 않는 곳에 가고 싶어요",
+        "keywords": [
+          "문화",
+          "유적"
+        ],
+        "type": "kw",
+        "region": null,
+        "ndcg@10_base": 0.266,
+        "ndcg@10_finetuned": 0.047,
+        "top3_base": [
+          "창작농성골",
+          "곤지암반디숲",
+          "개실마을"
+        ],
+        "top3_finetuned": [
+          "개실마을",
+          "고산 윤선도 유적지",
+          "개평한옥마을"
+        ]
+      },
+      {
+        "query": "다음 여행은 시장과 옛 정취! 갈 만한 스폿 있나요?",
+        "keywords": [
+          "시장",
+          "전통"
+        ],
+        "type": "kw",
+        "region": null,
+        "ndcg@10_base": 0.427,
+        "ndcg@10_finetuned": 0.23,
+        "top3_base": [
+          "종로 청계 관광특구",
+          "YTN",
+          "마이랜드"
+        ],
+        "top3_finetuned": [
+          "금성전파사",
+          "고스락",
+          "동대문 문구완구거리 (창신동 문구완구시장)"
+        ]
+      }
+    ],
+    "counts": {
+      "better": 248,
+      "worse": 16,
+      "same": 15
+    }
+  }
+}

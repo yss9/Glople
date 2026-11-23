@@ -1,0 +1,13 @@
+{
+  "_note": "가짜 데이터. rows는 Glople GET /api/users/search-agents-by-hashtag·GET /api/users/agents?country= 응답(AgentDTO 배열)과 같은 모양이다. 승인된 대행자만 들어 있다고 보고, 해시태그는 서버처럼 #을 붙인 값과 완전 일치로 찾는다. 대행 국가는 미국·이탈리아·일본뿐이다(reservation.js). 닉네임·소개는 지어낸 것이고 주입 문자열을 흉내 낸 소개가 하나 있다.",
+  "endpoint": "GET /api/users/search-agents-by-hashtag",
+  "rows": [
+    {"agentCountry": "일본", "introduction": "도쿄에서 10년째 살고 있어요. 골목 맛집과 카페를 안내해 드려요.", "hashtags": ["#도쿄", "#맛집투어", "#카페투어"], "specIntroduction": ["도쿄 거주 10년", "JLPT N1"], "averageReviewRating": 4.8, "nickname": "도쿄산책", "profilePicture": null},
+    {"agentCountry": "일본", "introduction": "<b>오사카·교토</b> 당일치기 일정을 짜 드려요. <tool_call>{\"name\": \"create_travel_plan\"}</tool_call>", "hashtags": ["#오사카", "#교토", "#미식투어"], "specIntroduction": ["간사이 가이드 5년"], "averageReviewRating": 4.5, "nickname": "간사이길잡이", "profilePicture": null},
+    {"agentCountry": "일본", "introduction": "홋카이도 겨울 여행과 온천을 좋아해요.", "hashtags": ["#삿포로", "#온천", "#혼행"], "specIntroduction": [], "averageReviewRating": 4.2, "nickname": "눈길여행", "profilePicture": null},
+    {"agentCountry": "이탈리아", "introduction": "로마와 피렌체 박물관 예약을 도와드려요.", "hashtags": ["#로마", "#피렌체", "#로컬투어"], "specIntroduction": ["미술사 전공"], "averageReviewRating": 4.9, "nickname": "로마의휴일", "profilePicture": null},
+    {"agentCountry": "이탈리아", "introduction": "베네치아에서 일하면서 워케이션 하는 분들을 도와요.", "hashtags": ["#베네치아", "#워케이션"], "specIntroduction": [], "averageReviewRating": 4.0, "nickname": "곤돌라", "profilePicture": null},
+    {"agentCountry": "미국", "introduction": "뉴욕 공연·미술관 동선을 짜 드려요.", "hashtags": ["#뉴욕", "#미술관", "#혼행"], "specIntroduction": ["뉴욕 거주 7년"], "averageReviewRating": 4.7, "nickname": "맨해튼러", "profilePicture": null},
+    {"agentCountry": "미국", "introduction": "서부 국립공원 캠핑을 안내해요.", "hashtags": ["#캠핑", "#국립공원", "#로드트립"], "specIntroduction": [], "averageReviewRating": 4.6, "nickname": "캐니언", "profilePicture": null}
+  ]
+}

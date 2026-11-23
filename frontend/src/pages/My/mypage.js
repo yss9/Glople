@@ -9,7 +9,7 @@
     import { Reset } from "styled-reset";
     import {
     GloplerSettingBtn, Introduce, IntroduceWrapper,
-    Mbti, MyPageDetailContainer, MyProfileContainer, NameWrapper, PointSettingBtn,
+    Mbti, MyPageDetailContainer, MyProfileContainer, NameWrapper, PlanSettingBtn, PointSettingBtn,
     ProfileImg, ProfileSettingBtn, SettingContainer, SettingWrapper, Content,
     Container, Highlight, SelectorContainer, SelectorItem, SelectorWrapper,
     SelectorItem2, Highlight2, SelectorWrapper2, Wrapper
@@ -164,6 +164,14 @@
                                 </svg>
                                 <p>포인트 관리</p>
                             </PointSettingBtn>
+                            <PlanSettingBtn onClick={() => navigate('/my/plans')}>
+                                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path
+                                        d="M5 0V2H3C1.9 2 1 2.9 1 4V18C1 19.1 1.9 20 3 20H17C18.1 20 19 19.1 19 18V4C19 2.9 18.1 2 17 2H15V0H13V2H7V0H5ZM3 7H17V18H3V7ZM5 9V11H11V9H5ZM5 13V15H14V13H5Z"
+                                        fill="black"/>
+                                </svg>
+                                <p>내 여행 일정</p>
+                            </PlanSettingBtn>
                         </SettingContainer>
                     </SettingWrapper>
                     <MyPageDetailContainer>
